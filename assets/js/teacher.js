@@ -132,12 +132,32 @@ function renderCohorts(cohorts) {
         <strong>${escapeHtml(cohort.name)}</strong>
         <code>${escapeHtml(cohort.code)}</code>
       </div>
-      <button class="button button--ghost" type="button" data-open-cohort="${escapeHtml(cohort.code)}">Open</button>
+      <div class="cohort-actions">
+        <button class="button button--ghost" type="button" data-open-cohort="${escapeHtml(cohort.code)}">Open</button>
+        <button class="button button--danger" type="button" data-delete-cohort="${escapeHtml(cohort.code)}">Delete</button>
+      </div>
     </article>
   `).join("");
 
   list.querySelectorAll("[data-open-cohort]").forEach((button) => {
     button.addEventListener("click", () => openCohort(button.dataset.openCohort, cohorts.find((item) => item.code === button.dataset.openCohort)));
+  });
+
+  list.querySelectorAll("[data-delete-cohort]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const code = button.dataset.deleteCohort;
+      const cohort = cohorts.find((item) => item.code === code);
+      if (!confirm(`Delete cohort "${cohort?.name || code}" and its saved student sessions?`)) return;
+      const session = window.VTLabFirebase.getLocalSession();
+      if (session.testMode) {
+        renderCohorts([]);
+        document.querySelector("#cohortDetail").hidden = true;
+        return;
+      }
+      await window.VTLabFirebase.deleteCohort(code);
+      document.querySelector("#cohortDetail").hidden = true;
+      loadCohorts();
+    });
   });
 }
 
@@ -149,6 +169,7 @@ async function openCohort(code, cohort) {
   const session = window.VTLabFirebase.getLocalSession();
   const records = session.testMode ? demoRecords(code) : await window.VTLabFirebase.getCohortSessions(code);
   const students = groupByStudent(records);
+  const studentList = Object.entries(students);
 
   detail.innerHTML = `
     <div class="cohort-detail__header">
@@ -176,12 +197,36 @@ async function openCohort(code, cohort) {
         </tbody>
       </table>
     </div>
+    <h3 class="teacher-subtitle">Students</h3>
+    <div class="student-list">
+      ${studentList.length ? studentList.map(([studentKey, studentRecords]) => `
+        <article class="cohort-row">
+          <div>
+            <strong>${escapeHtml(studentRecords[0].studentName || studentRecords[0].studentEmail || studentKey)}</strong>
+            <p>${studentRecords.length} saved record(s)</p>
+          </div>
+          <button class="button button--danger" type="button" data-delete-student="${escapeHtml(studentKey)}">Delete student</button>
+        </article>
+      `).join("") : `<p>No students yet.</p>`}
+    </div>
     <p class="student-count">${Object.keys(students).length} student(s) · ${records.length} saved record(s)</p>
   `;
 
   detail.querySelector("[data-export-cohort]").addEventListener("click", () => downloadCsv(`vtlab_${code}_cohort_records.csv`, records));
   detail.querySelectorAll("[data-export-record]").forEach((button) => {
     button.addEventListener("click", () => downloadCsv(`vtlab_${code}_${button.dataset.exportRecord}.csv`, [records[Number(button.dataset.recordIndex)]]));
+  });
+  detail.querySelectorAll("[data-delete-student]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const studentKey = button.dataset.deleteStudent;
+      if (!confirm("Delete this student and their saved sessions from this cohort?")) return;
+      if (session.testMode) {
+        detail.querySelector(".student-list").innerHTML = "<p>No students yet.</p>";
+        return;
+      }
+      await window.VTLabFirebase.deleteCohortStudent(code, studentKey);
+      openCohort(code, cohort);
+    });
   });
   detail.scrollIntoView({ behavior: "smooth", block: "start" });
 }

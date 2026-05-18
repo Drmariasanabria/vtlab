@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js";
 import { GoogleAuthProvider, getAuth, onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { addDoc, collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDHK61WDf29BnAmtj6g3sp40YWsxcwEX-8",
@@ -157,6 +157,21 @@ async function getCohortSessions(code) {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 }
 
+async function deleteCohort(code) {
+  const sessions = await getCohortSessions(code);
+  await Promise.all(sessions.map((session) => deleteDoc(doc(db, "roomSessions", session.id))));
+  const students = await getDocs(collection(db, "cohorts", code, "students"));
+  await Promise.all(students.docs.map((student) => deleteDoc(doc(db, "cohorts", code, "students", student.id))));
+  await deleteDoc(doc(db, "cohorts", code));
+}
+
+async function deleteCohortStudent(code, studentUid) {
+  const sessions = await getCohortSessions(code);
+  const studentSessions = sessions.filter((session) => session.studentUid === studentUid || session.studentEmail === studentUid);
+  await Promise.all(studentSessions.map((session) => deleteDoc(doc(db, "roomSessions", session.id))));
+  await deleteDoc(doc(db, "cohorts", code, "students", studentUid));
+}
+
 function generateCode() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
@@ -190,5 +205,7 @@ window.VTLabFirebase = {
   listTeacherCohorts,
   joinCohort,
   getCohortSessions,
+  deleteCohort,
+  deleteCohortStudent,
   saveRoomSession,
 };
