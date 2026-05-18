@@ -1944,6 +1944,21 @@ function saveToFirebase(eventName){
   }).catch(err=>console.warn('VT Lab Firebase save failed', err));
 }
 
+window.getVTLabRoomResult = function(){
+  return {
+    victory: !!state.victory,
+    dead: !!state.dead,
+    score: state.score,
+    knots: state.knots,
+    currentStation: state.currentStation,
+    totalTime: state.totalTime,
+    bestReputation: state.bestReputation,
+    events: state.events,
+    hintsGiven: state.hintsGiven,
+    achievements: state.achievements,
+  };
+};
+
 /* ====================== EXPORT ====================== */
 function exportReport(){
   let txt = '════════════════════════════════════════════════════════\n';

@@ -3,25 +3,38 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="VT Lab teacher hub for classroom escape rooms and research-oriented resources.">
-    <title>Teacher Hub | VT Lab</title>
+    <meta name="description" content="VT Lab teacher dashboard for cohorts, student progress, questionnaires, and exports.">
+    <title>Teacher Dashboard | VT Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/global.css">
   </head>
   <body class="is-ready">
     <main class="site-shell">
-      <section class="hero" aria-labelledby="teacher-title">
+      <section class="hero hero--compact" aria-labelledby="teacher-title">
         <nav class="topbar" aria-label="Primary navigation">
           <a class="brand" href="../index.html"><span class="brand__glyph">VT</span><span>Lab</span></a>
-          <a class="topbar__link" href="../rooms/phonetics-time-vault/">Open room</a>
+          <a class="topbar__link" href="../index.html#student-access">Student Login</a>
         </nav>
         <div class="hero__content">
-          <p class="kicker">Teacher Hub</p>
-          <h1 id="teacher-title">VT Lab</h1>
-          <p class="subtitle">Classroom-ready educational escape rooms with local pre/post research exports.</p>
-          <p class="hero__description">This space will host teaching notes, cohort setup guidance, questionnaire adaptation notes, and future Firebase-ready research workflows.</p>
+          <p class="kicker">Teacher Login</p>
+          <h1 id="teacher-title">Teacher Dashboard</h1>
+          <p class="subtitle">Create cohorts, share codes, monitor progress, and export questionnaire records.</p>
         </div>
+      </section>
+
+      <section class="section" aria-labelledby="teacher-app-title">
+        <div class="section__intro">
+          <p class="kicker">Cohort Management</p>
+          <h2 id="teacher-app-title">Professor view</h2>
+        </div>
+        <div id="teacher-app"></div>
       </section>
     </main>
     <footer class="footer">VT Lab · Dr María Sanabria · Universidad de Cantabria</footer>
+
+    <script type="module" src="../assets/js/firebase.js"></script>
+    <script src="../assets/js/teacher.js"></script>
   </body>
 </html>

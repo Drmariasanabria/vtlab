@@ -322,6 +322,152 @@ h3 {
   gap: 20px;
 }
 
+.rooms-grid--compact .room-card h3 {
+  font-size: clamp(1.8rem, 4vw, 3.4rem);
+}
+
+.access-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.access-panel {
+  padding: clamp(22px, 4vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.access-panel--active {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.access-panel h2 {
+  margin-bottom: 14px;
+}
+
+.access-panel p,
+.access-panel label {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.access-panel form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.access-panel input {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--ink);
+  padding: 0 14px;
+  text-transform: uppercase;
+}
+
+.access-error {
+  min-height: 22px;
+  color: var(--rose) !important;
+  font-weight: 800;
+}
+
+.hero--compact {
+  min-height: 62vh;
+}
+
+.teacher-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.cohort-list {
+  display: grid;
+  gap: 10px;
+}
+
+.cohort-row,
+.cohort-detail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cohort-row {
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.cohort-row code,
+.cohort-detail code {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--lime);
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.cohort-detail {
+  margin-top: 18px;
+}
+
+.teacher-table-wrap {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.teacher-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  color: #eaf2ff;
+}
+
+.teacher-table th,
+.teacher-table td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.teacher-table th {
+  color: var(--lime);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.teacher-table button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+  padding: 0 12px;
+  font-weight: 800;
+}
+
+.student-count {
+  color: var(--muted);
+}
+
 .room-card,
 .data-band {
   position: relative;
@@ -448,8 +594,24 @@ h3 {
 
   .room-card,
   .split,
-  .data-band {
+  .data-band,
+  .access-grid {
     grid-template-columns: 1fr;
+  }
+
+  .access-panel--active {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .teacher-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cohort-row,
+  .cohort-detail__header {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .data-grid {

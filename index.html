@@ -30,7 +30,7 @@
             <span class="brand__glyph">VT</span>
             <span>Lab</span>
           </a>
-          <a class="topbar__link" href="./teacher/">Teacher Hub</a>
+          <a class="topbar__link" href="./teacher/">Teacher Login</a>
         </nav>
         <div class="hero__content">
           <p class="kicker">Educational escape rooms · research-ready classroom tools</p>
@@ -38,10 +38,18 @@
           <p class="subtitle">A vibe-coding project by Dr María Sanabria (Universidad de Cantabria)</p>
           <p class="hero__description">A modular platform for gamified English language learning, educational escape rooms, classroom experimentation, and research-informed data collection.</p>
           <div class="hero__actions">
-            <a class="button button--primary" href="#featured-room">View Featured Missions</a>
+            <a class="button button--primary" href="#student-access">Student Access</a>
             <a class="button button--ghost" href="#research">Teaching + Research</a>
           </div>
         </div>
+      </section>
+
+      <section class="section" id="student-access" aria-labelledby="student-access-title">
+        <div class="section__intro">
+          <p class="kicker">Student Login</p>
+          <h2 id="student-access-title">Enter with a cohort code</h2>
+        </div>
+        <div id="student-app"></div>
       </section>
 
       <section class="featured section" aria-labelledby="featured-room">
@@ -102,6 +110,7 @@
     </footer>
 
     <script type="module" src="./assets/js/firebase.js"></script>
+    <script src="./assets/js/portal.js"></script>
     <script src="./assets/js/main.js"></script>
   </body>
 </html>

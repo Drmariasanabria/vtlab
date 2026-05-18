@@ -213,8 +213,19 @@
         consent: state.consent,
         preQuestionnaire: state.pre || null,
         postQuestionnaire: state.post || null,
+        result: getRoomResult(),
       }).catch((error) => console.warn("VT Lab Firebase save failed", error));
     }
+  }
+
+  function getRoomResult() {
+    if (config.resultFunction && typeof window[config.resultFunction] === "function") {
+      return window[config.resultFunction]();
+    }
+    if (typeof window.getVTLabRoomResult === "function") {
+      return window.getVTLabRoomResult();
+    }
+    return null;
   }
 
   function renderExportPanel() {

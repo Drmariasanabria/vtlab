@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js";
-import { addDoc, collection, getFirestore, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { GoogleAuthProvider, getAuth, onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { addDoc, collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, setDoc, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDHK61WDf29BnAmtj6g3sp40YWsxcwEX-8",
@@ -14,6 +15,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
 isSupported().then((supported) => {
   if (supported) {
@@ -22,9 +25,21 @@ isSupported().then((supported) => {
 });
 
 async function saveRoomSession(payload) {
+  const session = getLocalSession();
+  if (session.testMode) {
+    saveLocalTestSession(payload);
+    return { id: "test-mode-local-only" };
+  }
+
   const cleanPayload = JSON.parse(JSON.stringify(payload || {}));
   return addDoc(collection(db, "roomSessions"), {
     ...cleanPayload,
+    cohortCode: session.cohortCode || null,
+    cohortName: session.cohortName || null,
+    studentUid: auth.currentUser?.uid || session.user?.uid || null,
+    studentName: auth.currentUser?.displayName || session.user?.displayName || null,
+    studentEmail: auth.currentUser?.email || session.user?.email || null,
+    testMode: false,
     site: "VT Lab",
     source: "github-pages",
     pageUrl: window.location.href,
@@ -33,8 +48,147 @@ async function saveRoomSession(payload) {
   });
 }
 
+function getLocalSession() {
+  try {
+    return JSON.parse(localStorage.getItem("vtlab.session")) || {};
+  } catch {
+    return {};
+  }
+}
+
+function setLocalSession(nextSession) {
+  const merged = { ...getLocalSession(), ...nextSession };
+  localStorage.setItem("vtlab.session", JSON.stringify(merged));
+  return merged;
+}
+
+function clearLocalSession() {
+  localStorage.removeItem("vtlab.session");
+}
+
+function saveLocalTestSession(payload) {
+  const records = JSON.parse(localStorage.getItem("vtlab.testSessions") || "[]");
+  records.push({
+    ...payload,
+    testMode: true,
+    createdAt: new Date().toISOString(),
+  });
+  localStorage.setItem("vtlab.testSessions", JSON.stringify(records));
+}
+
+function authReady() {
+  return new Promise((resolve) => {
+    onAuthStateChanged(auth, (user) => resolve(user));
+  });
+}
+
+async function loginWithGoogle(role = "student") {
+  const result = await signInWithPopup(auth, provider);
+  const user = serialiseUser(result.user);
+  return setLocalSession({ role, user, testMode: false });
+}
+
+async function logout() {
+  clearLocalSession();
+  await signOut(auth);
+}
+
+function startTestMode(role = "student") {
+  return setLocalSession({
+    role,
+    testMode: true,
+    cohortCode: null,
+    cohortName: "Test mode",
+    user: {
+      uid: `test-${role}`,
+      displayName: role === "teacher" ? "Teacher test mode" : "Student test mode",
+      email: "",
+    },
+  });
+}
+
+async function createCohort(name) {
+  const user = auth.currentUser || await authReady();
+  if (!user) throw new Error("Please sign in with Google first.");
+  const code = generateCode();
+  await setDoc(doc(db, "cohorts", code), {
+    code,
+    name,
+    teacherUid: user.uid,
+    teacherName: user.displayName || "",
+    teacherEmail: user.email || "",
+    createdAt: serverTimestamp(),
+  });
+  return { code, name };
+}
+
+async function listTeacherCohorts() {
+  const user = auth.currentUser || await authReady();
+  if (!user) return [];
+  const snapshot = await getDocs(query(collection(db, "cohorts"), where("teacherUid", "==", user.uid)));
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+}
+
+async function joinCohort(code) {
+  const normalised = String(code || "").trim().toUpperCase();
+  const user = auth.currentUser || await authReady();
+  if (!user) throw new Error("Please sign in with Google first.");
+  const cohortRef = doc(db, "cohorts", normalised);
+  const cohort = await getDoc(cohortRef);
+  if (!cohort.exists()) throw new Error("That cohort code does not exist.");
+  const data = cohort.data();
+  await setDoc(doc(db, "cohorts", normalised, "students", user.uid), {
+    uid: user.uid,
+    displayName: user.displayName || "",
+    email: user.email || "",
+    joinedAt: serverTimestamp(),
+  }, { merge: true });
+  return setLocalSession({
+    role: "student",
+    testMode: false,
+    cohortCode: normalised,
+    cohortName: data.name || normalised,
+    user: serialiseUser(user),
+  });
+}
+
+async function getCohortSessions(code) {
+  const snapshot = await getDocs(query(collection(db, "roomSessions"), where("cohortCode", "==", code)));
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+}
+
+function generateCode() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i += 1) {
+    code += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return code;
+}
+
+function serialiseUser(user) {
+  return {
+    uid: user.uid,
+    displayName: user.displayName || "",
+    email: user.email || "",
+    photoURL: user.photoURL || "",
+  };
+}
+
 window.VTLabFirebase = {
   app,
+  auth,
   db,
+  authReady,
+  loginWithGoogle,
+  logout,
+  startTestMode,
+  getLocalSession,
+  setLocalSession,
+  clearLocalSession,
+  createCohort,
+  listTeacherCohorts,
+  joinCohort,
+  getCohortSessions,
   saveRoomSession,
 };
