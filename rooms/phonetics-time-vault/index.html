@@ -1,0 +1,2387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE PHONETICS TIME VAULT — A Phonetics Escape Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;500;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root{
+  --timevault:#003B6F; --timevault-deep:#001b3a; --timevault-light:#1e5fa8;
+  --gold:#e8b923; --gold-soft:#f6d35a; --cream:#f4ecd8;
+  --danger:#ff3a3a; --danger-deep:#8b0000;
+  --success:#27ae60; --warning:#ff9500; --magic:#9b59ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{
+  font-family:'Cormorant Garamond',serif;
+  background:
+    radial-gradient(ellipse at 20% 10%, #0a4d8c 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, #1b2a6e 0%, transparent 60%),
+    linear-gradient(180deg,#000814 0%, #001b3a 100%);
+  color:var(--cream);
+  overflow-x:hidden;
+  padding-left:120px;
+  padding-top:115px;
+}
+body.critical{animation:critical 1.2s infinite}
+@keyframes critical{0%,100%{filter:none}50%{filter:hue-rotate(-15deg) brightness(1.08)}}
+body.dying::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:5;
+  background:radial-gradient(ellipse at center, transparent 35%, rgba(139,0,0,.4) 100%);
+  animation:bloodpulse 1.2s infinite;
+}
+@keyframes bloodpulse{0%,100%{opacity:.5}50%{opacity:1}}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, #fff, transparent),
+    radial-gradient(1px 1px at 78% 14%, #fff, transparent),
+    radial-gradient(2px 2px at 33% 67%, #fff, transparent),
+    radial-gradient(1px 1px at 88% 55%, #fff, transparent),
+    radial-gradient(1px 1px at 8% 82%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 55% 33%, #fff, transparent),
+    radial-gradient(1px 1px at 65% 88%, #fff, transparent),
+    radial-gradient(1px 1px at 45% 12%, #fff, transparent);
+  opacity:.4;
+  animation:twinkle 6s ease-in-out infinite alternate;
+}
+@keyframes twinkle{from{opacity:.25}to{opacity:.55}}
+
+/* === IPA SIDEBAR === */
+.ipa-sidebar{
+  position:fixed; left:0; top:0; bottom:0; width:110px;
+  background:linear-gradient(180deg, rgba(0,15,35,.97) 0%, rgba(0,27,58,.97) 100%);
+  border-right:2px solid var(--gold);
+  padding:14px 8px; overflow-y:auto; z-index:50;
+  box-shadow:4px 0 20px rgba(0,0,0,.5);
+}
+.ipa-sidebar h3{
+  font-family:'VT323',monospace; color:var(--gold);
+  font-size:1rem; text-align:center; letter-spacing:.15em;
+  margin-bottom:8px; padding-bottom:6px;
+  border-bottom:1px dashed rgba(232,185,35,.4);
+}
+.ipa-group{margin-bottom:10px}
+.ipa-group-label{
+  font-family:'VT323',monospace; color:var(--gold-soft);
+  font-size:.78rem; letter-spacing:.1em; text-transform:uppercase;
+  margin-bottom:4px; text-align:center; opacity:.85;
+}
+.ipa-keys{display:grid;grid-template-columns:repeat(2,1fr);gap:3px}
+.ipa-keys button{
+  background:rgba(30,95,168,.45);
+  border:1px solid rgba(232,185,35,.35);
+  color:var(--cream); font-family:'Cormorant Garamond',serif;
+  font-size:1rem; padding:5px 2px; border-radius:3px;
+  cursor:pointer; transition:all .12s; user-select:none;
+}
+.ipa-keys button:hover{
+  background:var(--gold); color:var(--timevault-deep);
+  transform:translateY(-1px); font-weight:bold;
+}
+.ipa-keys button.wide{grid-column:1/-1}
+
+/* === TOP NAVBAR === */
+.topbar{
+  position:fixed; top:0; right:0; left:120px;
+  background:linear-gradient(180deg, rgba(0,8,20,.97) 0%, rgba(0,8,20,.92) 100%);
+  border-bottom:2px solid var(--gold);
+  z-index:40; backdrop-filter:blur(8px);
+}
+.topbar-row1{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:8px 16px; gap:12px; flex-wrap:wrap;
+}
+.topbar-title{
+  font-family:'Orbitron',sans-serif; font-weight:900;
+  font-size:1.1rem; color:var(--gold); letter-spacing:.1em;
+}
+.score-display{
+  display:flex; align-items:center; gap:8px;
+  background:linear-gradient(135deg, var(--gold) 0%, var(--gold-soft) 100%);
+  color:var(--timevault-deep);
+  padding:6px 18px; border-radius:6px;
+  font-family:'Orbitron',sans-serif; font-weight:900;
+  font-size:1.7rem; letter-spacing:.05em;
+  box-shadow:0 0 22px rgba(232,185,35,.5), inset 0 -2px 4px rgba(0,0,0,.2);
+  transition:all .3s;
+}
+.score-display.bump{animation:scoreBump .5s ease}
+@keyframes scoreBump{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.18);box-shadow:0 0 40px rgba(232,185,35,1)}
+  100%{transform:scale(1)}
+}
+.score-display .label{font-size:.7rem;letter-spacing:.2em;opacity:.7;font-weight:700}
+.score-display .value{font-size:1.7rem;line-height:1}
+.point-popup{
+  position:fixed; pointer-events:none; z-index:999;
+  font-family:'Orbitron',sans-serif; font-weight:900;
+  font-size:1.5rem; color:var(--gold);
+  text-shadow:0 0 12px var(--gold), 0 0 4px #fff;
+  animation:popup 1.5s ease-out forwards;
+}
+.point-popup.neg{color:var(--danger);text-shadow:0 0 12px var(--danger)}
+.point-popup.magic{color:var(--magic);text-shadow:0 0 12px var(--magic)}
+@keyframes popup{
+  0%{opacity:1;transform:translateY(0) scale(.8)}
+  20%{opacity:1;transform:translateY(-20px) scale(1.2)}
+  100%{opacity:0;transform:translateY(-90px) scale(1)}
+}
+
+.hud{
+  display:flex; gap:10px; flex-wrap:wrap;
+  padding:0 16px 8px; font-family:'VT323',monospace; font-size:1.05rem;
+}
+.hud-item{
+  background:rgba(0,27,58,.7); border:1px solid var(--gold);
+  padding:4px 12px; border-radius:3px;
+}
+.hud-item b{color:var(--gold)}
+.hud-item.danger{border-color:var(--danger);animation:hud-pulse 1s infinite}
+.hud-item.danger b{color:var(--danger)}
+@keyframes hud-pulse{0%,100%{box-shadow:0 0 0 rgba(255,58,58,.7)}50%{box-shadow:0 0 12px rgba(255,58,58,.8)}}
+.hud-item.combo{
+  background:linear-gradient(90deg, var(--magic), var(--gold));
+  border-color:var(--magic); color:#fff;
+  animation:hud-pulse 1.5s infinite;
+}
+.hud-item.combo b{color:#fff}
+
+/* === ANSWERS MENU === */
+.answers-menu-btn{
+  background:rgba(0,27,58,.7); border:1px solid var(--gold);
+  color:var(--gold); font-family:'VT323',monospace;
+  padding:4px 12px; border-radius:3px; cursor:pointer;
+  font-size:1.05rem; letter-spacing:.05em;
+  transition:all .2s;
+}
+.answers-menu-btn:hover{background:var(--gold);color:var(--timevault-deep)}
+.answers-menu-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.answers-panel{
+  position:fixed; top:0; right:-480px; bottom:0; width:460px;
+  background:linear-gradient(180deg, rgba(0,15,35,.99) 0%, rgba(0,27,58,.99) 100%);
+  border-left:2px solid var(--gold);
+  z-index:300; transition:right .35s ease;
+  overflow-y:auto; padding:18px 20px;
+  box-shadow:-8px 0 30px rgba(0,0,0,.6);
+}
+.answers-panel.open{right:0}
+.answers-panel h2{
+  font-family:'Orbitron',sans-serif; color:var(--gold);
+  font-size:1.25rem; letter-spacing:.08em;
+  border-bottom:1px solid var(--gold); padding-bottom:10px;
+  margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;
+}
+.answers-panel h2 button{
+  background:none; border:none; color:var(--gold);
+  font-size:1.4rem; cursor:pointer; padding:0 6px;
+}
+.answers-panel .answers-empty{
+  font-style:italic; color:#9bb8d9; text-align:center; padding:30px 10px;
+}
+.answers-chamber{
+  margin-bottom:18px;
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(232,185,35,.3);
+  border-left:3px solid var(--gold);
+  border-radius:4px; padding:12px 14px;
+}
+.answers-chamber h3{
+  font-family:'Orbitron',sans-serif; color:var(--gold-soft);
+  font-size:1rem; margin-bottom:8px; letter-spacing:.04em;
+}
+.answers-chamber .ans-score{
+  float:right; font-family:'VT323',monospace; color:var(--gold);
+  font-size:.95rem;
+}
+.answers-chamber ol{padding-left:22px;font-size:.95rem;line-height:1.5}
+.answers-chamber ol li{margin-bottom:3px}
+.answers-chamber ol li .word{color:#bcd2ee}
+.answers-chamber ol li .ipa{color:var(--gold);font-weight:600}
+.answers-chamber ol li .miss{color:var(--danger);font-size:.85rem;margin-left:4px}
+
+main{
+  max-width:920px; margin:0 auto;
+  padding:30px 18px 60px; position:relative; z-index:2;
+}
+
+header{text-align:center;padding:16px 18px 16px;position:relative;z-index:2}
+.badge{
+  display:inline-block; font-family:'VT323',monospace;
+  color:var(--gold); font-size:.95rem; letter-spacing:.4em;
+  border:1px solid var(--gold); padding:4px 14px;
+  border-radius:2px; margin-bottom:10px;
+}
+h1{
+  font-family:'Orbitron',sans-serif; font-weight:900;
+  font-size:clamp(1.6rem, 4vw, 3rem); letter-spacing:.04em;
+  text-shadow:0 0 8px rgba(232,185,35,.4),0 0 24px rgba(30,95,168,.6);
+  line-height:1.05;
+}
+h1 span{color:var(--gold)}
+.subtitle{font-style:italic;color:#bcd2ee;font-size:1rem;margin-top:6px}
+
+/* === START SCREEN === */
+.start-screen{
+  background:rgba(0,15,35,.85); border:2px solid var(--gold);
+  border-radius:8px; padding:30px; margin-bottom:30px;
+  backdrop-filter:blur(4px); box-shadow:0 0 40px rgba(232,185,35,.15);
+}
+.start-screen h2{
+  font-family:'Orbitron',sans-serif; color:var(--gold);
+  font-size:1.4rem; margin-bottom:12px; letter-spacing:.1em; text-align:center;
+}
+.start-screen p{font-size:1.05rem;line-height:1.5;margin-bottom:8px}
+.start-screen .narrator{color:var(--gold-soft);font-style:italic;text-align:center}
+.start-screen ul{margin:10px 0 10px 22px;line-height:1.55;font-size:1rem}
+.start-screen .warning-box{
+  background:rgba(139,0,0,.25); border:1px solid var(--danger);
+  padding:12px 16px; border-radius:4px; margin:12px 0;
+  font-family:'Special Elite',monospace; font-size:.95rem;
+}
+.start-screen .gameplay-box{
+  background:rgba(155,89,255,.15); border:1px solid var(--magic);
+  padding:12px 16px; border-radius:4px; margin:12px 0;
+  font-size:.98rem;
+}
+.start-screen .gameplay-box h3{
+  font-family:'Orbitron',sans-serif; color:var(--magic);
+  font-size:1.05rem; margin-bottom:8px; letter-spacing:.06em;
+}
+.btn-start{
+  display:block; margin:18px auto 0;
+  font-family:'Orbitron',sans-serif; font-weight:900;
+  font-size:1.15rem; padding:13px 32px;
+  background:var(--gold); color:var(--timevault-deep);
+  border:none; border-radius:4px; cursor:pointer;
+  letter-spacing:.15em; text-transform:uppercase;
+  transition:all .25s; box-shadow:0 0 20px rgba(232,185,35,.3);
+}
+.btn-start:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 8px 30px rgba(232,185,35,.6)}
+
+/* === ROOMS === */
+.room{
+  background:linear-gradient(180deg, rgba(0,59,111,.88) 0%, rgba(0,27,58,.94) 100%);
+  border:2px solid var(--timevault-light); border-radius:8px;
+  padding:24px; margin-bottom:26px;
+  box-shadow:0 0 0 1px rgba(232,185,35,.15),0 12px 40px rgba(0,0,0,.5),inset 0 0 60px rgba(0,0,0,.3);
+  display:none; position:relative;
+}
+.room.active{display:block;animation:room-in .5s ease}
+@keyframes room-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.room.solved{border-color:var(--gold)}
+.room-header{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.room-num{
+  font-family:'Orbitron',sans-serif; font-weight:900; font-size:.85rem;
+  background:var(--gold); color:var(--timevault-deep);
+  padding:4px 11px; border-radius:2px; letter-spacing:.15em;
+}
+.room-title{
+  font-family:'Orbitron',sans-serif; font-size:1.35rem; font-weight:700;
+  color:#fff; letter-spacing:.02em;
+}
+.room-timer{
+  margin-left:auto; font-family:'VT323',monospace;
+  color:var(--gold); font-size:1.2rem;
+  background:rgba(0,0,0,.5); padding:3px 10px;
+  border-radius:3px; border:1px solid rgba(232,185,35,.4);
+}
+.room-timer.warn{color:var(--warning);border-color:var(--warning)}
+.room-timer.danger{color:var(--danger);border-color:var(--danger);animation:hud-pulse 1s infinite}
+.room-focus{
+  font-style:italic; color:#9bb8d9;
+  margin-bottom:10px; font-size:1rem;
+  border-left:3px solid var(--gold); padding-left:11px;
+}
+.room-story{
+  background:rgba(0,0,0,.35); padding:12px 16px; border-radius:4px;
+  margin-bottom:14px; font-size:1rem; line-height:1.45;
+  border-left:3px solid var(--gold-soft);
+}
+.room-story em{color:var(--gold-soft);font-style:italic}
+
+.par-bar{
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:14px; padding:8px 12px;
+  background:rgba(155,89,255,.08); border:1px dashed var(--magic);
+  border-radius:4px; font-family:'VT323',monospace; font-size:.95rem;
+}
+.par-bar .par-label{color:var(--magic);letter-spacing:.05em}
+.par-bar .par-time{color:var(--gold-soft)}
+
+/* === ITEMS === */
+.item{
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
+  border-left:3px solid var(--gold);
+  padding:12px 14px; margin-bottom:10px; border-radius:4px;
+  transition:all .3s;
+}
+.item.solved{border-left-color:var(--success);background:rgba(39,174,96,.08)}
+.item.exhausted{border-left-color:var(--danger);background:rgba(139,0,0,.08)}
+.item.frozen{filter:grayscale(.6);opacity:.6;pointer-events:none}
+.item-num{
+  display:inline-block; font-family:'VT323',monospace;
+  color:var(--gold); font-size:.9rem; letter-spacing:.1em;
+  margin-bottom:3px;
+}
+.item-prompt{font-size:1rem;line-height:1.4;margin-bottom:7px}
+.item-prompt .target{
+  font-family:'Orbitron',sans-serif; font-weight:700;
+  color:var(--gold); letter-spacing:.04em; font-size:1.05rem;
+}
+.item-prompt .target.phrase{font-size:1rem;text-transform:none}
+.item-prompt .ctx{display:block;font-style:italic;color:#a8c0dd;font-size:.92rem;margin-top:3px}
+.item-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.item-row input, .item-row select{
+  font-family:'Cormorant Garamond',serif; font-size:1.05rem;
+  padding:7px 11px; background:rgba(0,0,0,.55);
+  border:1px solid rgba(232,185,35,.4); border-radius:3px;
+  color:var(--cream); min-width:160px;
+}
+.item-row select{font-family:'VT323',monospace}
+.item-row input.long{min-width:240px;flex:1}
+.item-row input:focus, .item-row select:focus{
+  outline:none; border-color:var(--gold);
+  box-shadow:0 0 0 2px rgba(232,185,35,.2);
+}
+.item-row input.flash-bad{animation:shake .35s;border-color:var(--danger)}
+.item-row input.flash-good{border-color:var(--success);background:rgba(39,174,96,.15)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.btn-check{
+  font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:.8rem; padding:7px 14px;
+  background:var(--gold); color:var(--timevault-deep);
+  border:none; border-radius:3px; cursor:pointer; letter-spacing:.08em;
+  transition:all .2s;
+}
+.btn-check:hover:not(:disabled){background:var(--gold-soft);transform:translateY(-1px)}
+.btn-check:disabled{background:#555;color:#aaa;cursor:not-allowed;transform:none}
+.attempts-display{font-family:'VT323',monospace;font-size:1rem;color:var(--gold-soft);letter-spacing:.08em}
+.attempts-display .dot{display:inline-block;margin:0 1px}
+.attempts-display .dot.used{color:var(--danger);opacity:.4;text-decoration:line-through}
+.item-points-tag{
+  display:inline-block; margin-left:6px;
+  background:rgba(232,185,35,.2); color:var(--gold);
+  padding:1px 7px; border-radius:10px;
+  font-family:'VT323',monospace; font-size:.85rem;
+}
+.item-feedback{margin-top:5px;font-family:'VT323',monospace;font-size:.95rem;min-height:1.2em}
+.item-feedback.ok{color:var(--success)}
+.item-feedback.nope{color:var(--danger)}
+.item-feedback.warn{color:var(--warning)}
+
+/* === ROOM FOOTER === */
+.room-footer{
+  margin-top:16px; display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:12px; padding-top:14px;
+  border-top:1px dashed rgba(232,185,35,.3);
+}
+.progress-bar{flex:1;min-width:200px;height:8px;background:rgba(0,0,0,.4);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg, var(--gold), var(--gold-soft));width:0;transition:width .5s}
+.btn-unlock{
+  font-family:'Orbitron',sans-serif; font-weight:700; font-size:1rem;
+  padding:10px 22px; background:var(--gold); color:var(--timevault-deep);
+  border:none; border-radius:3px; cursor:pointer;
+  letter-spacing:.1em; text-transform:uppercase; transition:all .25s;
+}
+.btn-unlock:hover:not(:disabled){background:var(--gold-soft);transform:translateY(-2px);box-shadow:0 6px 20px rgba(232,185,35,.4)}
+.btn-unlock:disabled{background:#555;color:#aaa;cursor:not-allowed}
+
+/* === POWER-UPS === */
+.powerups-bar{
+  display:flex; gap:8px; flex-wrap:wrap;
+  margin-bottom:14px; padding:10px;
+  background:rgba(155,89,255,.08); border:1px solid var(--magic);
+  border-radius:5px;
+}
+.powerup-btn{
+  background:linear-gradient(135deg, var(--magic) 0%, #6a2eb8 100%);
+  color:#fff; border:none; padding:6px 14px;
+  border-radius:4px; cursor:pointer;
+  font-family:'VT323',monospace; font-size:1rem;
+  letter-spacing:.05em; transition:all .2s;
+  box-shadow:0 2px 6px rgba(155,89,255,.4);
+}
+.powerup-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 4px 12px rgba(155,89,255,.6)}
+.powerup-btn:disabled{opacity:.35;cursor:not-allowed;filter:grayscale(.7)}
+.powerup-btn .count{
+  display:inline-block; background:rgba(0,0,0,.4); color:var(--gold);
+  padding:0 6px; border-radius:8px; margin-left:5px; font-weight:bold;
+}
+
+/* === EVENT NOTIFICATIONS === */
+.event-toast{
+  position:fixed; top:140px; right:20px; z-index:500;
+  padding:14px 20px; border-radius:6px;
+  font-family:'Orbitron',sans-serif; font-weight:700;
+  font-size:.95rem; letter-spacing:.05em;
+  box-shadow:0 8px 30px rgba(0,0,0,.6);
+  animation:toastIn .4s ease, toastOut .4s ease 4.5s forwards;
+  max-width:340px;
+}
+.event-toast.bomb{background:linear-gradient(135deg, var(--danger), var(--danger-deep));color:#fff;border:1px solid #fff}
+.event-toast.gift{background:linear-gradient(135deg, var(--gold), var(--gold-soft));color:var(--timevault-deep)}
+.event-toast.dalek{background:linear-gradient(135deg, #555, #222);color:var(--danger);border:1px solid var(--danger)}
+.event-toast.paradox{background:linear-gradient(135deg, var(--magic), #4b0082);color:#fff}
+.event-toast.timevault{background:linear-gradient(135deg, var(--timevault-light), var(--timevault-deep));color:var(--gold);border:1px solid var(--gold)}
+.event-toast .icon{font-size:1.5rem;margin-right:8px;vertical-align:middle}
+.event-toast .msg{display:block;font-size:.9rem;margin-top:4px;opacity:.95;font-weight:400;font-family:'Cormorant Garamond',serif}
+@keyframes toastIn{from{transform:translateX(400px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toastOut{from{transform:translateX(0);opacity:1}to{transform:translateX(400px);opacity:0}}
+
+/* === ACHIEVEMENT POPUP === */
+.achievement{
+  position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+  z-index:600; padding:14px 28px;
+  background:linear-gradient(135deg, var(--gold) 0%, var(--gold-soft) 100%);
+  color:var(--timevault-deep); border-radius:50px;
+  font-family:'Orbitron',sans-serif; font-weight:900;
+  font-size:1rem; letter-spacing:.08em;
+  box-shadow:0 0 40px rgba(232,185,35,.7);
+  animation:achIn .5s ease, achOut .5s ease 3.5s forwards;
+}
+.achievement .ach-icon{font-size:1.6rem;margin-right:10px;vertical-align:middle}
+.achievement .ach-sub{display:block;font-size:.75rem;letter-spacing:.05em;opacity:.7;font-weight:700;margin-top:2px}
+@keyframes achIn{from{transform:translateX(-50%) translateY(80px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+@keyframes achOut{from{transform:translateX(-50%) translateY(0);opacity:1}to{transform:translateX(-50%) translateY(80px);opacity:0}}
+
+/* === COMBO METER === */
+.combo-meter{
+  position:fixed; top:155px; left:130px; z-index:30;
+  display:none; padding:10px 16px;
+  background:linear-gradient(90deg, var(--magic), var(--gold));
+  color:#fff; border-radius:6px;
+  font-family:'Orbitron',sans-serif; font-weight:900;
+  box-shadow:0 0 20px rgba(155,89,255,.6);
+  animation:comboFloat 2s ease-in-out infinite;
+}
+.combo-meter.show{display:block}
+@keyframes comboFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.combo-meter .x{font-size:1.6rem;line-height:1}
+.combo-meter .lbl{font-size:.7rem;letter-spacing:.1em;opacity:.85;display:block}
+
+/* === MODAL === */
+.modal-bg{
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.85); z-index:200;
+  align-items:center; justify-content:center;
+  backdrop-filter:blur(4px); padding:20px;
+}
+.modal-bg.show{display:flex;animation:reveal .3s ease}
+.modal{
+  background:linear-gradient(180deg, rgba(0,27,58,.98) 0%, rgba(0,15,35,.98) 100%);
+  border:2px solid var(--gold); border-radius:8px;
+  padding:28px; max-width:580px; width:100%;
+  box-shadow:0 0 60px rgba(232,185,35,.3);
+  max-height:90vh; overflow-y:auto;
+}
+.modal h3{
+  font-family:'Orbitron',sans-serif; color:var(--gold);
+  font-size:1.4rem; margin-bottom:12px; letter-spacing:.05em;
+}
+.modal p{font-size:1rem;line-height:1.5;margin-bottom:10px}
+.modal .modal-stats{
+  background:rgba(0,0,0,.4); padding:12px; border-radius:4px;
+  font-family:'VT323',monospace; margin:12px 0; font-size:1.05rem;
+}
+.modal .modal-stats div{margin:4px 0}
+.modal .modal-stats b{color:var(--gold)}
+.modal .speed-bonus{
+  background:linear-gradient(135deg, var(--magic), #6a2eb8);
+  color:#fff; padding:10px 14px; border-radius:4px;
+  text-align:center; margin:10px 0;
+  font-family:'Orbitron',sans-serif; font-weight:700; letter-spacing:.05em;
+}
+.modal-btn{
+  font-family:'Orbitron',sans-serif; font-weight:700;
+  padding:11px 24px; background:var(--gold); color:var(--timevault-deep);
+  border:none; border-radius:3px; cursor:pointer;
+  letter-spacing:.08em; text-transform:uppercase; margin-top:10px;
+}
+@keyframes reveal{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+
+/* === FINAL / DEATH === */
+.final-screen, .death-screen{
+  display:none; text-align:center; padding:46px 22px;
+  border-radius:10px; margin-bottom:30px;
+}
+.final-screen.show, .death-screen.show{display:block;animation:reveal 1s}
+.final-screen{
+  background:radial-gradient(ellipse at center, rgba(232,185,35,.15) 0%, transparent 70%);
+  border:2px solid var(--gold);
+}
+.death-screen{
+  background:radial-gradient(ellipse at center, rgba(139,0,0,.4) 0%, transparent 70%);
+  border:2px solid var(--danger); font-family:'Special Elite',monospace;
+}
+.death-screen h2{font-family:'Orbitron',sans-serif;color:var(--danger);font-size:2.2rem;margin-bottom:14px;text-shadow:0 0 20px currentColor}
+.final-screen h2{font-family:'Orbitron',sans-serif;color:var(--gold);font-size:2.2rem;margin-bottom:14px;text-shadow:0 0 20px rgba(232,185,35,.5)}
+.timevault-emoji{font-size:3.4rem;margin:16px 0;display:inline-block;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.final-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px auto;max-width:660px}
+.final-stat{background:rgba(0,0,0,.4);border:1px solid var(--gold);padding:12px;border-radius:5px}
+.final-stat .label{font-family:'VT323',monospace;color:var(--gold-soft);font-size:.9rem;letter-spacing:.1em}
+.final-stat .value{font-family:'Orbitron',sans-serif;font-size:1.6rem;color:var(--gold);font-weight:700}
+.grade{font-family:'Orbitron',sans-serif;font-size:2.4rem;color:var(--gold);margin:16px 0;text-shadow:0 0 30px currentColor}
+.btn-export{
+  font-family:'Orbitron',sans-serif; font-weight:700; font-size:1rem;
+  padding:11px 26px; margin:6px;
+  background:var(--gold); color:var(--timevault-deep);
+  border:none; border-radius:4px; cursor:pointer;
+  letter-spacing:.1em; text-transform:uppercase; transition:all .25s;
+}
+.btn-export:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(232,185,35,.4)}
+.btn-export.secondary{background:transparent;color:var(--gold);border:1px solid var(--gold)}
+
+.achievements-list{
+  display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+  margin:18px auto; max-width:600px;
+}
+.ach-badge{
+  background:linear-gradient(135deg, rgba(232,185,35,.2), rgba(232,185,35,.1));
+  border:1px solid var(--gold); color:var(--gold);
+  padding:6px 14px; border-radius:18px;
+  font-family:'VT323',monospace; font-size:1rem; letter-spacing:.05em;
+}
+
+/* === LIKERT QUESTIONNAIRE === */
+.questionnaire-screen{
+  display:none;
+  background:linear-gradient(180deg, rgba(0,15,35,.95) 0%, rgba(0,27,58,.95) 100%);
+  border:2px solid var(--gold); border-radius:8px;
+  padding:30px; margin-bottom:30px;
+  box-shadow:0 0 40px rgba(232,185,35,.15);
+}
+.questionnaire-screen.show{display:block;animation:reveal .6s ease}
+.questionnaire-screen h2{
+  font-family:'Orbitron',sans-serif; color:var(--gold);
+  font-size:1.5rem; margin-bottom:8px;
+  letter-spacing:.08em; text-align:center;
+}
+.questionnaire-screen .q-intro{
+  font-style:italic; color:#bcd2ee;
+  text-align:center; margin-bottom:18px;
+  font-size:1.02rem; line-height:1.5;
+}
+.q-intro.narrator{color:var(--gold-soft)}
+.q-section{
+  background:rgba(0,0,0,.3);
+  border-left:3px solid var(--gold);
+  padding:14px 16px; margin-bottom:18px;
+  border-radius:4px;
+}
+.q-section h3{
+  font-family:'Orbitron',sans-serif; color:var(--gold-soft);
+  font-size:1.05rem; margin-bottom:12px;
+  letter-spacing:.05em;
+}
+.q-item{
+  margin-bottom:14px; padding-bottom:12px;
+  border-bottom:1px dashed rgba(232,185,35,.2);
+}
+.q-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.q-item label.q-label{
+  display:block; font-size:1rem; line-height:1.4;
+  margin-bottom:8px; color:var(--cream);
+}
+.q-item label.q-label .num{
+  display:inline-block;
+  background:var(--gold); color:var(--timevault-deep);
+  padding:1px 8px; border-radius:10px;
+  font-family:'VT323',monospace; font-size:.85rem;
+  margin-right:6px; font-weight:bold;
+}
+.likert-scale{
+  display:flex; gap:6px; flex-wrap:wrap;
+  align-items:center;
+}
+.likert-scale .lk-label{
+  font-family:'VT323',monospace; font-size:.85rem;
+  color:#9bb8d9; min-width:60px;
+}
+.likert-scale .lk-options{
+  display:flex; gap:4px; flex:1; justify-content:center;
+}
+.likert-scale input[type="radio"]{display:none}
+.likert-scale .lk-opt{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:38px; height:38px;
+  background:rgba(0,0,0,.4);
+  border:1px solid rgba(232,185,35,.3);
+  border-radius:50%;
+  font-family:'Orbitron',sans-serif; font-weight:700;
+  color:var(--cream); cursor:pointer;
+  transition:all .15s; user-select:none;
+}
+.likert-scale .lk-opt:hover{
+  background:rgba(232,185,35,.2);
+  transform:scale(1.1);
+}
+.likert-scale input[type="radio"]:checked + .lk-opt{
+  background:var(--gold); color:var(--timevault-deep);
+  border-color:var(--gold-soft);
+  box-shadow:0 0 12px rgba(232,185,35,.5);
+}
+.q-item .q-text-input, .q-item select, .q-item .q-textarea{
+  width:100%; padding:8px 12px;
+  background:rgba(0,0,0,.5);
+  border:1px solid rgba(232,185,35,.3);
+  border-radius:3px; color:var(--cream);
+  font-family:'Cormorant Garamond',serif; font-size:1rem;
+}
+.q-item .q-textarea{min-height:70px;resize:vertical;font-family:'Cormorant Garamond',serif}
+.q-item .q-text-input:focus, .q-item select:focus, .q-item .q-textarea:focus{
+  outline:none; border-color:var(--gold);
+}
+.q-section.optional{
+  border-left-color:var(--gold-soft); opacity:.95;
+}
+.q-section.optional h3::after{
+  content:" (opcional)"; font-size:.8rem; color:#9bb8d9;
+  font-style:italic; font-weight:normal; letter-spacing:0;
+}
+.q-progress{
+  font-family:'VT323',monospace; color:var(--gold-soft);
+  text-align:center; margin-bottom:12px; font-size:1.1rem;
+}
+.btn-submit-q{
+  display:block; margin:24px auto 0;
+  font-family:'Orbitron',sans-serif; font-weight:900;
+  font-size:1.1rem; padding:13px 36px;
+  background:var(--gold); color:var(--timevault-deep);
+  border:none; border-radius:4px; cursor:pointer;
+  letter-spacing:.12em; text-transform:uppercase;
+  transition:all .25s; box-shadow:0 0 20px rgba(232,185,35,.3);
+}
+.btn-submit-q:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(232,185,35,.6)}
+.btn-skip-q{
+  display:block; margin:10px auto 0;
+  background:transparent; border:1px solid rgba(232,185,35,.4);
+  color:var(--gold-soft); padding:8px 24px;
+  font-family:'VT323',monospace; font-size:1rem;
+  border-radius:3px; cursor:pointer; letter-spacing:.05em;
+}
+.btn-skip-q:hover{background:rgba(232,185,35,.1)}
+.q-consent{
+  background:rgba(232,185,35,.08);
+  border:1px solid rgba(232,185,35,.4);
+  padding:12px 16px; border-radius:4px;
+  margin-bottom:18px; font-size:.95rem;
+  line-height:1.5;
+}
+.q-consent label{display:flex;align-items:flex-start;gap:8px;cursor:pointer}
+.q-consent input[type="checkbox"]{margin-top:4px;cursor:pointer;width:18px;height:18px;accent-color:var(--gold)}
+.likert-legend{
+  font-family:'VT323',monospace;font-size:.85rem;
+  color:#9bb8d9;text-align:center;margin-top:6px;
+}
+
+@media (max-width:780px){
+  body{padding-left:0;padding-top:160px;padding-bottom:40vh}
+  .ipa-sidebar{left:0;right:0;top:auto;bottom:0;width:100%;height:auto;max-height:35vh;border-right:none;border-top:2px solid var(--gold);padding:8px}
+  .ipa-sidebar h3{font-size:.85rem;margin-bottom:5px}
+  .ipa-group{display:inline-block;margin:0 6px 4px 0;vertical-align:top}
+  .ipa-group-label{display:inline;font-size:.7rem;margin-right:4px}
+  .ipa-keys{display:inline-flex;gap:2px}
+  .ipa-keys button{font-size:.95rem;padding:4px 6px}
+  .topbar{left:0}
+  .answers-panel{width:90vw;right:-92vw}
+  h1{font-size:1.3rem}
+  .score-display{font-size:1.3rem;padding:5px 14px}
+  .item-row input{min-width:120px;width:100%}
+  .room{padding:16px}
+  .combo-meter{top:auto;bottom:36vh;left:10px}
+}
+</style>
+</head>
+<body>
+
+<aside class="ipa-sidebar">
+  <h3>IPA ◈ RP</h3>
+  <div class="ipa-group"><div class="ipa-group-label">Vowels c.</div><div class="ipa-keys">
+    <button>ɪ</button><button>e</button><button>æ</button><button>ʌ</button><button>ɒ</button><button>ʊ</button><button>ə</button>
+  </div></div>
+  <div class="ipa-group"><div class="ipa-group-label">Vowels l.</div><div class="ipa-keys">
+    <button>iː</button><button>ɑː</button><button>ɔː</button><button>uː</button><button>ɜː</button>
+  </div></div>
+  <div class="ipa-group"><div class="ipa-group-label">Diphth.</div><div class="ipa-keys">
+    <button>eɪ</button><button>aɪ</button><button>ɔɪ</button><button>aʊ</button><button>əʊ</button><button>ɪə</button><button>eə</button><button>ʊə</button>
+  </div></div>
+  <div class="ipa-group"><div class="ipa-group-label">Fric./Afri.</div><div class="ipa-keys">
+    <button>θ</button><button>ð</button><button>ʃ</button><button>ʒ</button><button>tʃ</button><button>dʒ</button>
+  </div></div>
+  <div class="ipa-group"><div class="ipa-group-label">Other</div><div class="ipa-keys">
+    <button>ŋ</button><button>j</button><button>w</button><button>r</button><button>ʔ</button>
+  </div></div>
+  <div class="ipa-group"><div class="ipa-group-label">Marks</div><div class="ipa-keys">
+    <button>ˈ</button><button>ˌ</button><button class="wide">ː</button><button class="wide">SPACE</button>
+  </div></div>
+</aside>
+
+<div class="topbar">
+  <div class="topbar-row1">
+    <div class="topbar-title">⟁ PHONETICS VAULT</div>
+    <div class="score-display" id="scoreBox">
+      <div><div class="label">SCORE</div><div class="value" id="scoreDisplay">0</div></div>
+    </div>
+    <button class="answers-menu-btn" id="answersBtn" onclick="toggleAnswers()" disabled>📜 ANSWERS</button>
+  </div>
+  <div class="hud" id="hud">
+    <div class="hud-item">⏱ <b id="timerTotal">00:00</b></div>
+    <div class="hud-item">🔓 <b><span id="roomsDone">0</span>/15</b></div>
+    <div class="hud-item">❤ <b id="livesDisplay">5</b></div>
+    <div class="hud-item">📈 <b id="streakDisplay">0</b></div>
+    <div class="hud-item" id="multiplierBox" style="display:none">× <b id="multiplierDisplay">1.0</b></div>
+  </div>
+</div>
+
+<div class="combo-meter" id="comboMeter">
+  <span class="lbl">COMBO</span>
+  <span class="x" id="comboX">×2</span>
+</div>
+
+<aside class="answers-panel" id="answersPanel">
+  <h2>📜 COMPLETED CHAMBERS <button onclick="toggleAnswers()">✕</button></h2>
+  <div id="answersContent"><p class="answers-empty">No chambers completed yet.</p></div>
+</aside>
+
+<header>
+  <div class="badge">◈ CLASSIFIED ◈ GALLIFREY TIME COMMISSION ◈</div>
+  <h1>THE <span>PHONETICS</span> VAULT</h1>
+  <p class="subtitle">15 chambers · 450 items · Inspired by "Father's Day" (Paul Cornell)</p>
+</header>
+
+<main>
+
+<section class="start-screen" id="startScreen">
+  <h2>⟁ MISSION BRIEFING ⟁</h2>
+  <p class="narrator">— Incoming transmission from the Time Lord High Council —</p>
+  <p>A wound in time has opened. The Reapers are sterilising the vortex. Only one route to safety remains: <strong>the Phonetics Vault</strong>, fifteen sealed chambers guarded by phonetic ciphers.</p>
+
+  <div class="warning-box">
+    ⚠ <strong>RULES OF ENGAGEMENT:</strong>
+    <ul style="margin-top:6px">
+      <li><strong>15 chambers × 30 items = 450 ciphers.</strong> Mission ≈ 2.5 hours.</li>
+      <li>Each chamber: <strong>15-minute timer</strong>. Par time: 9 min for speed bonus.</li>
+      <li><strong>3 attempts</strong> per item. 1st try → 100% points. 2nd → 50%. 3rd → 25%. Failure → 0.</li>
+      <li><strong>5 lives</strong>. Time out → −1 life. No lives → mission failed.</li>
+      <li>Correct answers hidden during the chamber. Revealed only on chamber complete.</li>
+      <li>Completed chambers' answers always available in the <strong>📜 ANSWERS</strong> menu (top right).</li>
+    </ul>
+  </div>
+
+  <div class="gameplay-box">
+    <h3>🎮 GAMIFICATION ENGINE</h3>
+    <ul style="margin-top:6px">
+      <li><strong>⚡ Speed Bonus:</strong> Finish a chamber under par time (9 min) → all chamber points DOUBLED.</li>
+      <li><strong>🔥 Streak / Combo:</strong> 5 correct in a row → ×2 combo multiplier. 10 → ×3. Wrong answer resets.</li>
+      <li><strong>🎲 RANDOM EVENTS</strong> will trigger every 60–120 seconds:
+        <ul style="margin-left:18px;margin-top:4px">
+          <li>💣 <strong>Time Bomb</strong> — −60 seconds from the chamber timer.</li>
+          <li>🎁 <strong>Time Vault Gift</strong> — +200 bonus points.</li>
+          <li>👁 <strong>Dalek Attack</strong> — next wrong answer = instant exhaustion.</li>
+          <li>🌀 <strong>Paradox</strong> — points × ½ for 30 seconds OR × 2 for 30 seconds (random).</li>
+          <li>⏳ <strong>Time Lord Mercy</strong> — +90 seconds to the chamber timer.</li>
+          <li>🔒 <strong>Reaper Freeze</strong> — a random item locks for 30 seconds.</li>
+        </ul>
+      </li>
+      <li><strong>💎 POWER-UPS</strong> (use wisely — limited!):
+        <ul style="margin-left:18px;margin-top:4px">
+          <li>💡 <strong>Sonic Hint</strong> ×3 — reveals first 2 IPA symbols. Free, no penalty.</li>
+          <li>⏸ <strong>Time Stop</strong> ×2 — freezes the chamber timer for 60 seconds.</li>
+          <li>🛡 <strong>Reaper Shield</strong> ×1 — your next wrong answer costs no attempt.</li>
+          <li>♻ <strong>Regenerate</strong> ×1 — restore 1 life.</li>
+        </ul>
+      </li>
+      <li><strong>🏆 ACHIEVEMENTS:</strong> Perfect chamber, lightning round, no-hint run, combo king…</li>
+    </ul>
+  </div>
+
+  <p class="narrator">"Are you sure about this? Be careful what you wish for…"</p>
+  <button class="btn-start" onclick="startMission()">⟁ INITIATE MISSION ⟁</button>
+</section>
+
+<!-- ============ CUESTIONARIO POST ============ -->
+<section class="questionnaire-screen" id="postQuestionnaire">
+  <h2>⟁ CUESTIONARIO FINAL ⟁</h2>
+  <p class="q-intro narrator">Antes de descargar tu informe, nos gustaría conocer tu valoración del recurso.<br>Tiempo estimado: 5-6 minutos.</p>
+
+  <div class="q-consent">
+    <label>
+      <input type="checkbox" id="consent" checked>
+      <span>Consiento que mis respuestas y los datos generados por mi uso del recurso sean utilizados con fines de investigación de forma anónima y agregada. La participación es voluntaria; puedo saltar este cuestionario.</span>
+    </label>
+  </div>
+
+  <p class="likert-legend">Escala 1–5: <strong>1 = Totalmente en desacuerdo · 5 = Totalmente de acuerdo</strong></p>
+
+  <!-- BLOQUE U: Usabilidad -->
+  <div class="q-section">
+    <h3>U · Usabilidad e interfaz</h3>
+    <div id="postLikertUsab"></div>
+  </div>
+
+  <!-- BLOQUE E: Engagement -->
+  <div class="q-section">
+    <h3>E · Implicación y motivación</h3>
+    <div id="postLikertEngage"></div>
+  </div>
+
+  <!-- BLOQUE D: Dificultad -->
+  <div class="q-section">
+    <h3>D · Dificultad y experiencia de uso</h3>
+    <div id="postLikertDiff"></div>
+  </div>
+
+  <!-- BLOQUE V: Valor percibido -->
+  <div class="q-section">
+    <h3>V · Valoración global del recurso</h3>
+    <div id="postLikertValue"></div>
+  </div>
+
+  <!-- BLOQUE G: Preguntas abiertas -->
+  <div class="q-section optional">
+    <h3>G · Comentarios abiertos</h3>
+
+    <div class="q-item">
+      <label class="q-label"><span class="num">G1</span>¿Qué es lo que más te ha gustado del recurso?</label>
+      <textarea id="q_open1" class="q-textarea" placeholder="Opcional"></textarea>
+    </div>
+
+    <div class="q-item">
+      <label class="q-label"><span class="num">G2</span>¿Qué dificultades has encontrado durante el uso?</label>
+      <textarea id="q_open2" class="q-textarea" placeholder="Opcional"></textarea>
+    </div>
+
+    <div class="q-item">
+      <label class="q-label"><span class="num">G3</span>¿Qué cambiarías o mejorarías?</label>
+      <textarea id="q_open3" class="q-textarea" placeholder="Opcional"></textarea>
+    </div>
+
+    <div class="q-item">
+      <label class="q-label"><span class="num">G4</span>Cualquier otro comentario que quieras añadir:</label>
+      <textarea id="q_open4" class="q-textarea" placeholder="Opcional"></textarea>
+    </div>
+  </div>
+
+  <button class="btn-submit-q" onclick="submitPostQuestionnaire()">⟁ FINALIZAR Y VER INFORME ⟁</button>
+  <button class="btn-skip-q" onclick="skipPostQuestionnaire()">Saltar cuestionario y ver informe</button>
+</section>
+
+<div id="roomsContainer"></div>
+
+<section class="death-screen" id="deathScreen">
+  <h2>☠ MISSION FAILED ☠</h2>
+  <p>The Reapers have breached the chamber. Time has folded in on itself.</p>
+  <div class="final-stats" id="deathStats"></div>
+  <button class="btn-export" onclick="exportReport()">⟁ EXPORT REPORT ⟁</button>
+  <button class="btn-export secondary" onclick="location.reload()">↻ RETRY</button>
+</section>
+
+<section class="final-screen" id="finalScreen">
+  <div class="timevault-emoji">📦💙</div>
+  <h2>VAULT BREACHED</h2>
+  <p style="font-size:1.15rem">You've transcribed your way through all fifteen chambers. The time engines stabilise. The vortex opens.</p>
+  <div class="grade" id="finalGrade">—</div>
+  <div class="final-stats" id="finalStats"></div>
+  <div class="achievements-list" id="finalAchievements"></div>
+  <div style="margin-top:20px">
+    <button class="btn-export" onclick="exportReport()">⟁ EXPORT FULL REPORT ⟁</button>
+    <button class="btn-export secondary" onclick="location.reload()">↻ NEW MISSION</button>
+  </div>
+</section>
+
+</main>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle">Chamber complete</h3>
+    <div id="modalBody"></div>
+    <div style="text-align:center">
+      <button class="modal-btn" onclick="closeModalNext()">⟁ PROCEED ⟁</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// CHAMBERS DATA — 15 × 30 items
+const CHAMBERS = [
+{
+  id:1, title:"The Photograph", timeLimit:900, parTime:540,
+  focus:"Short vowels of RP — /ɪ e æ ʌ ɒ ʊ/",
+  story:`Rose opens an old album. <em>"My Dad. The most wonderful man in the world."</em> Each face holds a vowel. Transcribe them or the album stays sealed.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target'>Dad</span><span class='ctx'>\"My Dad. The most wonderful man in the world.\"</span>", answer:"dæd", points:100, hint:"Low front /æ/, three sounds."},
+    {type:"ipa", prompt:"<span class='target'>kid</span><span class='ctx'>\"The driver was just a kid.\"</span>", answer:"kɪd", points:100, hint:"KIT /ɪ/."},
+    {type:"ipa", prompt:"<span class='target'>Mum</span><span class='ctx'>\"That's what my Mum always says.\"</span>", answer:"mʌm", points:100, hint:"STRUT /ʌ/."},
+    {type:"ipa", prompt:"<span class='target'>shop</span><span class='ctx'>Where Pete might have sold his Vitex.</span>", answer:"ʃɒp", points:100, hint:"LOT /ɒ/."},
+    {type:"ipa", prompt:"<span class='target'>book</span><span class='ctx'>The album is a ___ of photos.</span>", answer:"bʊk", points:100, hint:"FOOT /ʊ/."},
+    {type:"ipa", prompt:"<span class='target'>man</span><span class='ctx'>\"An ordinary man.\"</span>", answer:"mæn", points:100, hint:"Same vowel as 'Dad'."},
+    {type:"ipa", prompt:"<span class='target'>cup</span><span class='ctx'>\"…if you want a cup of tea\"</span>", answer:"kʌp", points:100, hint:"STRUT /ʌ/ + /p/."},
+    {type:"ipa", prompt:"<span class='target'>bit</span><span class='ctx'>\"Live in sin for a bit.\"</span>", answer:"bɪt", points:100, hint:"KIT /ɪ/."},
+    {type:"ipa", prompt:"<span class='target'>red</span><span class='ctx'>The vase is not blue but ___.</span>", answer:"red", points:100, hint:"DRESS /e/."},
+    {type:"ipa", prompt:"<span class='target'>cat</span><span class='ctx'>An everyday domestic creature.</span>", answer:"kæt", points:100, hint:"TRAP /æ/."},
+    {type:"ipa", prompt:"<span class='target'>top</span><span class='ctx'>\"It's right on top of Pete.\"</span>", answer:"tɒp", points:100, hint:"LOT /ɒ/."},
+    {type:"ipa", prompt:"<span class='target'>luck</span><span class='ctx'>\"It's bad luck!\"</span>", answer:"lʌk", points:100, hint:"STRUT /ʌ/."},
+    {type:"ipa", prompt:"<span class='target'>full</span><span class='ctx'>The flat is ___ of Pete's gadgets.</span>", answer:"fʊl", points:100, hint:"FOOT /ʊ/."},
+    {type:"ipa", prompt:"<span class='target'>God</span><span class='ctx'>\"Oh my God, you're alive!\"</span>", answer:"ɡɒd", points:100, hint:"LOT /ɒ/."},
+    {type:"ipa", prompt:"<span class='target'>hand</span><span class='ctx'>\"She held his hand.\"</span>", answer:"hænd", points:120, hint:"/h/ + /æ/ + /nd/."},
+    {type:"ipa", prompt:"<span class='target'>head</span><span class='ctx'>The time traveller's spinning ___.</span>", answer:"hed", points:100, hint:"DRESS /e/."},
+    {type:"ipa", prompt:"<span class='target'>back</span><span class='ctx'>\"You'll be back in a minute!\"</span>", answer:"bæk", points:100, hint:"/b/ + /æ/ + /k/."},
+    {type:"ipa", prompt:"<span class='target'>bag</span><span class='ctx'>Jackie carries Baby Rose in a ___.</span>", answer:"bæɡ", points:100, hint:"Voiced /ɡ/ at end."},
+    {type:"ipa", prompt:"<span class='target'>sun</span><span class='ctx'>An ordinary afternoon.</span>", answer:"sʌn", points:100, hint:"STRUT /ʌ/."},
+    {type:"ipa", prompt:"<span class='target'>good</span><span class='ctx'>\"Good thing an' all.\"</span>", answer:"ɡʊd", points:100, hint:"FOOT /ʊ/."},
+    {type:"ipa", prompt:"<span class='target'>pen</span><span class='ctx'>A simple writing instrument.</span>", answer:"pen", points:100, hint:"DRESS /e/."},
+    {type:"ipa", prompt:"<span class='target'>map</span><span class='ctx'>1987 London on paper.</span>", answer:"mæp", points:100, hint:"TRAP /æ/."},
+    {type:"voicing", prompt:"<span class='target'>/d/ in <em>Dad</em></span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Vocal folds vibrate."},
+    {type:"voicing", prompt:"<span class='target'>/k/ in <em>kid</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"No vocal fold vibration."},
+    {type:"voicing", prompt:"<span class='target'>/m/ in <em>Mum</em></span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"All nasals voiced."},
+    {type:"manner", prompt:"<span class='target'>/m/ in <em>Mum</em></span>", answer:"nasal", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Air through nose."},
+    {type:"manner", prompt:"<span class='target'>/d/ in <em>Dad</em></span>", answer:"plosive", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Closure then release."},
+    {type:"manner", prompt:"<span class='target'>/ʃ/ in <em>shop</em></span>", answer:"fricative", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Turbulent airflow."},
+    {type:"manner", prompt:"<span class='target'>/h/ in <em>head</em></span>", answer:"fricative", options:["plosive","fricative","nasal","approximant","affricate"], points:80, hint:"Glottal friction."},
+    {type:"voicing", prompt:"<span class='target'>/p/ in <em>cup</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Pair with /b/."},
+  ]
+},
+{
+  id:2, title:"The Long Wait", timeLimit:900, parTime:540,
+  focus:"Long vowels of RP — /iː ɑː ɔː uː ɜː/",
+  story:`Time stretches. <em>"He was always having adventures."</em> Hold the vowel — and the door will hold for you.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target'>see</span><span class='ctx'>\"…go and see my Dad.\"</span>", answer:"siː", points:80, hint:"/s/ + long /iː/."},
+    {type:"ipa", prompt:"<span class='target'>car</span><span class='ctx'>\"He got out of his car.\"</span>", answer:"kɑː", points:100, hint:"Non-rhotic: no /r/."},
+    {type:"ipa", prompt:"<span class='target'>door</span><span class='ctx'>\"Old walls and doors.\"</span>", answer:"dɔː", points:100, hint:"No /r/. Long /ɔː/."},
+    {type:"ipa", prompt:"<span class='target'>true</span><span class='ctx'>Rose realises this is ___.</span>", answer:"truː", points:100, hint:"Cluster + /uː/."},
+    {type:"ipa", prompt:"<span class='target'>word</span><span class='ctx'>What the traveller delivers carefully.</span>", answer:"wɜːd", points:120, hint:"NURSE /ɜː/, no /r/."},
+    {type:"ipa", prompt:"<span class='target'>arm</span><span class='ctx'>\"Matt throws an arm up.\"</span>", answer:"ɑːm", points:100, hint:"Long /ɑː/ + /m/."},
+    {type:"ipa", prompt:"<span class='target'>far</span><span class='ctx'>The traveller is too ___ away.</span>", answer:"fɑː", points:100, hint:"Same /ɑː/."},
+    {type:"ipa", prompt:"<span class='target'>school</span><span class='ctx'>Young Mickey isn't there today.</span>", answer:"skuːl", points:100, hint:"/sk/ + /uː/ + /l/."},
+    {type:"ipa", prompt:"<span class='target'>three</span><span class='ctx'>\"Third prize at the Bowling.\" — root number.</span>", answer:"θriː", points:120, hint:"/θ/ + /r/ + /iː/."},
+    {type:"ipa", prompt:"<span class='target'>park</span><span class='ctx'>Where Pete parks his battered car.</span>", answer:"pɑːk", points:100, hint:"/p/ + /ɑː/ + /k/."},
+    {type:"ipa", prompt:"<span class='target'>more</span><span class='ctx'>\"He's not in charge any more.\"</span>", answer:"mɔː", points:100, hint:"Long /ɔː/, no /r/."},
+    {type:"ipa", prompt:"<span class='target'>moon</span><span class='ctx'>The night the wedding was cursed.</span>", answer:"muːn", points:100, hint:"/m/ + /uː/ + /n/."},
+    {type:"ipa", prompt:"<span class='target'>tree</span><span class='ctx'>An ordinary suburban garden has one.</span>", answer:"triː", points:100, hint:"Cluster + /iː/."},
+    {type:"ipa", prompt:"<span class='target'>start</span><span class='ctx'>\"How did all this get started?\" — root verb.</span>", answer:"stɑːt", points:120, hint:"/st/ + /ɑː/ + /t/."},
+    {type:"ipa", prompt:"<span class='target'>floor</span><span class='ctx'>The vase hits the ___ and shatters.</span>", answer:"flɔː", points:120, hint:"/fl/ + /ɔː/."},
+    {type:"ipa", prompt:"<span class='target'>fork</span><span class='ctx'>At the wedding reception.</span>", answer:"fɔːk", points:100, hint:"/f/ + /ɔː/ + /k/."},
+    {type:"ipa", prompt:"<span class='target'>turn</span><span class='ctx'>\"If only I could turn the clock back!\"</span>", answer:"tɜːn", points:120, hint:"NURSE /ɜː/."},
+    {type:"ipa", prompt:"<span class='target'>born</span><span class='ctx'>Pete was ___ 15th September 1954.</span>", answer:"bɔːn", points:100, hint:"/b/ + /ɔː/ + /n/."},
+    {type:"ipa", prompt:"<span class='target'>blue</span><span class='ctx'>The time-vault colour.</span>", answer:"bluː", points:100, hint:"/bl/ + /uː/."},
+    {type:"ipa", prompt:"<span class='target'>knee</span><span class='ctx'>Silent letter at the start.</span>", answer:"niː", points:100, hint:"Silent /k/: /n/ + /iː/."},
+    {type:"ipa", prompt:"<span class='target'>storm</span><span class='ctx'>\"All sort of grim and stormy.\" — root noun.</span>", answer:"stɔːm", points:120, hint:"/st/ + /ɔː/ + /m/."},
+    {type:"ipa", prompt:"<span class='target'>art</span><span class='ctx'>A picture on a wall.</span>", answer:"ɑːt", points:100, hint:"Long /ɑː/ + /t/."},
+    {type:"ipa", prompt:"<span class='target'>thirty</span><span class='ctx'>\"A man in his early thirties.\" — root number.</span>", answer:"ˈθɜːti", points:140, hint:"/θ/ + /ɜː/ + /ti/. Stress on 1."},
+    {type:"ipa", prompt:"<span class='target'>group</span><span class='ctx'>The wedding party gathers in one.</span>", answer:"ɡruːp", points:100, hint:"/ɡr/ + /uː/ + /p/."},
+    {type:"voicing", prompt:"<span class='target'>/s/ in <em>see</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Pair with /z/."},
+    {type:"manner", prompt:"<span class='target'>/k/ in <em>car</em></span>", answer:"plosive", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Velar plosive."},
+    {type:"voicing", prompt:"<span class='target'>/t/ in <em>turn</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Aspirated initially."},
+    {type:"manner", prompt:"<span class='target'>/n/ in <em>moon</em></span>", answer:"nasal", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Alveolar nasal."},
+    {type:"voicing", prompt:"<span class='target'>/f/ in <em>far</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Pair with /v/."},
+    {type:"manner", prompt:"<span class='target'>/l/ in <em>school</em></span>", answer:"approximant", options:["plosive","fricative","nasal","approximant","affricate"], points:80, hint:"Lateral approximant."},
+  ]
+},
+{
+  id:3, title:"Minimal Pairs of the Vortex", timeLimit:900, parTime:540,
+  focus:"Vowel contrasts — distinguishing close minimal pairs",
+  story:`The Reapers smell wrong vowels. <em>"They can't get in."</em> Distinguish carefully.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target'>ship</span>", answer:"ʃɪp", points:80, hint:"Short /ɪ/."},
+    {type:"ipa", prompt:"<span class='target'>sheep</span>", answer:"ʃiːp", points:80, hint:"Long /iː/."},
+    {type:"ipa", prompt:"<span class='target'>full</span>", answer:"fʊl", points:100, hint:"FOOT /ʊ/."},
+    {type:"ipa", prompt:"<span class='target'>fool</span>", answer:"fuːl", points:100, hint:"GOOSE /uː/."},
+    {type:"ipa", prompt:"<span class='target'>cart</span>", answer:"kɑːt", points:120, hint:"START /ɑː/."},
+    {type:"ipa", prompt:"<span class='target'>cut</span>", answer:"kʌt", points:100, hint:"STRUT /ʌ/."},
+    {type:"ipa", prompt:"<span class='target'>caught</span>", answer:"kɔːt", points:120, hint:"THOUGHT /ɔː/."},
+    {type:"ipa", prompt:"<span class='target'>cot</span>", answer:"kɒt", points:100, hint:"LOT /ɒ/."},
+    {type:"ipa", prompt:"<span class='target'>bit</span>", answer:"bɪt", points:80, hint:"KIT /ɪ/."},
+    {type:"ipa", prompt:"<span class='target'>beat</span>", answer:"biːt", points:80, hint:"FLEECE /iː/."},
+    {type:"ipa", prompt:"<span class='target'>bet</span>", answer:"bet", points:80, hint:"DRESS /e/."},
+    {type:"ipa", prompt:"<span class='target'>bat</span>", answer:"bæt", points:80, hint:"TRAP /æ/."},
+    {type:"ipa", prompt:"<span class='target'>but</span>", answer:"bʌt", points:80, hint:"STRUT /ʌ/."},
+    {type:"ipa", prompt:"<span class='target'>boot</span>", answer:"buːt", points:80, hint:"GOOSE /uː/."},
+    {type:"ipa", prompt:"<span class='target'>bought</span>", answer:"bɔːt", points:100, hint:"THOUGHT /ɔː/."},
+    {type:"ipa", prompt:"<span class='target'>bird</span>", answer:"bɜːd", points:120, hint:"NURSE /ɜː/."},
+    {type:"ipa", prompt:"<span class='target'>bad</span>", answer:"bæd", points:80, hint:"TRAP /æ/."},
+    {type:"ipa", prompt:"<span class='target'>bud</span>", answer:"bʌd", points:80, hint:"STRUT /ʌ/."},
+    {type:"ipa", prompt:"<span class='target'>bed</span>", answer:"bed", points:80, hint:"DRESS /e/."},
+    {type:"ipa", prompt:"<span class='target'>bead</span>", answer:"biːd", points:80, hint:"FLEECE /iː/."},
+    {type:"ipa", prompt:"<span class='target'>pull</span>", answer:"pʊl", points:80, hint:"FOOT /ʊ/."},
+    {type:"ipa", prompt:"<span class='target'>pool</span>", answer:"puːl", points:80, hint:"GOOSE /uː/."},
+    {type:"ipa", prompt:"<span class='target'>look</span>", answer:"lʊk", points:80, hint:"FOOT /ʊ/."},
+    {type:"ipa", prompt:"<span class='target'>Luke</span>", answer:"luːk", points:80, hint:"GOOSE /uː/."},
+    {type:"manner", prompt:"<span class='target'>/ʃ/ in <em>ship</em></span>", answer:"fricative", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Postalveolar fricative."},
+    {type:"voicing", prompt:"<span class='target'>/ʃ/ in <em>ship</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Pair with /ʒ/."},
+    {type:"manner", prompt:"<span class='target'>/b/ in <em>bad</em></span>", answer:"plosive", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Bilabial plosive."},
+    {type:"voicing", prompt:"<span class='target'>/b/ in <em>bed</em></span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Pair with /p/."},
+    {type:"manner", prompt:"<span class='target'>/t/ in <em>caught</em></span>", answer:"plosive", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Alveolar plosive."},
+    {type:"voicing", prompt:"<span class='target'>/k/ in <em>cart</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Pair with /ɡ/."},
+  ]
+},
+{
+  id:4, title:"The Schwa Nebula", timeLimit:900, parTime:540,
+  focus:"Schwa /ə/ and weak forms in unstressed syllables",
+  story:`<em>"The past is another country."</em> Every unstressed vowel collapses here. Find the schwa or stay forever.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target'>traveller</span><span class='ctx'>\"I'm the traveller — basically, run!\"</span>", answer:"ˈdɒktə", points:100, hint:"Final '-or' = schwa."},
+    {type:"ipa", prompt:"<span class='target'>about</span><span class='ctx'>Two syllables, schwa first.</span>", answer:"əˈbaʊt", points:100, hint:"Stress on 2nd."},
+    {type:"ipa", prompt:"<span class='target'>father</span><span class='ctx'>\"Rose needs a proper father.\"</span>", answer:"ˈfɑːðə", points:120, hint:"/ðə/ with schwa."},
+    {type:"ipa", prompt:"<span class='target'>banana</span><span class='ctx'>Classic schwa minefield.</span>", answer:"bəˈnɑːnə", points:140, hint:"Two schwas."},
+    {type:"ipa", prompt:"<span class='target'>and</span><span class='ctx'>Weak form before consonant.</span>", answer:"ənd", points:80, hint:"Schwa, not /æ/."},
+    {type:"ipa", prompt:"<span class='target'>for</span><span class='ctx'>Weak form.</span>", answer:"fə", points:80, hint:"No /r/."},
+    {type:"ipa", prompt:"<span class='target'>to</span><span class='ctx'>Weak form before consonant.</span>", answer:"tə", points:80, hint:"Schwa, not /uː/."},
+    {type:"ipa", prompt:"<span class='target'>letter</span><span class='ctx'>Trick: no /r/ at end!</span>", answer:"ˈletə", points:100, hint:"Final schwa."},
+    {type:"ipa", prompt:"<span class='target'>sister</span><span class='ctx'>Not Rose's, she's an only child.</span>", answer:"ˈsɪstə", points:100, hint:"Final schwa, no /r/."},
+    {type:"ipa", prompt:"<span class='target'>mother</span><span class='ctx'>Jackie is Rose's ___.</span>", answer:"ˈmʌðə", points:120, hint:"STRUT + /ð/ + schwa."},
+    {type:"ipa", prompt:"<span class='target'>brother</span><span class='ctx'>Mickey acts like one to Rose.</span>", answer:"ˈbrʌðə", points:120, hint:"/br/ + /ʌ/ + /ðə/."},
+    {type:"ipa", prompt:"<span class='target'>was</span><span class='ctx'>Weak form.</span>", answer:"wəz", points:80, hint:"Schwa weak form."},
+    {type:"ipa", prompt:"<span class='target'>were</span><span class='ctx'>Weak form.</span>", answer:"wə", points:80, hint:"Just schwa, no /r/."},
+    {type:"ipa", prompt:"<span class='target'>at</span><span class='ctx'>Weak form.</span>", answer:"ət", points:80, hint:"Schwa + /t/."},
+    {type:"ipa", prompt:"<span class='target'>from</span><span class='ctx'>Weak form.</span>", answer:"frəm", points:80, hint:"/fr/ + schwa + /m/."},
+    {type:"ipa", prompt:"<span class='target'>can</span><span class='ctx'>Weak form (auxiliary).</span>", answer:"kən", points:80, hint:"Schwa, not /æ/."},
+    {type:"ipa", prompt:"<span class='target'>them</span><span class='ctx'>Weak form.</span>", answer:"ðəm", points:80, hint:"/ð/ + schwa + /m/."},
+    {type:"ipa", prompt:"<span class='target'>computer</span><span class='ctx'>Three syllables.</span>", answer:"kəmˈpjuːtə", points:160, hint:"Schwa + /ˈpjuː/ + schwa."},
+    {type:"ipa", prompt:"<span class='target'>photograph</span><span class='ctx'>An album holds many.</span>", answer:"ˈfəʊtəɡrɑːf", points:160, hint:"Stress on 1, schwa middle."},
+    {type:"ipa", prompt:"<span class='target'>open</span><span class='ctx'>The vault door, when reachable.</span>", answer:"ˈəʊpən", points:120, hint:"/əʊ/ + schwa + /n/."},
+    {type:"ipa", prompt:"<span class='target'>seven</span><span class='ctx'>\"The 7th of November.\" — root.</span>", answer:"ˈsevən", points:120, hint:"Schwa in 2nd syllable."},
+    {type:"ipa", prompt:"<span class='target'>woman</span><span class='ctx'>Jackie is a young one in 1987.</span>", answer:"ˈwʊmən", points:120, hint:"FOOT + schwa."},
+    {type:"ipa", prompt:"<span class='target'>upon</span><span class='ctx'>\"Once upon a time…\"</span>", answer:"əˈpɒn", points:100, hint:"Schwa + stress on 2nd."},
+    {type:"ipa", prompt:"<span class='target'>again</span><span class='ctx'>\"Can I try again?\"</span>", answer:"əˈɡen", points:120, hint:"Schwa + stress on 2nd."},
+    {type:"ipa", prompt:"<span class='target'>collect</span><span class='ctx'>What Pete tries to do with money.</span>", answer:"kəˈlekt", points:120, hint:"Schwa + /ˈlekt/."},
+    {type:"manner", prompt:"<span class='target'>/ð/ in <em>father</em></span>", answer:"fricative", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Dental fricative."},
+    {type:"voicing", prompt:"<span class='target'>/ð/ in <em>father</em></span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Pair with /θ/."},
+    {type:"voicing", prompt:"<span class='target'>/s/ in <em>sister</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Pair with /z/."},
+    {type:"manner", prompt:"<span class='target'>/r/ in <em>brother</em></span>", answer:"approximant", options:["plosive","fricative","nasal","approximant","affricate"], points:80, hint:"Post-alveolar approximant."},
+    {type:"voicing", prompt:"<span class='target'>/w/ in <em>woman</em></span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Labial-velar approximant, voiced."},
+  ]
+},
+{
+  id:5, title:"Closing Diphthongs", timeLimit:900, parTime:540,
+  focus:"Closing diphthongs — /eɪ aɪ ɔɪ aʊ əʊ/",
+  story:`<em>"Time machine? Cross my heart."</em> The vortex spirals. Vowels glide.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target'>day</span><span class='ctx'>\"The day my father died.\"</span>", answer:"deɪ", points:80, hint:"/eɪ/."},
+    {type:"ipa", prompt:"<span class='target'>time</span><span class='ctx'>\"There's been an accident with time.\"</span>", answer:"taɪm", points:80, hint:"/aɪ/."},
+    {type:"ipa", prompt:"<span class='target'>boy</span><span class='ctx'>\"Boyfriend trouble?\"</span>", answer:"bɔɪ", points:100, hint:"/ɔɪ/."},
+    {type:"ipa", prompt:"<span class='target'>house</span><span class='ctx'>Pete and Jackie's home.</span>", answer:"haʊs", points:100, hint:"/aʊ/."},
+    {type:"ipa", prompt:"<span class='target'>phone</span><span class='ctx'>\"That's the very first phone call.\"</span>", answer:"fəʊn", points:100, hint:"RP /əʊ/."},
+    {type:"ipa", prompt:"<span class='target'>alone</span><span class='ctx'>\"He can't die on his own.\"</span>", answer:"əˈləʊn", points:120, hint:"Schwa + /ləʊn/."},
+    {type:"ipa", prompt:"<span class='target'>night</span><span class='ctx'>\"I hope he never slept again.\"</span>", answer:"naɪt", points:100, hint:"Silent 'gh'."},
+    {type:"ipa", prompt:"<span class='target'>away</span><span class='ctx'>\"The car roars past and away.\"</span>", answer:"əˈweɪ", points:100, hint:"Schwa + /weɪ/."},
+    {type:"ipa", prompt:"<span class='target'>five</span><span class='ctx'>\"I'll give it three weeks.\"</span>", answer:"faɪv", points:100, hint:"/f/ + /aɪ/ + /v/."},
+    {type:"ipa", prompt:"<span class='target'>name</span><span class='ctx'>\"What's your name?\"</span>", answer:"neɪm", points:100, hint:"/n/ + /eɪ/ + /m/."},
+    {type:"ipa", prompt:"<span class='target'>place</span><span class='ctx'>\"This, and a few places like it.\"</span>", answer:"pleɪs", points:120, hint:"/pl/ + /eɪ/ + /s/."},
+    {type:"ipa", prompt:"<span class='target'>face</span><span class='ctx'>\"Matt throws an arm up to shield his face.\"</span>", answer:"feɪs", points:100, hint:"/f/ + /eɪ/ + /s/."},
+    {type:"ipa", prompt:"<span class='target'>sky</span><span class='ctx'>The vortex tears it open.</span>", answer:"skaɪ", points:120, hint:"/sk/ + /aɪ/."},
+    {type:"ipa", prompt:"<span class='target'>cry</span><span class='ctx'>Rose bursts into tears.</span>", answer:"kraɪ", points:120, hint:"/kr/ + /aɪ/."},
+    {type:"ipa", prompt:"<span class='target'>noise</span><span class='ctx'>The Reapers make a horrible one.</span>", answer:"nɔɪz", points:120, hint:"/n/ + /ɔɪ/ + /z/."},
+    {type:"ipa", prompt:"<span class='target'>voice</span><span class='ctx'>\"A voice crackles through the speakers.\"</span>", answer:"vɔɪs", points:120, hint:"Real /v/."},
+    {type:"ipa", prompt:"<span class='target'>down</span><span class='ctx'>\"Slams down a big lever.\"</span>", answer:"daʊn", points:100, hint:"/d/ + /aʊ/ + /n/."},
+    {type:"ipa", prompt:"<span class='target'>town</span><span class='ctx'>1987 London.</span>", answer:"taʊn", points:100, hint:"/t/ + /aʊ/ + /n/."},
+    {type:"ipa", prompt:"<span class='target'>cloud</span><span class='ctx'>The sky is grey.</span>", answer:"klaʊd", points:120, hint:"/kl/ + /aʊ/ + /d/."},
+    {type:"ipa", prompt:"<span class='target'>show</span><span class='ctx'>\"She used to show me.\"</span>", answer:"ʃəʊ", points:80, hint:"/ʃ/ + /əʊ/."},
+    {type:"ipa", prompt:"<span class='target'>know</span><span class='ctx'>\"I know what I'm doing.\"</span>", answer:"nəʊ", points:80, hint:"Silent /k/."},
+    {type:"ipa", prompt:"<span class='target'>road</span><span class='ctx'>\"He got out of his car. Crossed the road.\"</span>", answer:"rəʊd", points:80, hint:"/r/ + /əʊ/ + /d/."},
+    {type:"ipa", prompt:"<span class='target'>boat</span><span class='ctx'>A ship — but smaller.</span>", answer:"bəʊt", points:80, hint:"/b/ + /əʊ/ + /t/."},
+    {type:"ipa", prompt:"<span class='target'>nine</span><span class='ctx'>The wedding starts at ___ AM.</span>", answer:"naɪn", points:100, hint:"/n/ + /aɪ/ + /n/."},
+    {type:"ipa", prompt:"<span class='target'>side</span><span class='ctx'>\"The other side of the road.\"</span>", answer:"saɪd", points:100, hint:"/s/ + /aɪ/ + /d/."},
+    {type:"voicing", prompt:"<span class='target'>/b/ in <em>boy</em></span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Voiced bilabial."},
+    {type:"manner", prompt:"<span class='target'>/n/ in <em>phone</em></span>", answer:"nasal", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Alveolar nasal."},
+    {type:"voicing", prompt:"<span class='target'>/h/ in <em>house</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Voiceless glottal."},
+    {type:"manner", prompt:"<span class='target'>/v/ in <em>five</em></span>", answer:"fricative", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Labiodental fricative."},
+    {type:"voicing", prompt:"<span class='target'>/z/ in <em>noise</em></span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Voiced alveolar."},
+  ]
+},
+{
+  id:6, title:"Centring Diphthongs", timeLimit:900, parTime:540,
+  focus:"Centring diphthongs — /ɪə eə ʊə/",
+  story:`Sarah's wedding train trails behind her like a centring diphthong, gliding back to schwa. Anchor each one.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target'>here</span><span class='ctx'>\"He's not in charge any more. I am.\"</span>", answer:"hɪə", points:100, hint:"/ɪə/, no /r/."},
+    {type:"ipa", prompt:"<span class='target'>fear</span><span class='ctx'>Sarah feels it at the church.</span>", answer:"fɪə", points:100, hint:"Same /ɪə/."},
+    {type:"ipa", prompt:"<span class='target'>hair</span><span class='ctx'>\"Your hair…\" — Rose stares at Jackie's perm.</span>", answer:"heə", points:120, hint:"/eə/, no /r/."},
+    {type:"ipa", prompt:"<span class='target'>care</span><span class='ctx'>\"The traveller really cared about you.\"</span>", answer:"keə", points:100, hint:"/eə/."},
+    {type:"ipa", prompt:"<span class='target'>sure</span><span class='ctx'>\"Sure about this?\"</span>", answer:"ʃʊə", points:120, hint:"/ʃ/ + /ʊə/."},
+    {type:"ipa", prompt:"<span class='target'>tour</span><span class='ctx'>A guided tour of the vault.</span>", answer:"tʊə", points:120, hint:"Same /ʊə/."},
+    {type:"ipa", prompt:"<span class='target'>near</span><span class='ctx'>\"He died so close to home.\"</span>", answer:"nɪə", points:100, hint:"/ɪə/."},
+    {type:"ipa", prompt:"<span class='target'>where</span><span class='ctx'>\"Where's her useless article of a Dad got to?\"</span>", answer:"weə", points:120, hint:"/eə/. No /h/."},
+    {type:"ipa", prompt:"<span class='target'>year</span><span class='ctx'>1987.</span>", answer:"jɪə", points:120, hint:"/j/ glide + /ɪə/."},
+    {type:"ipa", prompt:"<span class='target'>dear</span><span class='ctx'>\"My dear…\" An older term of endearment.</span>", answer:"dɪə", points:100, hint:"/d/ + /ɪə/."},
+    {type:"ipa", prompt:"<span class='target'>tear</span><span class='ctx'>Rose drying her tears.</span>", answer:"tɪə", points:100, hint:"/t/ + /ɪə/. (Noun, not verb.)"},
+    {type:"ipa", prompt:"<span class='target'>beer</span><span class='ctx'>At the reception.</span>", answer:"bɪə", points:100, hint:"/b/ + /ɪə/."},
+    {type:"ipa", prompt:"<span class='target'>cheer</span><span class='ctx'>At the wedding toast.</span>", answer:"tʃɪə", points:120, hint:"/tʃ/ + /ɪə/."},
+    {type:"ipa", prompt:"<span class='target'>chair</span><span class='ctx'>\"They are sitting on chairs.\"</span>", answer:"tʃeə", points:120, hint:"/tʃ/ + /eə/."},
+    {type:"ipa", prompt:"<span class='target'>share</span><span class='ctx'>What Rose can't do with her secret.</span>", answer:"ʃeə", points:100, hint:"/ʃ/ + /eə/."},
+    {type:"ipa", prompt:"<span class='target'>stair</span><span class='ctx'>Going up to the flat.</span>", answer:"steə", points:120, hint:"/st/ + /eə/."},
+    {type:"ipa", prompt:"<span class='target'>fair</span><span class='ctx'>\"It's not fair.\"</span>", answer:"feə", points:100, hint:"/f/ + /eə/."},
+    {type:"ipa", prompt:"<span class='target'>poor</span><span class='ctx'>\"Poor thing.\"</span>", answer:"pʊə", points:120, hint:"Classic /ʊə/."},
+    {type:"ipa", prompt:"<span class='target'>cure</span><span class='ctx'>What no one can find for time.</span>", answer:"kjʊə", points:140, hint:"/k/ + /j/ + /ʊə/."},
+    {type:"ipa", prompt:"<span class='target'>pure</span><span class='ctx'>An ___ accident.</span>", answer:"pjʊə", points:140, hint:"/p/ + /j/ + /ʊə/."},
+    {type:"ipa", prompt:"<span class='target'>career</span><span class='ctx'>Pete's not exactly a success in his.</span>", answer:"kəˈrɪə", points:160, hint:"Schwa + /ˈrɪə/."},
+    {type:"ipa", prompt:"<span class='target'>hero</span><span class='ctx'>What Pete becomes at the end.</span>", answer:"ˈhɪərəʊ", points:160, hint:"/hɪər/ + /əʊ/."},
+    {type:"ipa", prompt:"<span class='target'>zero</span><span class='ctx'>Time approaches it.</span>", answer:"ˈzɪərəʊ", points:160, hint:"Real /z/."},
+    {type:"ipa", prompt:"<span class='target'>area</span><span class='ctx'>The estate is a working-class one.</span>", answer:"ˈeəriə", points:160, hint:"/eə/ + /riə/."},
+    {type:"ipa", prompt:"<span class='target'>various</span><span class='ctx'>Pete has tried ___ schemes.</span>", answer:"ˈveəriəs", points:180, hint:"/veə/ + /riəs/."},
+    {type:"voicing", prompt:"<span class='target'>/f/ in <em>fear</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Pair with /v/."},
+    {type:"manner", prompt:"<span class='target'>/h/ in <em>here</em></span>", answer:"fricative", options:["plosive","fricative","nasal","approximant","affricate"], points:80, hint:"Glottal fricative."},
+    {type:"voicing", prompt:"<span class='target'>/tʃ/ in <em>cheer</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Pair with /dʒ/."},
+    {type:"manner", prompt:"<span class='target'>/tʃ/ in <em>chair</em></span>", answer:"affricate", options:["plosive","fricative","nasal","approximant","affricate"], points:80, hint:"Plosive + fricative release."},
+    {type:"voicing", prompt:"<span class='target'>/j/ in <em>year</em></span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Palatal approximant, voiced."},
+  ]
+},
+{
+  id:7, title:"The Plosive Hall", timeLimit:900, parTime:540,
+  focus:"Plosives /p t k b d ɡ/ and aspiration",
+  story:`<em>"He slams down a big lever to change course."</em> Six plosives guard this hall.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target'>park</span>", answer:"pɑːk", points:100, hint:"Aspirated /pʰ/."},
+    {type:"ipa", prompt:"<span class='target'>back</span><span class='ctx'>\"You'll be back in a minute!\"</span>", answer:"bæk", points:80, hint:"Voiced /b/."},
+    {type:"ipa", prompt:"<span class='target'>kid</span>", answer:"kɪd", points:80, hint:"Aspirated /k/."},
+    {type:"ipa", prompt:"<span class='target'>good</span><span class='ctx'>\"Good thing an' all.\"</span>", answer:"ɡʊd", points:100, hint:"Voiced /ɡ/."},
+    {type:"ipa", prompt:"<span class='target'>top</span>", answer:"tɒp", points:100, hint:"Aspirated /tʰ/."},
+    {type:"ipa", prompt:"<span class='target'>dead</span><span class='ctx'>\"Pete was dead when the ambulance got there.\"</span>", answer:"ded", points:100, hint:"Voiced /d/ both ends."},
+    {type:"ipa", prompt:"<span class='target'>bad</span><span class='ctx'>\"It's a very bad idea.\"</span>", answer:"bæd", points:80, hint:"/b/ + /æ/ + /d/."},
+    {type:"ipa", prompt:"<span class='target'>God</span>", answer:"ɡɒd", points:80, hint:"/ɡ/ + /ɒ/ + /d/."},
+    {type:"ipa", prompt:"<span class='target'>cake</span><span class='ctx'>The wedding has one.</span>", answer:"keɪk", points:100, hint:"/k/ + /eɪ/ + /k/."},
+    {type:"ipa", prompt:"<span class='target'>get</span><span class='ctx'>\"To get this wedding present.\"</span>", answer:"ɡet", points:100, hint:"/ɡ/ + /e/ + /t/."},
+    {type:"ipa", prompt:"<span class='target'>tap</span><span class='ctx'>The kitchen has one.</span>", answer:"tæp", points:100, hint:"/t/ + /æ/ + /p/."},
+    {type:"ipa", prompt:"<span class='target'>cup</span>", answer:"kʌp", points:100, hint:"/k/ + /ʌ/ + /p/."},
+    {type:"ipa", prompt:"<span class='target'>bed</span>", answer:"bed", points:100, hint:"/b/ + /e/ + /d/."},
+    {type:"ipa", prompt:"<span class='target'>dog</span><span class='ctx'>An ordinary suburban pet.</span>", answer:"dɒɡ", points:100, hint:"/d/ + /ɒ/ + /ɡ/."},
+    {type:"ipa", prompt:"<span class='target'>pet</span><span class='ctx'>Pete's name in his own home.</span>", answer:"pet", points:100, hint:"/p/ + /e/ + /t/."},
+    {type:"ipa", prompt:"<span class='target'>big</span><span class='ctx'>\"He slams down a big lever.\"</span>", answer:"bɪɡ", points:100, hint:"/b/ + /ɪ/ + /ɡ/."},
+    {type:"ipa", prompt:"<span class='target'>book</span>", answer:"bʊk", points:100, hint:"/b/ + /ʊ/ + /k/."},
+    {type:"ipa", prompt:"<span class='target'>type</span><span class='ctx'>Pete's not the businessman ___.</span>", answer:"taɪp", points:100, hint:"/t/ + /aɪ/ + /p/."},
+    {type:"ipa", prompt:"<span class='target'>tap</span><span class='ctx'>To press lightly.</span>", answer:"tæp", points:100, hint:"/t/ + /æ/ + /p/."},
+    {type:"ipa", prompt:"<span class='target'>dip</span><span class='ctx'>A small one in the road.</span>", answer:"dɪp", points:100, hint:"/d/ + /ɪ/ + /p/."},
+    {type:"ipa", prompt:"<span class='target'>kit</span><span class='ctx'>A tool ___ for repairs.</span>", answer:"kɪt", points:100, hint:"/k/ + /ɪ/ + /t/."},
+    {type:"ipa", prompt:"<span class='target'>peak</span><span class='ctx'>Highest point of a hill.</span>", answer:"piːk", points:100, hint:"/p/ + /iː/ + /k/."},
+    {type:"ipa", prompt:"<span class='target'>doubt</span><span class='ctx'>\"Doubt it.\"</span>", answer:"daʊt", points:120, hint:"Silent 'b'."},
+    {type:"ipa", prompt:"<span class='target'>guest</span><span class='ctx'>At the wedding.</span>", answer:"ɡest", points:120, hint:"Silent 'u'."},
+    {type:"voicing", prompt:"<span class='target'>/p/ vs /b/</span><span class='ctx'>Which is voiceless?</span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"/p/."},
+    {type:"voicing", prompt:"<span class='target'>/d/</span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Voiced alveolar plosive."},
+    {type:"manner", prompt:"<span class='target'>/d/</span>", answer:"plosive", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Complete closure."},
+    {type:"manner", prompt:"<span class='target'>/k/</span>", answer:"plosive", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Velar plosive."},
+    {type:"voicing", prompt:"<span class='target'>/ɡ/</span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Voiced velar."},
+    {type:"voicing", prompt:"<span class='target'>/t/</span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Voiceless alveolar."},
+  ]
+},
+{
+  id:8, title:"The Voiceless Frictions", timeLimit:900, parTime:540,
+  focus:"Fricatives /f s ʃ h v z/ — special care with /v z h/ for Spanish L1",
+  story:`A hiss of air. <em>"It just sort of… vanished."</em> Fricatives leak through cracks.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target'>face</span><span class='ctx'>\"Matt throws an arm up to shield his face.\"</span>", answer:"feɪs", points:100, hint:"/f/ + /eɪ/ + /s/."},
+    {type:"ipa", prompt:"<span class='target'>house</span><span class='ctx'>Noun, final /s/.</span>", answer:"haʊs", points:100, hint:"Voiceless final /s/."},
+    {type:"ipa", prompt:"<span class='target'>vase</span><span class='ctx'>\"A vase, mum always said, that stupid vase.\"</span>", answer:"vɑːz", points:140, hint:"Real /v/, final /z/."},
+    {type:"ipa", prompt:"<span class='target'>zero</span><span class='ctx'>Time approaches it.</span>", answer:"ˈzɪərəʊ", points:140, hint:"Real /z/."},
+    {type:"ipa", prompt:"<span class='target'>hello</span><span class='ctx'>What Rose says to her father.</span>", answer:"həˈləʊ", points:120, hint:"Real /h/."},
+    {type:"ipa", prompt:"<span class='target'>save</span><span class='ctx'>\"He doesn't die alone.\" — Rose wants to.</span>", answer:"seɪv", points:100, hint:"Final /v/."},
+    {type:"ipa", prompt:"<span class='target'>five</span>", answer:"faɪv", points:100, hint:"/f/ + /aɪ/ + /v/."},
+    {type:"ipa", prompt:"<span class='target'>visit</span><span class='ctx'>Rose's emotional ___ to 1987.</span>", answer:"ˈvɪzɪt", points:140, hint:"/v/ + /ɪ/ + /z/ + /ɪt/."},
+    {type:"ipa", prompt:"<span class='target'>have</span><span class='ctx'>Strong form.</span>", answer:"hæv", points:80, hint:"Initial /h/ + final /v/."},
+    {type:"ipa", prompt:"<span class='target'>fish</span><span class='ctx'>A common dinner.</span>", answer:"fɪʃ", points:80, hint:"/f/ + /ɪ/ + /ʃ/."},
+    {type:"ipa", prompt:"<span class='target'>hat</span><span class='ctx'>\"All big hats and 1987 suits.\" — singular.</span>", answer:"hæt", points:100, hint:"Real /h/, not silent."},
+    {type:"ipa", prompt:"<span class='target'>foot</span><span class='ctx'>A 1987 fashion item: high-heeled.</span>", answer:"fʊt", points:80, hint:"/f/ + /ʊ/ + /t/."},
+    {type:"ipa", prompt:"<span class='target'>safe</span><span class='ctx'>\"You're safe now.\"</span>", answer:"seɪf", points:80, hint:"/s/ + /eɪ/ + /f/."},
+    {type:"ipa", prompt:"<span class='target'>vow</span><span class='ctx'>Said at a wedding.</span>", answer:"vaʊ", points:120, hint:"Real /v/!"},
+    {type:"ipa", prompt:"<span class='target'>seven</span><span class='ctx'>\"The 7th of November.\"</span>", answer:"ˈsevən", points:120, hint:"/s/ + /evən/."},
+    {type:"ipa", prompt:"<span class='target'>love</span><span class='ctx'>\"You love each other.\"</span>", answer:"lʌv", points:80, hint:"Final /v/, not /b/!"},
+    {type:"ipa", prompt:"<span class='target'>busy</span><span class='ctx'>The wedding day is.</span>", answer:"ˈbɪzi", points:120, hint:"Real /z/ in the middle!"},
+    {type:"ipa", prompt:"<span class='target'>was</span><span class='ctx'>Strong form.</span>", answer:"wɒz", points:80, hint:"Strong form has /z/."},
+    {type:"ipa", prompt:"<span class='target'>his</span><span class='ctx'>Strong form.</span>", answer:"hɪz", points:80, hint:"Real /h/ + final /z/."},
+    {type:"ipa", prompt:"<span class='target'>he</span><span class='ctx'>Strong form.</span>", answer:"hiː", points:80, hint:"Real /h/ + long /iː/."},
+    {type:"ipa", prompt:"<span class='target'>half</span><span class='ctx'>\"Half the guests haven't turned up!\"</span>", answer:"hɑːf", points:120, hint:"Silent 'l'."},
+    {type:"ipa", prompt:"<span class='target'>survive</span><span class='ctx'>\"You've got to survive.\"</span>", answer:"səˈvaɪv", points:160, hint:"Schwa + /ˈvaɪv/."},
+    {type:"ipa", prompt:"<span class='target'>haven</span><span class='ctx'>A safe place. Like the church.</span>", answer:"ˈheɪvən", points:140, hint:"Real /h/ + /v/."},
+    {type:"ipa", prompt:"<span class='target'>fever</span><span class='ctx'>Stuart looks unwell. He has a ___.</span>", answer:"ˈfiːvə", points:140, hint:"Real /v/."},
+    {type:"voicing", prompt:"<span class='target'>/v/ vs /f/</span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"/v/ voiced."},
+    {type:"voicing", prompt:"<span class='target'>/z/ in <em>vase</em></span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Final /z/."},
+    {type:"voicing", prompt:"<span class='target'>/h/ in <em>hello</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Voiceless glottal."},
+    {type:"manner", prompt:"<span class='target'>/f v s z/</span>", answer:"fricative", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"All fricatives."},
+    {type:"manner", prompt:"<span class='target'>/h/</span>", answer:"fricative", options:["plosive","fricative","nasal","approximant","affricate"], points:80, hint:"Glottal fricative."},
+    {type:"voicing", prompt:"<span class='target'>/s/ in <em>save</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Voiceless alveolar."},
+  ]
+},
+{
+  id:9, title:"The Dental Chamber", timeLimit:900, parTime:540,
+  focus:"Dental fricatives /θ ð/ — voiceless vs voiced",
+  story:`Dental fricatives don't exist as phonemes in Spanish. Distinguish carefully.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target'>think</span><span class='ctx'>\"D'you think something's gone wrong?\"</span>", answer:"θɪŋk", points:100, hint:"/θ/ + /ɪ/ + /ŋ/ + /k/."},
+    {type:"ipa", prompt:"<span class='target'>thing</span>", answer:"θɪŋ", points:100, hint:"/θ/ + /ɪ/ + /ŋ/."},
+    {type:"ipa", prompt:"<span class='target'>the</span><span class='ctx'>Weak form before consonant.</span>", answer:"ðə", points:80, hint:"/ð/ + schwa."},
+    {type:"ipa", prompt:"<span class='target'>that</span><span class='ctx'>\"That's the very first phone call.\"</span>", answer:"ðæt", points:100, hint:"/ð/ + /æ/ + /t/."},
+    {type:"ipa", prompt:"<span class='target'>this</span><span class='ctx'>\"This is so weird.\"</span>", answer:"ðɪs", points:100, hint:"/ð/ + /ɪ/ + /s/."},
+    {type:"ipa", prompt:"<span class='target'>three</span><span class='ctx'>Number.</span>", answer:"θriː", points:120, hint:"/θ/ + /r/ + /iː/."},
+    {type:"ipa", prompt:"<span class='target'>mother</span><span class='ctx'>Jackie is Rose's.</span>", answer:"ˈmʌðə", points:120, hint:"Voiced /ð/."},
+    {type:"ipa", prompt:"<span class='target'>both</span><span class='ctx'>\"Both of you. All of you!\"</span>", answer:"bəʊθ", points:120, hint:"Voiceless /θ/."},
+    {type:"ipa", prompt:"<span class='target'>then</span><span class='ctx'>\"Then she was gone.\"</span>", answer:"ðen", points:100, hint:"Voiced /ð/."},
+    {type:"ipa", prompt:"<span class='target'>thick</span><span class='ctx'>Pete is sometimes called this.</span>", answer:"θɪk", points:100, hint:"Voiceless /θ/."},
+    {type:"ipa", prompt:"<span class='target'>thank</span><span class='ctx'>\"Thank you for saving all of us.\"</span>", answer:"θæŋk", points:120, hint:"/θ/ + /æ/ + /ŋk/."},
+    {type:"ipa", prompt:"<span class='target'>theme</span><span class='ctx'>Of the wedding.</span>", answer:"θiːm", points:120, hint:"/θ/ + /iː/ + /m/."},
+    {type:"ipa", prompt:"<span class='target'>thin</span><span class='ctx'>The walls of time are ___.</span>", answer:"θɪn", points:100, hint:"Voiceless /θ/."},
+    {type:"ipa", prompt:"<span class='target'>thought</span><span class='ctx'>\"I thought he'd be taller.\"</span>", answer:"θɔːt", points:120, hint:"/θ/ + /ɔː/ + /t/."},
+    {type:"ipa", prompt:"<span class='target'>through</span><span class='ctx'>\"You'll get through this.\"</span>", answer:"θruː", points:140, hint:"/θ/ + /r/ + /uː/."},
+    {type:"ipa", prompt:"<span class='target'>throw</span><span class='ctx'>\"Matt throws an arm up.\"</span>", answer:"θrəʊ", points:140, hint:"/θ/ + /r/ + /əʊ/."},
+    {type:"ipa", prompt:"<span class='target'>they</span><span class='ctx'>\"They can't get in.\"</span>", answer:"ðeɪ", points:80, hint:"Voiced /ð/."},
+    {type:"ipa", prompt:"<span class='target'>there</span><span class='ctx'>\"Pete was dead when the ambulance got there.\"</span>", answer:"ðeə", points:120, hint:"/ð/ + /eə/."},
+    {type:"ipa", prompt:"<span class='target'>weather</span><span class='ctx'>An ordinary day, ordinary ___.</span>", answer:"ˈweðə", points:120, hint:"Voiced /ð/."},
+    {type:"ipa", prompt:"<span class='target'>further</span><span class='ctx'>Pete walks ___ down the road.</span>", answer:"ˈfɜːðə", points:140, hint:"NURSE /ɜː/ + voiced /ð/."},
+    {type:"ipa", prompt:"<span class='target'>fourth</span><span class='ctx'>The ___ time the day repeats.</span>", answer:"fɔːθ", points:120, hint:"Voiceless /θ/."},
+    {type:"ipa", prompt:"<span class='target'>youth</span><span class='ctx'>Pete is still in his ___.</span>", answer:"juːθ", points:120, hint:"/j/ + /uː/ + /θ/."},
+    {type:"ipa", prompt:"<span class='target'>worth</span><span class='ctx'>\"For what it's ___.\"</span>", answer:"wɜːθ", points:120, hint:"/w/ + /ɜː/ + /θ/."},
+    {type:"ipa", prompt:"<span class='target'>those</span><span class='ctx'>\"Those things outside.\"</span>", answer:"ðəʊz", points:120, hint:"Voiced /ð/ + /əʊ/ + /z/."},
+    {type:"ipa", prompt:"<span class='target'>another</span><span class='ctx'>\"The past is another country.\"</span>", answer:"əˈnʌðə", points:160, hint:"Schwa + /ˈnʌðə/."},
+    {type:"voicing", prompt:"<span class='target'>/θ/ in <em>think</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Voiceless dental."},
+    {type:"voicing", prompt:"<span class='target'>/ð/ in <em>this</em></span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Voiced dental."},
+    {type:"manner", prompt:"<span class='target'>/θ ð/</span>", answer:"fricative", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Dental fricatives."},
+    {type:"voicing", prompt:"<span class='target'>Minimal pair: <em>thigh</em> /θ/ vs <em>thy</em> /ð/</span><span class='ctx'>Which is voiced?</span>", answer:"/ð/", options:["/θ/","/ð/"], points:80, hint:"<em>thy</em>."},
+    {type:"manner", prompt:"<span class='target'>Place of articulation of /θ/</span>", answer:"dental", options:["bilabial","labiodental","dental","alveolar","velar"], points:80, hint:"Tongue tip near upper teeth."},
+  ]
+},
+{
+  id:10, title:"The Palatal Vault", timeLimit:900, parTime:540,
+  focus:"Affricates and palato-alveolars — /tʃ dʒ ʃ ʒ/",
+  story:`Spanish-speakers often collapse /ʃ/ and /tʃ/. Here they must be kept apart.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target'>church</span><span class='ctx'>\"Get into the church!\"</span>", answer:"tʃɜːtʃ", points:140, hint:"/tʃ/ at both ends!"},
+    {type:"ipa", prompt:"<span class='target'>change</span><span class='ctx'>\"He slams down a big lever to change course.\"</span>", answer:"tʃeɪndʒ", points:140, hint:"/tʃ/ + /eɪndʒ/."},
+    {type:"ipa", prompt:"<span class='target'>job</span><span class='ctx'>\"It's my job for it to be my fault.\"</span>", answer:"dʒɒb", points:120, hint:"/dʒ/ + /ɒ/ + /b/."},
+    {type:"ipa", prompt:"<span class='target'>judge</span><span class='ctx'>The Time Lords would have done what to Rose?</span>", answer:"dʒʌdʒ", points:140, hint:"/dʒ/ both ends."},
+    {type:"ipa", prompt:"<span class='target'>shoe</span><span class='ctx'>What Stuart wore to his wedding.</span>", answer:"ʃuː", points:100, hint:"/ʃ/ + /uː/."},
+    {type:"ipa", prompt:"<span class='target'>vision</span><span class='ctx'>Rose has one of her father grown old.</span>", answer:"ˈvɪʒən", points:140, hint:"Real /v/ + /ʒ/."},
+    {type:"ipa", prompt:"<span class='target'>measure</span><span class='ctx'>The traveller cannot ___ time precisely now.</span>", answer:"ˈmeʒə", points:140, hint:"/m/ + /e/ + /ʒə/."},
+    {type:"ipa", prompt:"<span class='target'>chair</span><span class='ctx'>\"They are sitting on chairs.\"</span>", answer:"tʃeə", points:120, hint:"/tʃ/ + /eə/."},
+    {type:"ipa", prompt:"<span class='target'>cheap</span><span class='ctx'>The detergent at home.</span>", answer:"tʃiːp", points:120, hint:"/tʃ/ + /iː/ + /p/."},
+    {type:"ipa", prompt:"<span class='target'>sheep</span><span class='ctx'>Not goats!</span>", answer:"ʃiːp", points:120, hint:"/ʃ/ — minimal pair with 'cheap'."},
+    {type:"ipa", prompt:"<span class='target'>chip</span><span class='ctx'>Common pub food.</span>", answer:"tʃɪp", points:120, hint:"/tʃ/ + /ɪ/ + /p/."},
+    {type:"ipa", prompt:"<span class='target'>ship</span>", answer:"ʃɪp", points:80, hint:"/ʃ/ — minimal pair with 'chip'."},
+    {type:"ipa", prompt:"<span class='target'>gentle</span><span class='ctx'>\"Stuart very gently…\"</span>", answer:"ˈdʒentl", points:140, hint:"/dʒ/ + /entl/."},
+    {type:"ipa", prompt:"<span class='target'>jam</span><span class='ctx'>On toast.</span>", answer:"dʒæm", points:120, hint:"/dʒ/ + /æ/ + /m/."},
+    {type:"ipa", prompt:"<span class='target'>large</span><span class='ctx'>A ___ wedding party.</span>", answer:"lɑːdʒ", points:140, hint:"/l/ + /ɑː/ + /dʒ/."},
+    {type:"ipa", prompt:"<span class='target'>page</span><span class='ctx'>From the album.</span>", answer:"peɪdʒ", points:120, hint:"/p/ + /eɪ/ + /dʒ/."},
+    {type:"ipa", prompt:"<span class='target'>edge</span><span class='ctx'>Of the road.</span>", answer:"edʒ", points:100, hint:"/e/ + /dʒ/."},
+    {type:"ipa", prompt:"<span class='target'>fridge</span><span class='ctx'>\"Milk's in the fridge.\"</span>", answer:"frɪdʒ", points:120, hint:"/fr/ + /ɪ/ + /dʒ/."},
+    {type:"ipa", prompt:"<span class='target'>shock</span><span class='ctx'>\"He looks shattered.\"</span>", answer:"ʃɒk", points:100, hint:"/ʃ/ + /ɒ/ + /k/."},
+    {type:"ipa", prompt:"<span class='target'>fish</span>", answer:"fɪʃ", points:80, hint:"Final /ʃ/."},
+    {type:"ipa", prompt:"<span class='target'>wish</span><span class='ctx'>\"Your wish is my command.\"</span>", answer:"wɪʃ", points:80, hint:"/w/ + /ɪ/ + /ʃ/."},
+    {type:"ipa", prompt:"<span class='target'>wash</span><span class='ctx'>The dishes need it.</span>", answer:"wɒʃ", points:100, hint:"/w/ + /ɒ/ + /ʃ/."},
+    {type:"ipa", prompt:"<span class='target'>nation</span><span class='ctx'>The whole ___ in mourning.</span>", answer:"ˈneɪʃən", points:140, hint:"/neɪ/ + /ʃən/."},
+    {type:"ipa", prompt:"<span class='target'>magic</span><span class='ctx'>Like a time machine, but isn't.</span>", answer:"ˈmædʒɪk", points:140, hint:"/m/ + /æ/ + /dʒ/ + /ɪk/."},
+    {type:"ipa", prompt:"<span class='target'>danger</span><span class='ctx'>The whole world in.</span>", answer:"ˈdeɪndʒə", points:160, hint:"/d/ + /eɪn/ + /dʒə/."},
+    {type:"voicing", prompt:"<span class='target'>/tʃ/ vs /dʒ/</span><span class='ctx'>Which voiced?</span>", answer:"/dʒ/", options:["/tʃ/","/dʒ/"], points:60, hint:"/dʒ/."},
+    {type:"manner", prompt:"<span class='target'>/tʃ/</span>", answer:"affricate", options:["plosive","fricative","nasal","approximant","affricate"], points:80, hint:"Plosive + fricative release."},
+    {type:"manner", prompt:"<span class='target'>/dʒ/</span>", answer:"affricate", options:["plosive","fricative","nasal","approximant","affricate"], points:80, hint:"Voiced affricate."},
+    {type:"manner", prompt:"<span class='target'>/ʃ/</span>", answer:"fricative", options:["plosive","fricative","nasal","approximant","affricate"], points:60, hint:"Pure fricative."},
+    {type:"voicing", prompt:"<span class='target'>/ʒ/ in <em>vision</em></span>", answer:"voiced", options:["voiced","voiceless"], points:60, hint:"Voiced postalveolar."},
+  ]
+},
+{
+  id:11, title:"Consonant Clusters & Epenthesis", timeLimit:900, parTime:540,
+  focus:"Initial clusters /sp st sk spl str/ — beware Spanish epenthesis",
+  story:`<em>"Stop right there."</em> No /e/ before /s/. No 'estop'.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target'>spaceship</span><span class='ctx'>A time machine, sort of.</span>", answer:"ˈspeɪsʃɪp", points:160, hint:"/sp/ NO /e/."},
+    {type:"ipa", prompt:"<span class='target'>street</span><span class='ctx'>\"Jordan Road.\" Synonym.</span>", answer:"striːt", points:140, hint:"/str/ NO /e/."},
+    {type:"ipa", prompt:"<span class='target'>stop</span><span class='ctx'>\"Stop it.\"</span>", answer:"stɒp", points:100, hint:"/st/."},
+    {type:"ipa", prompt:"<span class='target'>school</span>", answer:"skuːl", points:100, hint:"/sk/."},
+    {type:"ipa", prompt:"<span class='target'>splash</span><span class='ctx'>The vase shatters.</span>", answer:"splæʃ", points:140, hint:"/spl/."},
+    {type:"ipa", prompt:"<span class='target'>strange</span><span class='ctx'>\"You don't give your keys to a complete stranger.\"</span>", answer:"streɪndʒ", points:160, hint:"/str/ + /eɪndʒ/."},
+    {type:"ipa", prompt:"<span class='target'>speak</span><span class='ctx'>\"Jackie Tyler. Do as I say.\" — verb.</span>", answer:"spiːk", points:100, hint:"/sp/ + /iː/ + /k/."},
+    {type:"ipa", prompt:"<span class='target'>scream</span><span class='ctx'>Rose ___ at the Reaper.</span>", answer:"skriːm", points:140, hint:"/skr/."},
+    {type:"ipa", prompt:"<span class='target'>spend</span><span class='ctx'>Pete needs to ___ less.</span>", answer:"spend", points:120, hint:"/sp/ + /end/."},
+    {type:"ipa", prompt:"<span class='target'>spin</span><span class='ctx'>\"Pete spins the wheel.\"</span>", answer:"spɪn", points:100, hint:"/sp/ + /ɪ/ + /n/."},
+    {type:"ipa", prompt:"<span class='target'>stand</span><span class='ctx'>\"They stand on the pavement.\"</span>", answer:"stænd", points:120, hint:"/st/ + /ænd/."},
+    {type:"ipa", prompt:"<span class='target'>stay</span><span class='ctx'>\"Stay in there!\"</span>", answer:"steɪ", points:100, hint:"/st/ + /eɪ/."},
+    {type:"ipa", prompt:"<span class='target'>skip</span><span class='ctx'>To miss out.</span>", answer:"skɪp", points:100, hint:"/sk/ + /ɪ/ + /p/."},
+    {type:"ipa", prompt:"<span class='target'>skin</span><span class='ctx'>Like a Reaper's juddering layer.</span>", answer:"skɪn", points:100, hint:"/sk/ + /ɪ/ + /n/."},
+    {type:"ipa", prompt:"<span class='target'>star</span><span class='ctx'>In the sky over the church.</span>", answer:"stɑː", points:120, hint:"/st/ + /ɑː/."},
+    {type:"ipa", prompt:"<span class='target'>still</span><span class='ctx'>\"Still holding hands.\"</span>", answer:"stɪl", points:100, hint:"/st/ + /ɪ/ + /l/."},
+    {type:"ipa", prompt:"<span class='target'>storm</span>", answer:"stɔːm", points:120, hint:"/st/ + /ɔː/ + /m/."},
+    {type:"ipa", prompt:"<span class='target'>spell</span><span class='ctx'>What the wedding is under.</span>", answer:"spel", points:100, hint:"/sp/ + /e/ + /l/."},
+    {type:"ipa", prompt:"<span class='target'>spread</span><span class='ctx'>The story has ___.</span>", answer:"spred", points:140, hint:"/spr/ + /e/ + /d/."},
+    {type:"ipa", prompt:"<span class='target'>strong</span><span class='ctx'>\"He looks great: capable and strong.\"</span>", answer:"strɒŋ", points:140, hint:"/str/ + /ɒ/ + /ŋ/."},
+    {type:"ipa", prompt:"<span class='target'>scratch</span><span class='ctx'>\"He scrapes by.\" Related verb.</span>", answer:"skrætʃ", points:140, hint:"/skr/ + /æ/ + /tʃ/."},
+    {type:"ipa", prompt:"<span class='target'>splendid</span><span class='ctx'>An ironic compliment.</span>", answer:"ˈsplendɪd", points:160, hint:"/spl/ + /end/ + /ɪd/."},
+    {type:"ipa", prompt:"<span class='target'>square</span><span class='ctx'>A town centre has one.</span>", answer:"skweə", points:140, hint:"/skw/ + /eə/."},
+    {type:"ipa", prompt:"<span class='target'>sweet</span><span class='ctx'>\"Now let go of me, sweetheart.\"</span>", answer:"swiːt", points:120, hint:"/sw/ + /iː/ + /t/."},
+    {type:"ipa", prompt:"<span class='target'>twelve</span><span class='ctx'>\"How old were you, twelve?\"</span>", answer:"twelv", points:140, hint:"/tw/ + /e/ + /l/ + /v/."},
+    {type:"manner", prompt:"<span class='target'>/l/ in <em>splash</em></span>", answer:"approximant", options:["plosive","fricative","nasal","approximant","affricate"], points:80, hint:"Lateral approximant."},
+    {type:"manner", prompt:"<span class='target'>/r/ in <em>street</em></span>", answer:"approximant", options:["plosive","fricative","nasal","approximant","affricate"], points:80, hint:"Post-alveolar approximant."},
+    {type:"manner", prompt:"<span class='target'>/w/ in <em>square</em></span>", answer:"approximant", options:["plosive","fricative","nasal","approximant","affricate"], points:80, hint:"Labial-velar approximant."},
+    {type:"voicing", prompt:"<span class='target'>/s/ in <em>spell</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Voiceless alveolar."},
+    {type:"voicing", prompt:"<span class='target'>/t/ in <em>street</em></span>", answer:"voiceless", options:["voiced","voiceless"], points:60, hint:"Unaspirated after /s/."},
+  ]
+},
+{
+  id:12, title:"The Plural Morpheme", timeLimit:900, parTime:540,
+  focus:"Morphophonemics of plural -s: /s/, /z/, /ɪz/",
+  story:`The plural -s shape-shifts. Voiced → /z/. Voiceless → /s/. Sibilants → /ɪz/.`,
+  items:[
+    {type:"ending", prompt:"<span class='target'>cats</span>", answer:"s", options:["/s/","/z/","/ɪz/"], points:80, hint:"/t/ voiceless → /s/."},
+    {type:"ending", prompt:"<span class='target'>dogs</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:80, hint:"/ɡ/ voiced → /z/."},
+    {type:"ending", prompt:"<span class='target'>boxes</span>", answer:"ɪz", options:["/s/","/z/","/ɪz/"], points:100, hint:"/ks/ sibilant → /ɪz/."},
+    {type:"ending", prompt:"<span class='target'>Reapers</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:100, hint:"Schwa voiced → /z/."},
+    {type:"ending", prompt:"<span class='target'>weeks</span>", answer:"s", options:["/s/","/z/","/ɪz/"], points:100, hint:"/k/ voiceless → /s/."},
+    {type:"ending", prompt:"<span class='target'>churches</span>", answer:"ɪz", options:["/s/","/z/","/ɪz/"], points:100, hint:"/tʃ/ sibilant → /ɪz/."},
+    {type:"ending", prompt:"<span class='target'>fathers</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:100, hint:"Schwa voiced → /z/."},
+    {type:"ending", prompt:"<span class='target'>roses</span>", answer:"ɪz", options:["/s/","/z/","/ɪz/"], points:100, hint:"/z/ sibilant → /ɪz/."},
+    {type:"ending", prompt:"<span class='target'>shops</span>", answer:"s", options:["/s/","/z/","/ɪz/"], points:80, hint:"/p/ voiceless → /s/."},
+    {type:"ending", prompt:"<span class='target'>walls</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:100, hint:"/l/ voiced → /z/."},
+    {type:"ending", prompt:"<span class='target'>doors</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:100, hint:"Voiced /ɔː/ → /z/."},
+    {type:"ending", prompt:"<span class='target'>cars</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:100, hint:"Voiced /ɑː/ → /z/."},
+    {type:"ending", prompt:"<span class='target'>maps</span>", answer:"s", options:["/s/","/z/","/ɪz/"], points:80, hint:"/p/ voiceless → /s/."},
+    {type:"ending", prompt:"<span class='target'>lights</span>", answer:"s", options:["/s/","/z/","/ɪz/"], points:80, hint:"/t/ voiceless → /s/."},
+    {type:"ending", prompt:"<span class='target'>days</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:80, hint:"/eɪ/ voiced → /z/."},
+    {type:"ending", prompt:"<span class='target'>hats</span>", answer:"s", options:["/s/","/z/","/ɪz/"], points:80, hint:"/t/ voiceless → /s/."},
+    {type:"ending", prompt:"<span class='target'>boys</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:80, hint:"/ɔɪ/ voiced → /z/."},
+    {type:"ending", prompt:"<span class='target'>kisses</span>", answer:"ɪz", options:["/s/","/z/","/ɪz/"], points:100, hint:"/s/ sibilant → /ɪz/."},
+    {type:"ending", prompt:"<span class='target'>watches</span>", answer:"ɪz", options:["/s/","/z/","/ɪz/"], points:100, hint:"/tʃ/ sibilant → /ɪz/."},
+    {type:"ending", prompt:"<span class='target'>judges</span>", answer:"ɪz", options:["/s/","/z/","/ɪz/"], points:100, hint:"/dʒ/ sibilant → /ɪz/."},
+    {type:"ending", prompt:"<span class='target'>bags</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:80, hint:"/ɡ/ voiced → /z/."},
+    {type:"ending", prompt:"<span class='target'>roads</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:80, hint:"/d/ voiced → /z/."},
+    {type:"ending", prompt:"<span class='target'>cliffs</span>", answer:"s", options:["/s/","/z/","/ɪz/"], points:80, hint:"/f/ voiceless → /s/."},
+    {type:"ending", prompt:"<span class='target'>knives</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:120, hint:"/f/→/v/ becomes voiced → /z/."},
+    {type:"ending", prompt:"<span class='target'>buses</span>", answer:"ɪz", options:["/s/","/z/","/ɪz/"], points:100, hint:"/s/ sibilant → /ɪz/."},
+    {type:"ending", prompt:"<span class='target'>noses</span>", answer:"ɪz", options:["/s/","/z/","/ɪz/"], points:100, hint:"/z/ sibilant → /ɪz/."},
+    {type:"ending", prompt:"<span class='target'>cakes</span>", answer:"s", options:["/s/","/z/","/ɪz/"], points:80, hint:"/k/ voiceless → /s/."},
+    {type:"ending", prompt:"<span class='target'>eyes</span>", answer:"z", options:["/s/","/z/","/ɪz/"], points:80, hint:"/aɪ/ voiced → /z/."},
+    {type:"ending", prompt:"<span class='target'>oranges</span>", answer:"ɪz", options:["/s/","/z/","/ɪz/"], points:100, hint:"/dʒ/ sibilant → /ɪz/."},
+    {type:"ending", prompt:"<span class='target'>laughs</span>", answer:"s", options:["/s/","/z/","/ɪz/"], points:100, hint:"/f/ voiceless → /s/."},
+  ]
+},
+{
+  id:13, title:"The Past Tense Morpheme", timeLimit:900, parTime:540,
+  focus:"Morphophonemics of -ed: /t/, /d/, /ɪd/",
+  story:`Voiceless → /t/. Voiced → /d/. /t d/ stem-final → /ɪd/.`,
+  items:[
+    {type:"ending", prompt:"<span class='target'>watched</span>", answer:"t", options:["/t/","/d/","/ɪd/"], points:100, hint:"/tʃ/ voiceless → /t/."},
+    {type:"ending", prompt:"<span class='target'>loved</span><span class='ctx'>\"You love each other.\"</span>", answer:"d", options:["/t/","/d/","/ɪd/"], points:100, hint:"/v/ voiced → /d/."},
+    {type:"ending", prompt:"<span class='target'>wanted</span><span class='ctx'>\"Just as you wanted it.\"</span>", answer:"ɪd", options:["/t/","/d/","/ɪd/"], points:100, hint:"/t/ stem-final → /ɪd/."},
+    {type:"ending", prompt:"<span class='target'>kissed</span><span class='ctx'>Rose ___ Pete's forehead.</span>", answer:"t", options:["/t/","/d/","/ɪd/"], points:100, hint:"/s/ voiceless → /t/."},
+    {type:"ending", prompt:"<span class='target'>arrived</span>", answer:"d", options:["/t/","/d/","/ɪd/"], points:100, hint:"/v/ voiced → /d/."},
+    {type:"ending", prompt:"<span class='target'>shouted</span>", answer:"ɪd", options:["/t/","/d/","/ɪd/"], points:100, hint:"/t/ → /ɪd/."},
+    {type:"ending", prompt:"<span class='target'>asked</span>", answer:"t", options:["/t/","/d/","/ɪd/"], points:100, hint:"/k/ voiceless → /t/."},
+    {type:"ending", prompt:"<span class='target'>saved</span><span class='ctx'>\"I did it. I saved your life!\"</span>", answer:"d", options:["/t/","/d/","/ɪd/"], points:100, hint:"/v/ voiced → /d/."},
+    {type:"ending", prompt:"<span class='target'>needed</span>", answer:"ɪd", options:["/t/","/d/","/ɪd/"], points:100, hint:"/d/ → /ɪd/."},
+    {type:"ending", prompt:"<span class='target'>played</span>", answer:"d", options:["/t/","/d/","/ɪd/"], points:100, hint:"/eɪ/ voiced → /d/."},
+    {type:"ending", prompt:"<span class='target'>walked</span>", answer:"t", options:["/t/","/d/","/ɪd/"], points:100, hint:"/k/ voiceless → /t/."},
+    {type:"ending", prompt:"<span class='target'>opened</span>", answer:"d", options:["/t/","/d/","/ɪd/"], points:100, hint:"/n/ voiced → /d/."},
+    {type:"ending", prompt:"<span class='target'>started</span>", answer:"ɪd", options:["/t/","/d/","/ɪd/"], points:100, hint:"/t/ → /ɪd/."},
+    {type:"ending", prompt:"<span class='target'>stopped</span>", answer:"t", options:["/t/","/d/","/ɪd/"], points:100, hint:"/p/ voiceless → /t/."},
+    {type:"ending", prompt:"<span class='target'>called</span>", answer:"d", options:["/t/","/d/","/ɪd/"], points:100, hint:"/l/ voiced → /d/."},
+    {type:"ending", prompt:"<span class='target'>landed</span>", answer:"ɪd", options:["/t/","/d/","/ɪd/"], points:100, hint:"/d/ → /ɪd/."},
+    {type:"ending", prompt:"<span class='target'>laughed</span>", answer:"t", options:["/t/","/d/","/ɪd/"], points:100, hint:"/f/ voiceless → /t/."},
+    {type:"ending", prompt:"<span class='target'>changed</span><span class='ctx'>\"It's not like I changed history.\"</span>", answer:"d", options:["/t/","/d/","/ɪd/"], points:100, hint:"/dʒ/ voiced → /d/."},
+    {type:"ending", prompt:"<span class='target'>visited</span>", answer:"ɪd", options:["/t/","/d/","/ɪd/"], points:100, hint:"/t/ → /ɪd/."},
+    {type:"ending", prompt:"<span class='target'>hoped</span><span class='ctx'>\"I hope he never slept again.\" — past simple.</span>", answer:"t", options:["/t/","/d/","/ɪd/"], points:100, hint:"/p/ voiceless → /t/."},
+    {type:"ending", prompt:"<span class='target'>seemed</span>", answer:"d", options:["/t/","/d/","/ɪd/"], points:100, hint:"/m/ voiced → /d/."},
+    {type:"ending", prompt:"<span class='target'>painted</span>", answer:"ɪd", options:["/t/","/d/","/ɪd/"], points:100, hint:"/t/ → /ɪd/."},
+    {type:"ending", prompt:"<span class='target'>cried</span><span class='ctx'>Rose ___ when she saw her father.</span>", answer:"d", options:["/t/","/d/","/ɪd/"], points:100, hint:"/aɪ/ voiced → /d/."},
+    {type:"ending", prompt:"<span class='target'>missed</span><span class='ctx'>\"You never missed one.\"</span>", answer:"t", options:["/t/","/d/","/ɪd/"], points:100, hint:"/s/ voiceless → /t/."},
+    {type:"ending", prompt:"<span class='target'>wished</span>", answer:"t", options:["/t/","/d/","/ɪd/"], points:100, hint:"/ʃ/ voiceless → /t/."},
+    {type:"ending", prompt:"<span class='target'>showed</span><span class='ctx'>\"She used to show me.\"</span>", answer:"d", options:["/t/","/d/","/ɪd/"], points:100, hint:"/əʊ/ voiced → /d/."},
+    {type:"ending", prompt:"<span class='target'>waited</span>", answer:"ɪd", options:["/t/","/d/","/ɪd/"], points:100, hint:"/t/ → /ɪd/."},
+    {type:"ending", prompt:"<span class='target'>jumped</span><span class='ctx'>Pete ___ out of the car.</span>", answer:"t", options:["/t/","/d/","/ɪd/"], points:100, hint:"/p/ voiceless → /t/."},
+    {type:"ending", prompt:"<span class='target'>turned</span><span class='ctx'>\"Half the guests haven't turned up.\"</span>", answer:"d", options:["/t/","/d/","/ɪd/"], points:100, hint:"/n/ voiced → /d/."},
+    {type:"ending", prompt:"<span class='target'>melted</span>", answer:"ɪd", options:["/t/","/d/","/ɪd/"], points:100, hint:"/t/ → /ɪd/."},
+  ]
+},
+{
+  id:14, title:"The Stress Patterns", timeLimit:900, parTime:540,
+  focus:"Lexical stress — primary stress placement",
+  story:`Stress changes the word. Mark the right syllable.`,
+  items:[
+    {type:"stress", prompt:"<span class='target'>important</span><span class='ctx'>3 syllables.</span>", answer:"2", options:["1","2","3"], points:80, hint:"/ɪmˈpɔːtənt/."},
+    {type:"stress", prompt:"<span class='target'>impossible</span><span class='ctx'>4 syllables.</span>", answer:"2", options:["1","2","3","4"], points:100, hint:"/ɪmˈpɒsəbl/."},
+    {type:"stress", prompt:"<span class='target'>wonderful</span>", answer:"1", options:["1","2","3"], points:80, hint:"/ˈwʌndəfl/."},
+    {type:"stress", prompt:"<span class='target'>ordinary</span>", answer:"1", options:["1","2","3","4"], points:100, hint:"/ˈɔːdənəri/."},
+    {type:"stress", prompt:"<span class='target'>adventure</span>", answer:"2", options:["1","2","3"], points:100, hint:"/ədˈventʃə/."},
+    {type:"stress", prompt:"<span class='target'>universe</span>", answer:"1", options:["1","2","3"], points:100, hint:"/ˈjuːnɪvɜːs/."},
+    {type:"stress", prompt:"<span class='target'>family</span>", answer:"1", options:["1","2","3"], points:80, hint:"/ˈfæməli/."},
+    {type:"stress", prompt:"<span class='target'>history</span>", answer:"1", options:["1","2","3"], points:80, hint:"/ˈhɪstəri/."},
+    {type:"stress", prompt:"<span class='target'>computer</span>", answer:"2", options:["1","2","3"], points:100, hint:"/kəmˈpjuːtə/."},
+    {type:"stress", prompt:"<span class='target'>photograph</span>", answer:"1", options:["1","2","3"], points:100, hint:"/ˈfəʊtəɡrɑːf/."},
+    {type:"stress", prompt:"<span class='target'>photographer</span>", answer:"2", options:["1","2","3","4"], points:120, hint:"/fəˈtɒɡrəfə/."},
+    {type:"stress", prompt:"<span class='target'>photographic</span>", answer:"3", options:["1","2","3","4"], points:120, hint:"/ˌfəʊtəˈɡræfɪk/."},
+    {type:"stress", prompt:"<span class='target'>British</span>", answer:"1", options:["1","2"], points:60, hint:"/ˈbrɪtɪʃ/."},
+    {type:"stress", prompt:"<span class='target'>America</span>", answer:"2", options:["1","2","3","4"], points:100, hint:"/əˈmerɪkə/."},
+    {type:"stress", prompt:"<span class='target'>education</span>", answer:"3", options:["1","2","3","4"], points:120, hint:"/ˌedjʊˈkeɪʃən/."},
+    {type:"stress", prompt:"<span class='target'>begin</span>", answer:"2", options:["1","2"], points:60, hint:"/bɪˈɡɪn/."},
+    {type:"stress", prompt:"<span class='target'>brilliant</span>", answer:"1", options:["1","2"], points:60, hint:"/ˈbrɪliənt/."},
+    {type:"stress", prompt:"<span class='target'>fantastic</span><span class='ctx'>\"Fantastic!\"</span>", answer:"2", options:["1","2","3"], points:100, hint:"/fænˈtæstɪk/."},
+    {type:"stress", prompt:"<span class='target'>creation</span><span class='ctx'>\"The most important thing in creation.\"</span>", answer:"2", options:["1","2","3"], points:100, hint:"/kriˈeɪʃən/."},
+    {type:"stress", prompt:"<span class='target'>amazing</span>", answer:"2", options:["1","2","3"], points:100, hint:"/əˈmeɪzɪŋ/."},
+    {type:"ipa", prompt:"<span class='target'>important</span><span class='ctx'>Full transcription with stress.</span>", answer:"ɪmˈpɔːtənt", points:160, hint:"Schwa in 1 and 3."},
+    {type:"ipa", prompt:"<span class='target'>family</span><span class='ctx'>\"My entire planet died, my whole family.\"</span>", answer:"ˈfæməli", points:140, hint:"/ˈfæməli/."},
+    {type:"ipa", prompt:"<span class='target'>history</span>", answer:"ˈhɪstəri", points:140, hint:"/ˈhɪstəri/."},
+    {type:"ipa", prompt:"<span class='target'>brilliant</span>", answer:"ˈbrɪliənt", points:140, hint:"/ˈbrɪliənt/."},
+    {type:"ipa", prompt:"<span class='target'>wedding</span><span class='ctx'>\"It's Sarah Clark's wedding.\"</span>", answer:"ˈwedɪŋ", points:120, hint:"/ˈwedɪŋ/."},
+    {type:"ipa", prompt:"<span class='target'>nervous</span><span class='ctx'>\"On Rose: kind of nervous.\"</span>", answer:"ˈnɜːvəs", points:140, hint:"/ˈnɜːvəs/."},
+    {type:"ipa", prompt:"<span class='target'>about</span>", answer:"əˈbaʊt", points:100, hint:"Schwa + stress on 2."},
+    {type:"ipa", prompt:"<span class='target'>begin</span>", answer:"bɪˈɡɪn", points:120, hint:"/bɪˈɡɪn/."},
+    {type:"ipa", prompt:"<span class='target'>before</span>", answer:"bɪˈfɔː", points:120, hint:"/bɪˈfɔː/."},
+    {type:"ipa", prompt:"<span class='target'>between</span>", answer:"bɪˈtwiːn", points:140, hint:"/bɪˈtwiːn/."},
+  ]
+},
+{
+  id:15, title:"The Connected Speech", timeLimit:900, parTime:540,
+  focus:"Linking, elision, assimilation in natural speech",
+  story:`The final chamber. Words melt into each other.`,
+  items:[
+    {type:"ipa", prompt:"<span class='target phrase'>for ever</span><span class='ctx'>Linking /r/.</span>", answer:"fərˈevə", points:160, hint:"/fərˈevə/."},
+    {type:"ipa", prompt:"<span class='target phrase'>I am</span><span class='ctx'>Linking /j/.</span>", answer:"aɪjæm", points:160, hint:"Glide /j/."},
+    {type:"ipa", prompt:"<span class='target phrase'>go away</span><span class='ctx'>Linking /w/.</span>", answer:"ɡəʊwəˈweɪ", points:180, hint:"Glide /w/."},
+    {type:"ipa", prompt:"<span class='target phrase'>next day</span><span class='ctx'>Elision /t/.</span>", answer:"neksdeɪ", points:160, hint:"/t/ drops."},
+    {type:"ipa", prompt:"<span class='target phrase'>good boy</span><span class='ctx'>Assimilation /d/→/b/.</span>", answer:"ɡʊbbɔɪ", points:180, hint:"/d/→/b/."},
+    {type:"ipa", prompt:"<span class='target phrase'>ten pounds</span><span class='ctx'>/n/→/m/.</span>", answer:"tempaʊndz", points:180, hint:"/n/→/m/."},
+    {type:"ipa", prompt:"<span class='target phrase'>my Dad</span><span class='ctx'>\"My Dad.\"</span>", answer:"maɪdæd", points:160, hint:"/maɪ dæd/."},
+    {type:"ipa", prompt:"<span class='target phrase'>her hair</span><span class='ctx'>\"Your hair…\"</span>", answer:"həheə", points:180, hint:"Weak 'her' + 'hair'."},
+    {type:"ipa", prompt:"<span class='target phrase'>the traveller</span>", answer:"ðəˈdɒktə", points:160, hint:"Weak 'the' + 'traveller'."},
+    {type:"ipa", prompt:"<span class='target phrase'>last night</span><span class='ctx'>Elision /t/.</span>", answer:"lɑːsnaɪt", points:180, hint:"/t/ elides."},
+    {type:"ipa", prompt:"<span class='target phrase'>old man</span><span class='ctx'>Elision /d/.</span>", answer:"əʊlmæn", points:180, hint:"/d/ often elides."},
+    {type:"ipa", prompt:"<span class='target phrase'>fish and chips</span><span class='ctx'>Weak 'and'.</span>", answer:"fɪʃəntʃɪps", points:200, hint:"'and' = /ən/."},
+    {type:"ipa", prompt:"<span class='target phrase'>cup of tea</span><span class='ctx'>Weak 'of'.</span>", answer:"kʌpəvtiː", points:200, hint:"'of' = /əv/."},
+    {type:"ipa", prompt:"<span class='target phrase'>see you</span><span class='ctx'>Linking /j/.</span>", answer:"siːjuː", points:160, hint:"Glide /j/."},
+    {type:"ipa", prompt:"<span class='target phrase'>do it</span><span class='ctx'>Linking /w/.</span>", answer:"duːwɪt", points:160, hint:"Glide /w/."},
+    {type:"ipa", prompt:"<span class='target phrase'>law and order</span><span class='ctx'>Intrusive /r/.</span>", answer:"lɔːrəndˈɔːdə", points:200, hint:"Intrusive /r/ between vowels."},
+    {type:"ipa", prompt:"<span class='target phrase'>I am</span><span class='ctx'>Contracted weak form.</span>", answer:"aɪm", points:120, hint:"/aɪm/."},
+    {type:"ipa", prompt:"<span class='target phrase'>don't know</span><span class='ctx'>\"I don't know what's going on.\"</span>", answer:"dəʊntnəʊ", points:180, hint:"/dəʊnt nəʊ/."},
+    {type:"ipa", prompt:"<span class='target phrase'>can't see</span><span class='ctx'>Common phrase.</span>", answer:"kɑːntsiː", points:180, hint:"/kɑːnt siː/."},
+    {type:"ipa", prompt:"<span class='target phrase'>green Park</span><span class='ctx'>Assimilation /n/→/ŋ/.</span>", answer:"ɡriːmpɑːk", points:200, hint:"Actually /n/→/m/ before /p/."},
+    {type:"ipa", prompt:"<span class='target phrase'>this shoe</span><span class='ctx'>Assimilation /s/→/ʃ/.</span>", answer:"ðɪʃʃuː", points:200, hint:"/s/→/ʃ/."},
+    {type:"manner", prompt:"<span class='target'>What is the /r/ doing in <em>for ever</em>?</span>", answer:"linking", options:["elision","assimilation","linking","aspiration"], points:80, hint:"Linking /r/."},
+    {type:"manner", prompt:"<span class='target'>What happens to /t/ in <em>next day</em>?</span>", answer:"elision", options:["elision","assimilation","linking","aspiration"], points:80, hint:"Elision."},
+    {type:"manner", prompt:"<span class='target'>What happens to /n/ in <em>ten pounds</em>?</span>", answer:"assimilation", options:["elision","assimilation","linking","aspiration"], points:80, hint:"Assimilation."},
+    {type:"manner", prompt:"<span class='target'>What happens at the start of <em>cat</em> stressed?</span>", answer:"aspiration", options:["elision","assimilation","linking","aspiration"], points:80, hint:"Aspiration of /k/."},
+    {type:"manner", prompt:"<span class='target'>The /j/ in <em>I am</em> is…</span>", answer:"linking", options:["elision","assimilation","linking","aspiration"], points:80, hint:"Linking glide."},
+    {type:"manner", prompt:"<span class='target'>/d/ in <em>good boy</em> → /b/</span>", answer:"assimilation", options:["elision","assimilation","linking","aspiration"], points:80, hint:"Place assimilation."},
+    {type:"manner", prompt:"<span class='target'>The /h/ in unstressed <em>him</em> dropped</span>", answer:"elision", options:["elision","assimilation","linking","aspiration"], points:80, hint:"H-dropping is elision."},
+    {type:"manner", prompt:"<span class='target'>The /r/ in <em>law and order</em></span>", answer:"linking", options:["elision","assimilation","linking","aspiration"], points:100, hint:"Intrusive /r/ — type of linking."},
+    {type:"manner", prompt:"<span class='target'>The /n/→/m/ before /p/</span>", answer:"assimilation", options:["elision","assimilation","linking","aspiration"], points:80, hint:"Place assimilation."},
+  ]
+}
+];
+
+</script>
+<script>
+/* =================== STATE =================== */
+let state = {
+  currentChamber:0, score:0, lives:5, streak:0, bestStreak:0,
+  totalTime:0, perfectFirstTry:0, totalAttempts:0,
+  totalItems:0, itemsSolved:0, itemsExhausted:0,
+  history:[], chamberStartTime:0,
+  combo:1, dead:false, victory:false,
+  powerups:{hint:3, stop:2, shield:1, regen:1},
+  shieldActive:false, daleksLockNext:false,
+  paradoxMultiplier:1, paradoxEndsAt:0,
+  timerFrozen:false, timerFreezeEnds:0,
+  achievements:[], chamberHintsUsed:0,
+  chamberPointsRaw:0, chamberStartScore:0,
+};
+let totalTimer=null, chamberTimer=null, eventTimer=null, chamberTimeLeft=0;
+let currentChamberData=null;
+
+/* =================== HELPERS =================== */
+function normalise(s){
+  if(!s) return '';
+  s = s.toString().toLowerCase().trim();
+  s = s.replace(/\//g,'').replace(/\[/g,'').replace(/\]/g,'');
+  s = s.replace(/\s+/g,' ').replace(/:/g,'ː');
+  s = s.replace(/'/g,'ˈ').replace(/ˊ/g,'ˈ').replace(/'/g,'ˈ');
+  return s;
+}
+function fmtTime(s){
+  const m=Math.floor(s/60), sec=s%60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+function extractTarget(html){
+  const m=html.match(/<span class='target[^']*'>([^<]+)<\/span>/);
+  return m?m[1]:'?';
+}
+
+/* =================== LIKERT QUESTIONNAIRE DATA =================== */
+// POST B: Usabilidad e interfaz
+const LIKERT_POST_USAB = [
+  {id:"U1", text:"La interfaz del recurso es clara y fácil de entender."},
+  {id:"U2", text:"He podido usar el recurso sin necesidad de instrucciones adicionales."},
+  {id:"U3", text:"El diseño visual del recurso me ha resultado agradable."},
+  {id:"U4", text:"La organización de la información en pantalla facilita el uso."},
+  {id:"U5", text:"Las herramientas disponibles (teclado, ayudas, menús) están bien situadas."},
+  {id:"U6", text:"El recurso responde con rapidez a mis acciones."},
+  {id:"U7", text:"No he encontrado errores técnicos significativos durante el uso."},
+];
+
+// POST C: Engagement y motivación
+const LIKERT_POST_ENGAGE = [
+  {id:"E1", text:"La actividad ha mantenido mi atención de principio a fin."},
+  {id:"E2", text:"He perdido la noción del tiempo mientras usaba el recurso."},
+  {id:"E3", text:"Me he sentido motivado/a a seguir avanzando."},
+  {id:"E4", text:"El sistema de puntos me ha animado a esforzarme."},
+  {id:"E5", text:"El cronómetro generó una presión adecuada, ni excesiva ni escasa."},
+  {id:"E6", text:"Los eventos inesperados aumentaron mi implicación."},
+  {id:"E7", text:"Los power-ups añadieron un componente estratégico interesante."},
+  {id:"E8", text:"La narrativa y la temática contribuyeron a mi disfrute."},
+  {id:"E9", text:"He disfrutado usando el recurso."},
+  {id:"E10", text:"Volvería a usar un recurso similar de forma voluntaria."},
+];
+
+// POST D: Dificultad y carga cognitiva
+const LIKERT_POST_DIFF = [
+  {id:"D1", text:"El nivel de dificultad ha sido adecuado para mí."},
+  {id:"D2", text:"El ritmo de la actividad me ha resultado apropiado."},
+  {id:"D3", text:"He podido recuperarme de los errores sin frustrarme."},
+  {id:"D4", text:"El sistema de intentos múltiples me parece justo."},
+  {id:"D5", text:"Las ayudas disponibles han sido útiles cuando las he necesitado."},
+  {id:"D6", text:"La duración de la actividad me ha resultado adecuada."},
+];
+
+// POST E: Utilidad percibida y valor
+const LIKERT_POST_VALUE = [
+  {id:"V1", text:"Considero que este tipo de recurso tiene valor educativo."},
+  {id:"V2", text:"Esta forma de trabajo me ha parecido más efectiva que un ejercicio convencional."},
+  {id:"V3", text:"Recomendaría este recurso a otras personas."},
+  {id:"V4", text:"Me parece un buen ejemplo de cómo integrar tecnología en una actividad de aprendizaje."},
+  {id:"V5", text:"Creo que este recurso es transferible a otros contextos educativos."},
+];
+
+function renderLikertBlock(containerId, items){
+  const c=document.getElementById(containerId);
+  if(!c)return;
+  let html='';
+  items.forEach(it=>{
+    const name=containerId+'_'+it.id;
+    html+=`<div class="q-item">
+      <label class="q-label"><span class="num">${it.id}</span>${it.text}</label>
+      <div class="likert-scale">
+        <span class="lk-label">En desacuerdo</span>
+        <div class="lk-options">`;
+    for(let v=1;v<=5;v++){
+      html+=`<label><input type="radio" name="${name}" value="${v}"><span class="lk-opt">${v}</span></label>`;
+    }
+    html+=`</div><span class="lk-label" style="text-align:right">De acuerdo</span></div></div>`;
+  });
+  c.innerHTML=html;
+}
+
+/* =================== QUESTIONNAIRE STATE =================== */
+state.postAnswers={};
+state.consent=false;
+state.questionnaireSkipped={post:false};
+
+function collectLikertAnswers(blocks){
+  const out={};
+  blocks.forEach(({prefix, items})=>{
+    items.forEach(it=>{
+      const name=prefix+'_'+it.id;
+      const sel=document.querySelector(`input[name="${name}"]:checked`);
+      out[it.id]=sel?parseInt(sel.value):null;
+    });
+  });
+  return out;
+}
+
+function goToPostQuestionnaire(){
+  document.querySelectorAll('.room').forEach(r=>r.classList.remove('active'));
+  renderLikertBlock('postLikertUsab', LIKERT_POST_USAB);
+  renderLikertBlock('postLikertEngage', LIKERT_POST_ENGAGE);
+  renderLikertBlock('postLikertDiff', LIKERT_POST_DIFF);
+  renderLikertBlock('postLikertValue', LIKERT_POST_VALUE);
+  const post=document.getElementById('postQuestionnaire');
+  post.classList.add('show');
+  post.style.display='block';
+  post.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function submitPostQuestionnaire(){
+  state.consent=document.getElementById('consent').checked;
+  state.postAnswers={
+    likertUsab:collectLikertAnswers([{prefix:'postLikertUsab',items:LIKERT_POST_USAB}]),
+    likertEngage:collectLikertAnswers([{prefix:'postLikertEngage',items:LIKERT_POST_ENGAGE}]),
+    likertDiff:collectLikertAnswers([{prefix:'postLikertDiff',items:LIKERT_POST_DIFF}]),
+    likertValue:collectLikertAnswers([{prefix:'postLikertValue',items:LIKERT_POST_VALUE}]),
+    abierta1:document.getElementById('q_open1').value.trim(),
+    abierta2:document.getElementById('q_open2').value.trim(),
+    abierta3:document.getElementById('q_open3').value.trim(),
+    abierta4:document.getElementById('q_open4').value.trim(),
+    timestamp:new Date().toISOString(),
+  };
+  document.getElementById('postQuestionnaire').classList.remove('show');
+  document.getElementById('postQuestionnaire').style.display='none';
+  showFinalOrDeath();
+}
+
+function skipPostQuestionnaire(){
+  state.questionnaireSkipped.post=true;
+  document.getElementById('postQuestionnaire').classList.remove('show');
+  document.getElementById('postQuestionnaire').style.display='none';
+  showFinalOrDeath();
+}
+
+function showFinalOrDeath(){
+  if(state.victory){
+    renderFinalScreen();
+    document.getElementById('finalScreen').scrollIntoView({behavior:'smooth'});
+  } else if(state.dead){
+    renderDeathScreen();
+    document.getElementById('deathScreen').scrollIntoView({behavior:'smooth'});
+  }
+}
+
+/* =================== START =================== */
+function startMission(){
+  totalTimer=setInterval(()=>{
+    state.totalTime++;
+    document.getElementById('timerTotal').textContent=fmtTime(state.totalTime);
+  },1000);
+  buildAllChambers();
+  enterChamber(0);
+}
+
+function buildAllChambers(){
+  const c=document.getElementById('roomsContainer');
+  CHAMBERS.forEach(ch=>{
+    const sec=document.createElement('section');
+    sec.className='room'; sec.id='chamber-'+ch.id;
+    let items='';
+    ch.items.forEach((it,i)=>items+=renderItem(ch.id,i,it));
+    sec.innerHTML=`
+      <div class="room-header">
+        <span class="room-num">CHAMBER ${String(ch.id).padStart(2,'0')}</span>
+        <span class="room-title">${ch.title}</span>
+        <span class="room-timer" id="chTimer-${ch.id}">15:00</span>
+      </div>
+      <p class="room-focus">FOCUS: ${ch.focus}</p>
+      <div class="room-story">${ch.story}</div>
+      <div class="par-bar"><span class="par-label">⚡ PAR TIME:</span> <span class="par-time">${fmtTime(ch.parTime)} → finish under par for <strong>2× POINTS BONUS</strong></span></div>
+      <div class="powerups-bar" id="pu-${ch.id}">
+        <button class="powerup-btn" onclick="usePowerup('hint',${ch.id})">💡 Sonic Hint <span class="count" id="pu-hint-${ch.id}">3</span></button>
+        <button class="powerup-btn" onclick="usePowerup('stop',${ch.id})">⏸ Time Stop <span class="count" id="pu-stop-${ch.id}">2</span></button>
+        <button class="powerup-btn" onclick="usePowerup('shield',${ch.id})">🛡 Reaper Shield <span class="count" id="pu-shield-${ch.id}">1</span></button>
+        <button class="powerup-btn" onclick="usePowerup('regen',${ch.id})">♻ Regenerate <span class="count" id="pu-regen-${ch.id}">1</span></button>
+      </div>
+      <div class="items-container">${items}</div>
+      <div class="room-footer">
+        <div class="progress-bar"><div class="progress-fill" id="prog-${ch.id}"></div></div>
+        <button class="btn-unlock" id="unlock-${ch.id}" disabled onclick="endChamber(${ch.id})">⟁ SEAL CHAMBER ⟁</button>
+      </div>`;
+    c.appendChild(sec);
+  });
+}
+
+function renderItem(cid,idx,it){
+  const id=`item-${cid}-${idx}`;
+  let input;
+  if(it.type==='ipa'){
+    input=`<input type="text" class="ipa-input long" id="${id}-input" placeholder="/ ? /" autocomplete="off" spellcheck="false">`;
+  } else {
+    const opts=it.options.map(o=>`<option value="${o}">${o}</option>`).join('');
+    input=`<select id="${id}-input"><option value="">— choose —</option>${opts}</select>`;
+  }
+  return `
+    <div class="item" id="${id}" data-idx="${idx}" data-chamber="${cid}">
+      <div class="item-num">▸ CIPHER ${String(idx+1).padStart(2,'0')} <span class="item-points-tag">${it.points} pts</span></div>
+      <div class="item-prompt">${it.prompt}</div>
+      <div class="item-row">
+        ${input}
+        <button class="btn-check" onclick="checkItem(${cid},${idx})">VERIFY</button>
+        <span class="attempts-display" id="${id}-attempts"><span class="dot">●</span><span class="dot">●</span><span class="dot">●</span></span>
+      </div>
+      <div class="item-feedback" id="${id}-fb"></div>
+    </div>`;
+}
+
+function enterChamber(idx){
+  if(idx>=CHAMBERS.length){victory();return;}
+  state.currentChamber=idx;
+  state.chamberHintsUsed=0;
+  state.chamberStartScore=state.score;
+  document.querySelectorAll('.room').forEach(r=>r.classList.remove('active'));
+  const ch=CHAMBERS[idx];
+  currentChamberData=ch;
+  const sec=document.getElementById('chamber-'+ch.id);
+  sec.classList.add('active');
+  sec.scrollIntoView({behavior:'smooth',block:'start'});
+  state.chamberStartTime=state.totalTime;
+  state.totalItems+=ch.items.length;
+  startChamberTimer(ch);
+  scheduleNextEvent();
+}
+
+function startChamberTimer(ch){
+  chamberTimeLeft=ch.timeLimit;
+  const tEl=document.getElementById('chTimer-'+ch.id);
+  updateChTimer(tEl);
+  if(chamberTimer)clearInterval(chamberTimer);
+  chamberTimer=setInterval(()=>{
+    if(state.timerFrozen){
+      if(Date.now()>state.timerFreezeEnds){state.timerFrozen=false;}
+      else return;
+    }
+    chamberTimeLeft--;
+    updateChTimer(tEl);
+    if(chamberTimeLeft<=60)document.body.classList.add('critical');
+    if(chamberTimeLeft<=0){clearInterval(chamberTimer);timeOutChamber(ch);}
+  },1000);
+}
+function updateChTimer(el){
+  el.textContent=fmtTime(chamberTimeLeft);
+  el.classList.toggle('warn',chamberTimeLeft<=180&&chamberTimeLeft>60);
+  el.classList.toggle('danger',chamberTimeLeft<=60);
+}
+
+function timeOutChamber(ch){
+  state.lives--;
+  document.getElementById('livesDisplay').textContent=state.lives;
+  document.body.classList.remove('critical');
+  if(eventTimer)clearTimeout(eventTimer);
+  if(state.lives<=0){death("Time ran out.");return;}
+  showModal("⏱ TIMEOUT",`<p>Chamber timer reached zero.</p><div class="modal-stats"><div>Lives: <b>${state.lives}</b></div><div>Score: <b>${state.score}</b></div></div>`,()=>{
+    revealChamberAnswers(ch.id);
+    addAnswersToMenu(ch.id);
+    proceedNext();
+  });
+}
+
+/* =================== CHECK =================== */
+function checkItem(cid,idx){
+  const ch=CHAMBERS.find(c=>c.id===cid);
+  const it=ch.items[idx];
+  const id=`item-${cid}-${idx}`;
+  const el=document.getElementById(id);
+  if(el.classList.contains('solved')||el.classList.contains('exhausted')||el.classList.contains('frozen'))return;
+  const input=document.getElementById(id+'-input');
+  const userVal=input.value;
+  if(!userVal.trim()){flashFB(id,'Enter an answer first.','warn');return;}
+
+  let attempts=parseInt(el.dataset.attempts||'0');
+  attempts++;
+  el.dataset.attempts=attempts;
+  state.totalAttempts++;
+
+  let histIdx=el.dataset.histIdx;
+  if(!histIdx){
+    state.history.push({chamber:cid,itemIdx:idx,target:extractTarget(it.prompt),correct:it.answer,type:it.type,maxPoints:it.points,userAnswers:[],pointsEarned:0,attemptsUsed:0,solved:false});
+    el.dataset.histIdx=state.history.length-1;
+    histIdx=state.history.length-1;
+  }
+  const hist=state.history[histIdx];
+  hist.userAnswers.push(userVal);
+  hist.attemptsUsed=attempts;
+
+  let correct=false;
+  if(it.type==='ipa'){correct=normalise(userVal)===normalise(it.answer);}
+  else {
+    const u=userVal.toLowerCase().replace(/\//g,'');
+    const a=it.answer.toLowerCase().replace(/\//g,'');
+    correct=u===a;
+  }
+
+  const dotsEl=document.getElementById(id+'-attempts');
+  const dots=dotsEl.querySelectorAll('.dot');
+
+  if(correct){
+    let mult=1;
+    if(attempts===2)mult=0.5;
+    else if(attempts===3)mult=0.25;
+    let base=Math.round(it.points*mult);
+
+    if(attempts===1){
+      state.streak++;state.perfectFirstTry++;
+      if(state.streak>state.bestStreak)state.bestStreak=state.streak;
+      updateCombo();
+    } else {
+      state.streak=0;
+      updateCombo();
+    }
+
+    // Apply combo
+    base=Math.round(base*state.combo);
+    // Apply paradox multiplier
+    if(Date.now()<state.paradoxEndsAt){
+      base=Math.round(base*state.paradoxMultiplier);
+    }
+
+    state.score+=base;
+    state.itemsSolved++;
+    state.chamberPointsRaw+=base;
+    hist.pointsEarned=base; hist.solved=true;
+
+    updateScoreUI(base);
+    el.classList.add('solved');
+    input.classList.add('flash-good');input.disabled=true;
+    el.querySelector('.btn-check').disabled=true;
+    flashFB(id,`✓ +${base} pts${state.combo>1?` (combo ×${state.combo})`:''}`,'ok');
+    updateProgress(cid);
+    checkStreakAchievements();
+  } else {
+    if(state.shieldActive){
+      state.shieldActive=false;
+      el.dataset.attempts=attempts-1;
+      input.classList.add('flash-bad');
+      setTimeout(()=>input.classList.remove('flash-bad'),400);
+      input.value='';
+      flashFB(id,`🛡 Shield absorbed the miss — try again!`,'warn');
+      return;
+    }
+    if(state.daleksLockNext){
+      // dalek attack: instant exhaustion
+      state.daleksLockNext=false;
+      attempts=3; el.dataset.attempts=3;
+      dots.forEach(d=>d.classList.add('used'));
+    } else {
+      if(dots[attempts-1])dots[attempts-1].classList.add('used');
+    }
+    state.streak=0;updateCombo();
+    input.classList.add('flash-bad');
+    setTimeout(()=>input.classList.remove('flash-bad'),400);
+    input.value='';
+
+    if(attempts>=3){
+      el.classList.add('exhausted');state.itemsExhausted++;
+      input.disabled=true;el.querySelector('.btn-check').disabled=true;
+      flashFB(id,`✗ Out of attempts.`,'nope');
+      updateProgress(cid);
+    } else {
+      const remaining=3-attempts;
+      const nextMult=attempts===1?'50%':'25%';
+      flashFB(id,`✗ Wrong. ${remaining} left (next worth ${nextMult}).`,'nope');
+    }
+  }
+}
+
+function updateScoreUI(delta){
+  const box=document.getElementById('scoreDisplay');
+  box.textContent=state.score;
+  const sb=document.getElementById('scoreBox');
+  sb.classList.remove('bump');void sb.offsetWidth;sb.classList.add('bump');
+  // Point popup
+  if(delta){
+    const pop=document.createElement('div');
+    pop.className='point-popup'+(delta<0?' neg':(state.combo>1?' magic':''));
+    pop.textContent=(delta>=0?'+':'')+delta;
+    const rect=sb.getBoundingClientRect();
+    pop.style.left=(rect.left+rect.width/2-20)+'px';
+    pop.style.top=(rect.bottom+8)+'px';
+    document.body.appendChild(pop);
+    setTimeout(()=>pop.remove(),1500);
+  }
+  document.getElementById('streakDisplay').textContent=state.streak;
+}
+
+function updateCombo(){
+  let c=1;
+  if(state.streak>=10)c=3;
+  else if(state.streak>=5)c=2;
+  state.combo=c;
+  const meter=document.getElementById('comboMeter');
+  const x=document.getElementById('comboX');
+  const mb=document.getElementById('multiplierBox');
+  if(c>1){
+    meter.classList.add('show');x.textContent='×'+c;
+    mb.style.display='inline-block';
+    document.getElementById('multiplierDisplay').textContent=c.toFixed(1);
+  } else {
+    meter.classList.remove('show');
+    mb.style.display='none';
+  }
+}
+
+function flashFB(id,msg,type){
+  const fb=document.getElementById(id+'-fb');
+  fb.className='item-feedback '+type;fb.textContent=msg;
+}
+
+function updateProgress(cid){
+  const ch=CHAMBERS.find(c=>c.id===cid);
+  const sec=document.getElementById('chamber-'+cid);
+  const done=sec.querySelectorAll('.item.solved, .item.exhausted').length;
+  const pct=(done/ch.items.length)*100;
+  document.getElementById('prog-'+cid).style.width=pct+'%';
+  if(done>=ch.items.length)document.getElementById('unlock-'+cid).disabled=false;
+}
+
+/* =================== END CHAMBER =================== */
+function endChamber(cid){
+  if(chamberTimer)clearInterval(chamberTimer);
+  if(eventTimer)clearTimeout(eventTimer);
+  document.body.classList.remove('critical');
+  const ch=CHAMBERS.find(c=>c.id===cid);
+  const sec=document.getElementById('chamber-'+cid);
+  sec.classList.add('solved');
+
+  let solved=0,exhausted=0,chPts=0;
+  ch.items.forEach((it,i)=>{
+    const h=state.history.find(x=>x.chamber===cid&&x.itemIdx===i);
+    if(h&&h.solved){solved++;chPts+=h.pointsEarned;}else exhausted++;
+  });
+
+  const timeUsed=ch.timeLimit-chamberTimeLeft;
+  let speedBonus=0;
+  let speedHtml='';
+  if(timeUsed<=ch.parTime){
+    speedBonus=chPts;
+    state.score+=speedBonus;
+    speedHtml=`<div class="speed-bonus">⚡ SPEED BONUS! Finished in ${fmtTime(timeUsed)} (par ${fmtTime(ch.parTime)}) → <strong>+${speedBonus} pts (×2)</strong></div>`;
+    updateScoreUI(speedBonus);
+    awardAchievement('⚡ Lightning Round', `Chamber ${cid} under par`);
+  }
+
+  revealChamberAnswers(cid);
+  addAnswersToMenu(cid);
+
+  // Achievement: perfect chamber
+  if(solved===ch.items.length&&exhausted===0){
+    awardAchievement('💎 Perfect Chamber', `All ${ch.items.length} ciphers in Chamber ${cid}`);
+  }
+  // No hints used
+  if(state.chamberHintsUsed===0&&solved===ch.items.length){
+    awardAchievement('🧠 Mind of a Time Lord', `No hints in Chamber ${cid}`);
+  }
+
+  document.getElementById('roomsDone').textContent=state.currentChamber+1;
+
+  showModal(`⟁ CHAMBER ${cid} SEALED`,`
+    <p style="color:var(--gold-soft);font-style:italic">${ch.title}</p>
+    <div class="modal-stats">
+      <div>Solved: <b>${solved}/${ch.items.length}</b></div>
+      <div>Exhausted: <b>${exhausted}</b></div>
+      <div>Chamber points: <b>+${chPts}</b></div>
+      <div>Time used: <b>${fmtTime(timeUsed)}</b> (par ${fmtTime(ch.parTime)})</div>
+      <div>Total score: <b>${state.score}</b></div>
+      <div>Lives: <b>${state.lives}</b></div>
+    </div>
+    ${speedHtml}
+    <p>Answers revealed below. Also saved in the <strong>📜 ANSWERS</strong> menu (top right).</p>
+  `,()=>{
+    state.chamberPointsRaw=0;
+    proceedNext();
+  });
+}
+
+function revealChamberAnswers(cid){
+  const ch=CHAMBERS.find(c=>c.id===cid);
+  ch.items.forEach((it,i)=>{
+    const id=`item-${cid}-${i}`;
+    const el=document.getElementById(id);
+    if(!el)return;
+    const fb=document.getElementById(id+'-fb');
+    const display=it.type==='ipa'?`/${it.answer}/`:it.answer.toUpperCase();
+    if(el.classList.contains('solved')){
+      fb.innerHTML=`<span style="color:var(--success)">✓ <b>${display}</b></span>`;
+    } else {
+      fb.innerHTML=`<span style="color:var(--warning)">Correct: <b>${display}</b>${it.hint?' · '+it.hint:''}</span>`;
+    }
+  });
+}
+
+function addAnswersToMenu(cid){
+  const ch=CHAMBERS.find(c=>c.id===cid);
+  const cont=document.getElementById('answersContent');
+  if(cont.querySelector('.answers-empty'))cont.innerHTML='';
+  let chPts=0;
+  ch.items.forEach((it,i)=>{
+    const h=state.history.find(x=>x.chamber===cid&&x.itemIdx===i);
+    if(h&&h.solved)chPts+=h.pointsEarned;
+  });
+  const div=document.createElement('div');
+  div.className='answers-chamber';
+  let html=`<h3>Chamber ${cid} — ${ch.title} <span class="ans-score">+${chPts} pts</span></h3><ol>`;
+  ch.items.forEach((it,i)=>{
+    const h=state.history.find(x=>x.chamber===cid&&x.itemIdx===i);
+    const target=extractTarget(it.prompt);
+    const ans=it.type==='ipa'?`/${it.answer}/`:it.answer;
+    const wasSolved=h&&h.solved;
+    const userVal=h?h.userAnswers[h.userAnswers.length-1]:'—';
+    html+=`<li><span class="word">${target}</span> → <span class="ipa">${ans}</span>${!wasSolved?`<span class="miss">(you: ${userVal})</span>`:''}</li>`;
+  });
+  html+='</ol>';
+  div.innerHTML=html;
+  cont.appendChild(div);
+  document.getElementById('answersBtn').disabled=false;
+}
+
+function toggleAnswers(){
+  document.getElementById('answersPanel').classList.toggle('open');
+}
+
+function proceedNext(){
+  closeModal();
+  const next=state.currentChamber+1;
+  if(next>=CHAMBERS.length)victory();
+  else enterChamber(next);
+}
+
+/* =================== POWER-UPS =================== */
+function usePowerup(type,cid){
+  if(state.powerups[type]<=0){toast('dalek','✗ NONE LEFT','Power-up exhausted.');return;}
+  state.powerups[type]--;
+  document.getElementById(`pu-${type}-${cid}`).textContent=state.powerups[type];
+  if(state.powerups[type]===0)document.querySelector(`#pu-${cid} button[onclick*="'${type}'"]`).disabled=true;
+
+  if(type==='hint'){
+    state.chamberHintsUsed++;
+    // Pick first unsolved IPA item
+    const sec=document.getElementById('chamber-'+cid);
+    const items=sec.querySelectorAll('.item:not(.solved):not(.exhausted)');
+    const ipaItem=Array.from(items).find(el=>{
+      const i=parseInt(el.dataset.idx);
+      return CHAMBERS.find(c=>c.id===cid).items[i].type==='ipa';
+    });
+    if(ipaItem){
+      const i=parseInt(ipaItem.dataset.idx);
+      const ans=CHAMBERS.find(c=>c.id===cid).items[i].answer;
+      const reveal=ans.substring(0,Math.min(2,ans.length));
+      flashFB(ipaItem.id,`💡 First 2 symbols: /${reveal}…/`,'warn');
+      toast('timevault','💡 SONIC HINT','First two symbols revealed.');
+    }
+  } else if(type==='stop'){
+    state.timerFrozen=true;
+    state.timerFreezeEnds=Date.now()+60000;
+    toast('timevault','⏸ TIME STOP','Chamber timer frozen for 60s.');
+    setTimeout(()=>{state.timerFrozen=false;toast('timevault','⏵ TIME RESUMES','');},60000);
+  } else if(type==='shield'){
+    state.shieldActive=true;
+    toast('timevault','🛡 SHIELD ACTIVE','Next wrong answer costs no attempt.');
+  } else if(type==='regen'){
+    state.lives=Math.min(5,state.lives+1);
+    document.getElementById('livesDisplay').textContent=state.lives;
+    toast('timevault','♻ REGENERATION','+1 life restored.');
+  }
+}
+
+/* =================== RANDOM EVENTS =================== */
+const EVENTS=['bomb','gift','dalek','paradox-good','paradox-bad','mercy','freeze'];
+function scheduleNextEvent(){
+  if(eventTimer)clearTimeout(eventTimer);
+  const delay=60000+Math.random()*60000;
+  eventTimer=setTimeout(triggerRandomEvent,delay);
+}
+function triggerRandomEvent(){
+  if(!currentChamberData||state.dead||state.victory)return;
+  const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+  if(ev==='bomb'){
+    chamberTimeLeft=Math.max(10,chamberTimeLeft-60);
+    toast('bomb','💣 TIME BOMB','−60 seconds from the chamber timer!');
+  } else if(ev==='gift'){
+    state.score+=200;
+    updateScoreUI(200);
+    toast('gift','🎁 TIME VAULT GIFT','+200 bonus points!');
+  } else if(ev==='dalek'){
+    state.daleksLockNext=true;
+    toast('dalek','👁 DALEK ATTACK','Next wrong answer = instant exhaustion!');
+  } else if(ev==='paradox-good'){
+    state.paradoxMultiplier=2;
+    state.paradoxEndsAt=Date.now()+30000;
+    toast('paradox','🌀 PARADOX +','Points ×2 for 30 seconds!');
+    setTimeout(()=>{state.paradoxMultiplier=1;},30000);
+  } else if(ev==='paradox-bad'){
+    state.paradoxMultiplier=0.5;
+    state.paradoxEndsAt=Date.now()+30000;
+    toast('paradox','🌀 PARADOX −','Points ÷2 for 30 seconds!');
+    setTimeout(()=>{state.paradoxMultiplier=1;},30000);
+  } else if(ev==='mercy'){
+    chamberTimeLeft+=90;
+    toast('timevault','⏳ TIME LORD MERCY','+90 seconds added!');
+  } else if(ev==='freeze'){
+    // Freeze a random unsolved item for 30 sec
+    const sec=document.querySelector('.room.active');
+    if(sec){
+      const items=Array.from(sec.querySelectorAll('.item:not(.solved):not(.exhausted):not(.frozen)'));
+      if(items.length){
+        const target=items[Math.floor(Math.random()*items.length)];
+        target.classList.add('frozen');
+        toast('dalek','🔒 REAPER FREEZE','A cipher locked for 30s!');
+        setTimeout(()=>target.classList.remove('frozen'),30000);
+      }
+    }
+  }
+  scheduleNextEvent();
+}
+
+function toast(type,title,msg){
+  const t=document.createElement('div');
+  t.className='event-toast '+type;
+  t.innerHTML=`<span>${title}</span><span class="msg">${msg}</span>`;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),5000);
+}
+
+/* =================== ACHIEVEMENTS =================== */
+function awardAchievement(title,sub){
+  if(state.achievements.find(a=>a.title===title))return;
+  state.achievements.push({title,sub});
+  const a=document.createElement('div');
+  a.className='achievement';
+  a.innerHTML=`<span class="ach-icon">🏆</span><span>${title}<span class="ach-sub">${sub}</span></span>`;
+  document.body.appendChild(a);
+  setTimeout(()=>a.remove(),4500);
+}
+function checkStreakAchievements(){
+  if(state.streak===5)awardAchievement('🔥 Combo ×2','5 in a row');
+  else if(state.streak===10)awardAchievement('🔥 Combo ×3','10 in a row');
+  else if(state.streak===20)awardAchievement('👑 Combo King','20 in a row');
+  else if(state.streak===30)awardAchievement('⚜ Time Lord Streak','30 in a row');
+}
+
+/* =================== MODAL =================== */
+let modalCb=null;
+function showModal(t,b,cb){
+  document.getElementById('modalTitle').textContent=t;
+  document.getElementById('modalBody').innerHTML=b;
+  document.getElementById('modal').classList.add('show');
+  modalCb=cb;
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+function closeModalNext(){closeModal();if(modalCb){const c=modalCb;modalCb=null;c();}}
+
+/* =================== IPA KEYBOARD =================== */
+document.querySelectorAll('.ipa-sidebar .ipa-keys button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const sym=btn.textContent;
+    const focused=document.activeElement;
+    if(focused&&focused.tagName==='INPUT'&&focused.classList.contains('ipa-input')){
+      if(sym==='SPACE')focused.value+=' ';else focused.value+=sym;
+      focused.focus();
+    } else {
+      const r=document.querySelector('.room.active');
+      if(r){
+        const inputs=r.querySelectorAll('.ipa-input:not(:disabled)');
+        const target=Array.from(inputs).find(i=>!i.closest('.item').classList.contains('solved')&&!i.closest('.item').classList.contains('exhausted'));
+        if(target){if(sym==='SPACE')target.value+=' ';else target.value+=sym;target.focus();}
+      }
+    }
+  });
+});
+
+/* =================== DEATH / VICTORY =================== */
+function death(reason){
+  state.dead=true;
+  if(totalTimer)clearInterval(totalTimer);
+  if(chamberTimer)clearInterval(chamberTimer);
+  if(eventTimer)clearTimeout(eventTimer);
+  document.body.classList.add('dying');
+  // Go to post questionnaire first
+  goToPostQuestionnaire();
+}
+
+function renderDeathScreen(){
+  document.querySelectorAll('.room').forEach(r=>r.classList.remove('active'));
+  document.getElementById('deathScreen').classList.add('show');
+  document.getElementById('deathStats').innerHTML=`
+    <div class="final-stat"><div class="label">SCORE</div><div class="value">${state.score}</div></div>
+    <div class="final-stat"><div class="label">CHAMBERS</div><div class="value">${state.currentChamber}/15</div></div>
+    <div class="final-stat"><div class="label">TIME</div><div class="value">${fmtTime(state.totalTime)}</div></div>
+    <div class="final-stat"><div class="label">SOLVED</div><div class="value">${state.itemsSolved}</div></div>`;
+}
+
+function victory(){
+  state.victory=true;
+  if(totalTimer)clearInterval(totalTimer);
+  if(chamberTimer)clearInterval(chamberTimer);
+  if(eventTimer)clearTimeout(eventTimer);
+  document.body.classList.remove('critical','dying');
+  // Go to post questionnaire first
+  goToPostQuestionnaire();
+}
+
+function renderFinalScreen(){
+  document.querySelectorAll('.room').forEach(r=>r.classList.remove('active'));
+  const fs=document.getElementById('finalScreen');fs.classList.add('show');
+  const totalPossible=CHAMBERS.reduce((s,c)=>s+c.items.reduce((ss,i)=>ss+i.points,0),0);
+  const pct=Math.round((state.score/totalPossible)*100);
+  let grade='F · LOST IN TIME';
+  if(pct>=120)grade='◆ TIME LORD ETERNAL ◆';
+  else if(pct>=95)grade='⚜ TIME LORD';
+  else if(pct>=80)grade='A · COMPANION';
+  else if(pct>=70)grade='B · TRAVELLER';
+  else if(pct>=60)grade='C · APPRENTICE';
+  else if(pct>=45)grade='D · SURVIVOR';
+  document.getElementById('finalGrade').textContent=grade;
+  document.getElementById('finalStats').innerHTML=`
+    <div class="final-stat"><div class="label">SCORE</div><div class="value">${state.score}</div></div>
+    <div class="final-stat"><div class="label">OUT OF</div><div class="value">${totalPossible}</div></div>
+    <div class="final-stat"><div class="label">ACCURACY</div><div class="value">${pct}%</div></div>
+    <div class="final-stat"><div class="label">TIME</div><div class="value">${fmtTime(state.totalTime)}</div></div>
+    <div class="final-stat"><div class="label">PERFECT 1ST</div><div class="value">${state.perfectFirstTry}/${state.totalItems}</div></div>
+    <div class="final-stat"><div class="label">BEST STREAK</div><div class="value">${state.bestStreak}</div></div>
+    <div class="final-stat"><div class="label">LIVES LEFT</div><div class="value">${state.lives}</div></div>
+    <div class="final-stat"><div class="label">EXHAUSTED</div><div class="value">${state.itemsExhausted}</div></div>`;
+  document.getElementById('finalAchievements').innerHTML=state.achievements.map(a=>`<span class="ach-badge">🏆 ${a.title}</span>`).join('') || '<span class="ach-badge">No achievements earned</span>';
+}
+
+/* =================== EXPORT =================== */
+function exportReport(){
+  let txt='════════════════════════════════════════════════════════\n';
+  txt+='   THE PHONETICS VAULT — MISSION REPORT\n';
+  txt+='   A Time Vault Escape Room (Inspired by "Father\'s Day")\n';
+  txt+='════════════════════════════════════════════════════════\n\n';
+  txt+=`Consent given: ${state.consent?'Yes':'No / not collected'}\n`;
+  txt+=`Status: ${state.victory?'VAULT BREACHED ✓':state.dead?'MISSION FAILED ✗':'INCOMPLETE'}\n`;
+  txt+=`Total time: ${fmtTime(state.totalTime)}\n`;
+  txt+=`Final score: ${state.score}\n`;
+  txt+=`Chambers reached: ${state.currentChamber+(state.victory?1:0)}/15\n`;
+  txt+=`Items solved: ${state.itemsSolved} · Exhausted: ${state.itemsExhausted}\n`;
+  txt+=`Perfect first-try: ${state.perfectFirstTry} · Best streak: ${state.bestStreak}\n`;
+  txt+=`Lives at end: ${state.lives}/5 · Total attempts: ${state.totalAttempts}\n`;
+  txt+=`\nAchievements:\n`;
+  state.achievements.forEach(a=>txt+=`  🏆 ${a.title} — ${a.sub}\n`);
+
+  // ========== POST QUESTIONNAIRE ==========
+  if(!state.questionnaireSkipped.post && state.postAnswers.timestamp){
+    txt+='\n────────────────────────────────────────────────────────\n';
+    txt+='   CUESTIONARIO DE VALORACIÓN\n';
+    txt+='────────────────────────────────────────────────────────\n';
+    txt+=`Timestamp: ${state.postAnswers.timestamp}\n\n`;
+    txt+='U · Usabilidad e interfaz [escala 1-5]\n';
+    LIKERT_POST_USAB.forEach(it=>{
+      txt+=`  ${it.id}: ${state.postAnswers.likertUsab[it.id]??'—'} — ${it.text}\n`;
+    });
+    txt+='\nE · Implicación y motivación [escala 1-5]\n';
+    LIKERT_POST_ENGAGE.forEach(it=>{
+      txt+=`  ${it.id}: ${state.postAnswers.likertEngage[it.id]??'—'} — ${it.text}\n`;
+    });
+    txt+='\nD · Dificultad y experiencia de uso [escala 1-5]\n';
+    LIKERT_POST_DIFF.forEach(it=>{
+      txt+=`  ${it.id}: ${state.postAnswers.likertDiff[it.id]??'—'} — ${it.text}\n`;
+    });
+    txt+='\nV · Valoración global [escala 1-5]\n';
+    LIKERT_POST_VALUE.forEach(it=>{
+      txt+=`  ${it.id}: ${state.postAnswers.likertValue[it.id]??'—'} — ${it.text}\n`;
+    });
+    txt+='\nG · Preguntas abiertas\n';
+    if(state.postAnswers.abierta1)txt+=`  G1 (lo más gustado): ${state.postAnswers.abierta1}\n\n`;
+    if(state.postAnswers.abierta2)txt+=`  G2 (dificultades): ${state.postAnswers.abierta2}\n\n`;
+    if(state.postAnswers.abierta3)txt+=`  G3 (mejoras): ${state.postAnswers.abierta3}\n\n`;
+    if(state.postAnswers.abierta4)txt+=`  G4 (otros comentarios): ${state.postAnswers.abierta4}\n`;
+  } else {
+    txt+='\n[Cuestionario no completado]\n';
+  }
+
+  txt+='\n────────────────────────────────────────────────────────\n';
+  txt+='   RESULTS BY CHAMBER\n';
+  txt+='────────────────────────────────────────────────────────\n';
+  CHAMBERS.forEach(ch=>{
+    txt+=`\n▸ CHAMBER ${String(ch.id).padStart(2,'0')} — ${ch.title}\n`;
+    txt+=`  Focus: ${ch.focus}\n  ${'─'.repeat(56)}\n`;
+    ch.items.forEach((it,i)=>{
+      const h=state.history.find(x=>x.chamber===ch.id&&x.itemIdx===i);
+      const target=extractTarget(it.prompt);
+      const correct=it.type==='ipa'?`/${it.answer}/`:it.answer;
+      txt+=`  ${String(i+1).padStart(2,'0')}. ${target}\n      Correct: ${correct}\n`;
+      if(h){
+        txt+=`      Your answers: ${h.userAnswers.map(a=>`"${a}"`).join(' → ')}\n`;
+        txt+=`      Attempts: ${h.attemptsUsed}/3 · `;
+        txt+=h.solved?`SOLVED · +${h.pointsEarned} pts\n`:`NOT SOLVED · 0/${it.points}\n`;
+      } else txt+=`      Not attempted\n`;
+    });
+  });
+  txt+='\n════════════════════════════════════════════════════════\n   END OF REPORT · Allons-y!\n════════════════════════════════════════════════════════\n';
+
+  const date=new Date().toISOString().slice(0,10);
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  a.download=`vault-report-${date}.txt`;
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+
+  exportCSV(date);
+}
+
+function exportCSV(date){
+  const cols=[];
+  const vals=[];
+
+  cols.push('consent'); vals.push(state.consent?'1':'0');
+  cols.push('status'); vals.push(state.victory?'completed':state.dead?'failed':'incomplete');
+  cols.push('total_time_sec'); vals.push(state.totalTime);
+  cols.push('final_score'); vals.push(state.score);
+  cols.push('chambers_reached'); vals.push(state.currentChamber+(state.victory?1:0));
+  cols.push('items_solved'); vals.push(state.itemsSolved);
+  cols.push('items_exhausted'); vals.push(state.itemsExhausted);
+  cols.push('total_attempts'); vals.push(state.totalAttempts);
+  cols.push('perfect_first_try'); vals.push(state.perfectFirstTry);
+  cols.push('best_streak'); vals.push(state.bestStreak);
+  cols.push('lives_remaining'); vals.push(state.lives);
+  cols.push('achievements_count'); vals.push(state.achievements.length);
+
+  // Post-questionnaire
+  cols.push('post_completed'); vals.push(state.postAnswers.timestamp?'1':'0');
+  LIKERT_POST_USAB.forEach(it=>{
+    cols.push('post_'+it.id);
+    vals.push((state.postAnswers.likertUsab&&state.postAnswers.likertUsab[it.id])??'');
+  });
+  LIKERT_POST_ENGAGE.forEach(it=>{
+    cols.push('post_'+it.id);
+    vals.push((state.postAnswers.likertEngage&&state.postAnswers.likertEngage[it.id])??'');
+  });
+  LIKERT_POST_DIFF.forEach(it=>{
+    cols.push('post_'+it.id);
+    vals.push((state.postAnswers.likertDiff&&state.postAnswers.likertDiff[it.id])??'');
+  });
+  LIKERT_POST_VALUE.forEach(it=>{
+    cols.push('post_'+it.id);
+    vals.push((state.postAnswers.likertValue&&state.postAnswers.likertValue[it.id])??'');
+  });
+
+  // Compute block means
+  const meanOf=obj=>{
+    if(!obj)return null;
+    const v=Object.values(obj).filter(x=>x!=null&&x!==undefined);
+    return v.length?v.reduce((s,x)=>s+x,0)/v.length:null;
+  };
+  const mU=meanOf(state.postAnswers.likertUsab);
+  const mE=meanOf(state.postAnswers.likertEngage);
+  const mD=meanOf(state.postAnswers.likertDiff);
+  const mV=meanOf(state.postAnswers.likertValue);
+  cols.push('mean_usability'); vals.push(mU!=null?mU.toFixed(3):'');
+  cols.push('mean_engagement'); vals.push(mE!=null?mE.toFixed(3):'');
+  cols.push('mean_difficulty'); vals.push(mD!=null?mD.toFixed(3):'');
+  cols.push('mean_value'); vals.push(mV!=null?mV.toFixed(3):'');
+
+  // Score per chamber
+  CHAMBERS.forEach(ch=>{
+    let chPts=0, chSolved=0, chFirstTry=0;
+    ch.items.forEach((it,i)=>{
+      const h=state.history.find(x=>x.chamber===ch.id&&x.itemIdx===i);
+      if(h&&h.solved){chPts+=h.pointsEarned;chSolved++;if(h.attemptsUsed===1)chFirstTry++;}
+    });
+    cols.push('ch'+ch.id+'_points'); vals.push(chPts);
+    cols.push('ch'+ch.id+'_solved'); vals.push(chSolved);
+    cols.push('ch'+ch.id+'_first_try'); vals.push(chFirstTry);
+  });
+
+  // Open responses
+  const esc=s=>(s||'').replace(/"/g,'""').replace(/[\r\n]+/g,' ');
+  cols.push('open_liked'); vals.push(esc(state.postAnswers.abierta1));
+  cols.push('open_difficulties'); vals.push(esc(state.postAnswers.abierta2));
+  cols.push('open_improvements'); vals.push(esc(state.postAnswers.abierta3));
+  cols.push('open_other'); vals.push(esc(state.postAnswers.abierta4));
+
+  const csv=cols.join(',')+'\n'+vals.map(v=>{
+    const s=String(v??'');
+    return s.includes(',')||s.includes('"')||s.includes('\n')?`"${s.replace(/"/g,'""')}"`:s;
+  }).join(',');
+
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  a.download=`vault-data-${date}.csv`;
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.activeElement.tagName==='INPUT'){
+    const item=document.activeElement.closest('.item');
+    if(item){const [_,cid,idx]=item.id.split('-');checkItem(parseInt(cid),parseInt(idx));}
+  }
+});
+</script>
+</body>
+</html>

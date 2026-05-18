@@ -10,9 +10,9 @@ https://drmariasanabria.github.io/vtlab/
 
 ## Current escape room
 
-The initial version includes **Phonetics Whovian Vault**, a time-travel-inspired phonetics escape room for English language learning. It focuses on IPA transcription, voicing, manner of articulation, and phonological awareness.
+The initial version includes **Phonetics Time Vault**, a time-travel-inspired phonetics escape room for English language learning. It focuses on IPA transcription, voicing, manner of articulation, and phonological awareness.
 
-The public-facing alternative title **Phonetics Time Vault** can be used when a safer generic title is preferred.
+It also includes **Bridge Command**, a maritime English escape room / tutor focused on bridge communication, mission stations, oral interaction, and professional English.
 
 ## Teaching and research flow
 

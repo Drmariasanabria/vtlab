@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRIDGE COMMAND — Maritime English Tutor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-deep:#0a1929;
+  --navy:#102a43;
+  --navy-light:#1e3a5f;
+  --brass:#c89b3f;
+  --brass-soft:#e3b95e;
+  --brass-glow:#ffd47a;
+  --amber:#ffaa00;
+  --amber-soft:#ffc94a;
+  --warning:#ff6b35;
+  --danger:#e63946;
+  --success:#40c057;
+  --info:#4dabf7;
+  --cream:#f5efe0;
+  --teal:#2dd4bf;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{
+  font-family:'Inter',sans-serif;
+  font-size:17px;
+  line-height:1.5;
+  background:
+    radial-gradient(ellipse at 15% 20%, rgba(45,212,191,.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 70%, rgba(200,155,63,.08) 0%, transparent 55%),
+    linear-gradient(180deg, #050e1a 0%, var(--navy-deep) 100%);
+  color:var(--cream);
+  overflow-x:hidden;
+  padding-bottom:240px; /* leaves room for fixed teacher panel */
+}
+body.no-panel{padding-bottom:30px}
+
+/* Sea waves background animation */
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; opacity:.04; z-index:0;
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0 80px, rgba(45,212,191,.3) 80px 81px),
+    repeating-linear-gradient(-45deg, transparent 0 120px, rgba(200,155,63,.3) 120px 121px);
+}
+body.critical-mode{animation:critPulse 1s infinite}
+@keyframes critPulse{0%,100%{filter:none}50%{filter:hue-rotate(-15deg) brightness(1.05)}}
+
+/* ============== TOP HUD ============== */
+.top-hud{
+  position:sticky; top:0; z-index:30;
+  background:linear-gradient(180deg, rgba(10,25,41,.98) 0%, rgba(10,25,41,.92) 100%);
+  border-bottom:2px solid var(--brass);
+  backdrop-filter:blur(8px);
+  padding:10px 24px;
+  display:flex; align-items:center; gap:24px; flex-wrap:wrap;
+}
+.top-hud .ship-name{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:1.15rem; color:var(--brass-soft);
+  letter-spacing:.06em;
+  display:flex; align-items:center; gap:10px;
+}
+.top-hud .ship-name::before{
+  content:"⚓"; font-size:1.4rem;
+  filter:drop-shadow(0 0 8px var(--brass-glow));
+}
+.hud-stat{
+  display:flex; align-items:baseline; gap:8px;
+  background:rgba(30,58,95,.55);
+  border:1px solid rgba(200,155,63,.35);
+  padding:6px 14px; border-radius:6px;
+  font-family:'Space Mono',monospace;
+}
+.hud-stat .lbl{
+  font-size:.72rem; letter-spacing:.18em; text-transform:uppercase;
+  color:#9bb8d9; font-weight:500;
+}
+.hud-stat .val{
+  font-family:'Inter',sans-serif; font-weight:900;
+  font-size:1.45rem; color:var(--brass-glow);
+  line-height:1;
+}
+.hud-stat.knots .val{color:var(--teal)}
+.hud-stat.fuel .val{color:var(--amber)}
+.hud-stat.fuel.low .val{color:var(--warning)}
+.hud-stat.fuel.critical .val{color:var(--danger);animation:critPulse 1s infinite}
+.hud-stat.reputation .val{color:var(--brass-glow)}
+.hud-stat.station-progress .val{color:var(--info)}
+
+.score-box{
+  display:flex; align-items:center; gap:10px;
+  background:linear-gradient(135deg, var(--brass) 0%, var(--brass-soft) 100%);
+  color:var(--navy-deep);
+  padding:8px 20px; border-radius:8px;
+  box-shadow:0 0 24px rgba(200,155,63,.5), inset 0 -2px 4px rgba(0,0,0,.15);
+  transition:all .3s;
+}
+.score-box.bump{animation:scoreBump .6s ease}
+@keyframes scoreBump{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.18);box-shadow:0 0 40px rgba(255,212,122,1)}
+  100%{transform:scale(1)}
+}
+.score-box .lbl{font-size:.7rem;letter-spacing:.18em;opacity:.7;font-weight:700;display:block}
+.score-box .val{
+  font-family:'Inter',sans-serif; font-weight:900;
+  font-size:1.9rem; line-height:1;
+}
+
+/* Point popups */
+.point-popup{
+  position:fixed; pointer-events:none; z-index:999;
+  font-family:'Inter',sans-serif; font-weight:900;
+  font-size:1.7rem; color:var(--brass-glow);
+  text-shadow:0 0 14px var(--brass-glow);
+  animation:popup 1.6s ease-out forwards;
+}
+.point-popup.teal{color:var(--teal);text-shadow:0 0 14px var(--teal)}
+.point-popup.danger{color:var(--danger);text-shadow:0 0 14px var(--danger)}
+@keyframes popup{
+  0%{opacity:1;transform:translateY(0) scale(.85)}
+  20%{opacity:1;transform:translateY(-20px) scale(1.25)}
+  100%{opacity:0;transform:translateY(-100px) scale(1)}
+}
+
+/* ============== MAIN LAYOUT ============== */
+.main-wrap{
+  max-width:1200px; margin:0 auto;
+  padding:30px 24px 30px;
+  position:relative; z-index:2;
+}
+header.title-bar{text-align:center;margin-bottom:24px}
+.badge{
+  display:inline-block;
+  font-family:'Space Mono',monospace;
+  color:var(--brass-soft); font-size:.85rem;
+  letter-spacing:.4em; text-transform:uppercase;
+  border:1px solid var(--brass);
+  padding:5px 18px; border-radius:2px;
+  margin-bottom:14px;
+}
+h1{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:clamp(2rem, 4vw, 3.4rem);
+  letter-spacing:-.02em; line-height:1;
+  background:linear-gradient(135deg, var(--brass-glow) 0%, var(--brass) 60%, var(--cream) 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.subtitle{
+  margin-top:10px; color:#9bb8d9;
+  font-size:1.05rem; max-width:740px; margin-inline:auto;
+}
+
+/* ============== STATION MAP ============== */
+.station-map{
+  background:linear-gradient(180deg, rgba(30,58,95,.7) 0%, rgba(16,42,67,.85) 100%);
+  border:1px solid rgba(200,155,63,.4);
+  border-radius:10px; padding:20px;
+  margin-bottom:24px;
+}
+.station-map h3{
+  font-family:'Space Grotesk',sans-serif; font-weight:600;
+  font-size:.85rem; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--brass-soft); margin-bottom:14px;
+}
+.stations-grid{
+  display:grid;
+  grid-template-columns:repeat(6, 1fr);
+  gap:10px;
+}
+.station-pill{
+  position:relative;
+  background:rgba(10,25,41,.6);
+  border:1px solid rgba(200,155,63,.25);
+  border-radius:6px;
+  padding:14px 10px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .25s;
+  font-size:.92rem;
+}
+.station-pill .ic{font-size:1.6rem;display:block;margin-bottom:4px}
+.station-pill .nm{
+  font-family:'Space Grotesk',sans-serif; font-weight:600;
+  color:var(--cream); line-height:1.15; font-size:.78rem;
+  letter-spacing:.02em;
+}
+.station-pill .num{
+  position:absolute; top:4px; left:6px;
+  font-family:'Space Mono',monospace; font-size:.7rem;
+  color:var(--brass-soft); opacity:.7;
+}
+.station-pill.completed{
+  border-color:var(--success);
+  background:rgba(64,192,87,.12);
+}
+.station-pill.completed::after{
+  content:"✓"; position:absolute; top:4px; right:6px;
+  color:var(--success); font-weight:bold;
+}
+.station-pill.active{
+  border-color:var(--brass-glow);
+  background:rgba(200,155,63,.15);
+  box-shadow:0 0 18px rgba(255,212,122,.4);
+  transform:translateY(-2px);
+}
+.station-pill.locked{opacity:.35;cursor:not-allowed;filter:grayscale(.6)}
+.station-pill:hover:not(.locked):not(.active){
+  background:rgba(30,58,95,.8);
+  transform:translateY(-1px);
+}
+
+/* ============== START SCREEN ============== */
+.start-screen{
+  background:linear-gradient(180deg, rgba(16,42,67,.92) 0%, rgba(10,25,41,.95) 100%);
+  border:2px solid var(--brass);
+  border-radius:12px;
+  padding:34px;
+  margin-bottom:30px;
+  box-shadow:0 0 40px rgba(200,155,63,.2);
+}
+.start-screen h2{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  color:var(--brass-glow); font-size:1.6rem;
+  letter-spacing:.04em; text-align:center;
+  margin-bottom:14px;
+}
+.start-screen p{font-size:1.08rem;line-height:1.6;margin-bottom:10px}
+.start-screen .narrator{color:var(--brass-soft);font-style:italic;text-align:center;font-size:1.1rem}
+.start-screen .briefing-box{
+  background:rgba(45,212,191,.08);
+  border:1px solid var(--teal);
+  border-radius:8px; padding:16px 20px;
+  margin:16px 0;
+}
+.start-screen .briefing-box h3{
+  font-family:'Space Grotesk',sans-serif; color:var(--teal);
+  font-size:1.1rem; margin-bottom:10px; letter-spacing:.05em;
+}
+.start-screen ul{padding-left:24px;line-height:1.7;font-size:1rem}
+.start-screen ul ul{margin-top:6px}
+.start-screen .warning-box{
+  background:rgba(255,107,53,.12);
+  border:1px solid var(--warning);
+  padding:14px 18px; border-radius:6px;
+  margin:14px 0;
+  font-size:1rem; line-height:1.55;
+}
+.btn-launch{
+  display:block; margin:20px auto 0;
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:1.3rem; padding:16px 44px;
+  background:linear-gradient(135deg, var(--brass-glow) 0%, var(--brass) 100%);
+  color:var(--navy-deep);
+  border:none; border-radius:6px;
+  cursor:pointer;
+  letter-spacing:.12em; text-transform:uppercase;
+  transition:all .3s;
+  box-shadow:0 0 30px rgba(255,212,122,.4);
+}
+.btn-launch:hover{
+  transform:translateY(-4px) scale(1.03);
+  box-shadow:0 12px 40px rgba(255,212,122,.7);
+}
+
+/* ============== STATION ============== */
+.station{
+  display:none;
+  background:linear-gradient(180deg, rgba(16,42,67,.88) 0%, rgba(10,25,41,.94) 100%);
+  border:2px solid var(--navy-light);
+  border-radius:12px;
+  padding:28px;
+  margin-bottom:24px;
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+  position:relative;
+}
+.station.active{display:block;animation:stationIn .5s ease}
+@keyframes stationIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.station.completed{border-color:var(--success)}
+
+.station-header{
+  display:flex; align-items:flex-start; gap:14px;
+  flex-wrap:wrap; margin-bottom:14px;
+  padding-bottom:14px;
+  border-bottom:1px solid rgba(200,155,63,.25);
+}
+.station-icon{
+  font-size:2.6rem; line-height:1;
+  filter:drop-shadow(0 0 12px var(--brass-glow));
+}
+.station-titles{flex:1;min-width:280px}
+.station-num{
+  font-family:'Space Mono',monospace;
+  color:var(--brass-soft); font-size:.85rem;
+  letter-spacing:.18em; text-transform:uppercase;
+}
+.station-title{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  color:var(--cream); font-size:1.6rem;
+  letter-spacing:-.01em; margin-top:2px;
+}
+.station-timer{
+  font-family:'Space Mono',monospace;
+  color:var(--brass-glow); font-size:1.6rem; font-weight:700;
+  background:rgba(10,25,41,.8);
+  border:1px solid var(--brass);
+  padding:6px 16px; border-radius:8px;
+}
+.station-timer.warn{color:var(--amber);border-color:var(--amber)}
+.station-timer.danger{color:var(--danger);border-color:var(--danger);animation:critPulse 1s infinite}
+.station-focus{
+  color:#9bb8d9; font-style:italic; font-size:1.02rem;
+  margin-bottom:14px;
+  border-left:3px solid var(--brass); padding-left:14px;
+}
+.station-context{
+  background:rgba(10,25,41,.55);
+  padding:16px 20px; border-radius:8px;
+  margin-bottom:18px; font-size:1.05rem; line-height:1.55;
+  border-left:3px solid var(--teal);
+}
+.station-context em{color:var(--teal);font-style:italic}
+
+/* ============== TASK CARD ============== */
+.task-card{
+  background:rgba(30,58,95,.45);
+  border:1px solid rgba(200,155,63,.3);
+  border-left:4px solid var(--brass);
+  border-radius:8px; padding:20px 22px;
+  margin-bottom:14px;
+  transition:all .3s;
+}
+.task-card.current{
+  border-left-color:var(--brass-glow);
+  background:rgba(30,58,95,.7);
+  box-shadow:0 0 24px rgba(255,212,122,.15);
+}
+.task-card.done{
+  border-left-color:var(--success);
+  background:rgba(64,192,87,.08);
+}
+.task-card.done .task-action{display:none}
+.task-meta{
+  display:flex; gap:10px; align-items:center; margin-bottom:8px;
+  flex-wrap:wrap;
+}
+.task-num{
+  font-family:'Space Mono',monospace; font-size:.78rem;
+  color:var(--brass-soft); letter-spacing:.14em;
+}
+.task-type{
+  background:rgba(200,155,63,.2); color:var(--brass-glow);
+  padding:2px 10px; border-radius:12px;
+  font-family:'Space Mono',monospace; font-size:.7rem;
+  letter-spacing:.1em; text-transform:uppercase;
+}
+.task-type.speaking{background:rgba(45,212,191,.2);color:var(--teal)}
+.task-type.urgent{background:rgba(255,107,53,.25);color:var(--warning)}
+.task-points{
+  background:rgba(200,155,63,.15); color:var(--brass-glow);
+  padding:2px 10px; border-radius:12px;
+  font-family:'Space Mono',monospace; font-size:.7rem; font-weight:bold;
+}
+.task-title{
+  font-family:'Space Grotesk',sans-serif; font-weight:600;
+  color:var(--brass-glow); font-size:1.2rem;
+  margin-bottom:10px; letter-spacing:.01em;
+}
+.task-content{
+  font-size:1.05rem; line-height:1.55;
+  color:var(--cream); margin-bottom:12px;
+}
+.task-content .document{
+  background:rgba(10,25,41,.55); padding:14px 18px;
+  border-radius:6px; margin:10px 0;
+  border-left:3px solid var(--info);
+  font-family:'Space Mono',monospace; font-size:.95rem;
+  line-height:1.6; color:#e3eef7;
+}
+.task-content .document .label{
+  display:block; font-family:'Space Grotesk',sans-serif;
+  color:var(--info); font-size:.78rem;
+  text-transform:uppercase; letter-spacing:.14em;
+  margin-bottom:8px;
+}
+.task-content .smcp{
+  background:rgba(45,212,191,.08); padding:10px 14px;
+  border:1px dashed var(--teal); border-radius:6px;
+  margin:8px 0; font-style:italic; color:var(--teal);
+}
+.task-content ul{padding-left:22px;margin:8px 0}
+.task-content ul li{margin-bottom:4px}
+.task-prompt{
+  background:rgba(255,170,0,.1);
+  border:1px solid var(--amber);
+  border-radius:6px; padding:12px 16px;
+  margin:10px 0; font-size:1.05rem;
+}
+.task-prompt strong{color:var(--amber-soft)}
+.captain-line{
+  background:linear-gradient(90deg, rgba(200,155,63,.18), transparent);
+  padding:10px 14px; border-radius:6px;
+  border-left:3px solid var(--brass-glow);
+  margin:10px 0;
+  font-family:'Space Grotesk',sans-serif; font-style:italic;
+  color:var(--brass-glow); font-size:1.05rem;
+}
+.captain-line::before{content:"🎙 "; font-style:normal}
+.student-line{
+  background:linear-gradient(90deg, rgba(45,212,191,.12), transparent);
+  padding:10px 14px; border-radius:6px;
+  border-left:3px solid var(--teal);
+  margin:10px 0;
+  font-family:'Space Grotesk',sans-serif;
+  color:var(--teal); font-size:1.05rem;
+}
+.student-line::before{content:"⚓ "; }
+
+.task-action{
+  display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;
+  padding-top:12px; border-top:1px dashed rgba(200,155,63,.25);
+  align-items:center;
+}
+.btn-speak{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:1.05rem; padding:12px 24px;
+  background:linear-gradient(135deg, var(--teal), #1aa394);
+  color:var(--navy-deep);
+  border:none; border-radius:6px; cursor:pointer;
+  letter-spacing:.05em;
+  transition:all .25s;
+  box-shadow:0 4px 14px rgba(45,212,191,.3);
+}
+.btn-speak:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(45,212,191,.5)}
+.btn-speak.recording{
+  animation:recording 1s infinite;
+  background:linear-gradient(135deg, var(--danger), #b71f2c);
+  color:#fff;
+}
+@keyframes recording{0%,100%{box-shadow:0 0 0 0 rgba(230,57,70,.6)}50%{box-shadow:0 0 0 12px rgba(230,57,70,0)}}
+.speak-timer{
+  font-family:'Space Mono',monospace; font-size:1.4rem;
+  color:var(--brass-glow); font-weight:700;
+  background:rgba(10,25,41,.7); padding:6px 14px; border-radius:6px;
+  border:1px solid var(--brass);
+  min-width:80px; text-align:center;
+}
+
+/* ============== TEACHER PANEL ============== */
+.teacher-panel{
+  position:fixed; left:0; right:0; bottom:0;
+  z-index:40;
+  background:linear-gradient(180deg, rgba(10,25,41,.97) 0%, rgba(5,14,26,.99) 100%);
+  border-top:3px solid var(--brass);
+  padding:14px 22px;
+  box-shadow:0 -10px 40px rgba(0,0,0,.7);
+  backdrop-filter:blur(10px);
+}
+.teacher-panel.hidden{display:none}
+.panel-header{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:10px; flex-wrap:wrap; gap:10px;
+}
+.panel-title{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  color:var(--brass-glow); font-size:.95rem;
+  letter-spacing:.16em; text-transform:uppercase;
+}
+.panel-title::before{content:"🎖 ";}
+.panel-target{
+  font-family:'Space Mono',monospace; font-size:.85rem;
+  color:#9bb8d9;
+}
+.panel-target b{color:var(--brass-glow)}
+.btn-toggle-panel{
+  background:transparent; border:1px solid var(--brass);
+  color:var(--brass-soft); padding:4px 12px;
+  border-radius:4px; cursor:pointer;
+  font-family:'Space Mono',monospace; font-size:.78rem;
+  letter-spacing:.05em;
+}
+.btn-toggle-panel:hover{background:rgba(200,155,63,.15)}
+
+.panel-grid{
+  display:grid;
+  grid-template-columns:2fr 3fr 1.4fr;
+  gap:16px;
+  align-items:start;
+}
+.panel-rubric{
+  background:rgba(30,58,95,.45);
+  padding:12px 14px; border-radius:6px;
+  border:1px solid rgba(200,155,63,.25);
+}
+.rubric-title{
+  font-family:'Space Mono',monospace; font-size:.7rem;
+  letter-spacing:.16em; text-transform:uppercase;
+  color:var(--brass-soft); margin-bottom:8px;
+}
+.rubric-row{
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:6px; font-size:.92rem;
+}
+.rubric-row:last-child{margin-bottom:0}
+.rubric-label{
+  flex:0 0 95px; color:#bcd2ee;
+  font-family:'Space Grotesk',sans-serif; font-weight:500;
+  font-size:.85rem;
+}
+.rubric-stars{display:flex;gap:3px}
+.rubric-star{
+  width:26px;height:26px;
+  background:rgba(10,25,41,.7);
+  border:1px solid rgba(200,155,63,.3);
+  border-radius:3px; cursor:pointer;
+  font-family:'Inter',sans-serif; font-weight:700;
+  font-size:.82rem; color:#9bb8d9;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:all .15s; user-select:none;
+}
+.rubric-star:hover{background:rgba(200,155,63,.2);color:var(--brass-glow)}
+.rubric-star.active{background:var(--brass);color:var(--navy-deep);border-color:var(--brass-glow)}
+.rubric-star.active ~ .rubric-star{background:rgba(10,25,41,.7);color:#9bb8d9;border-color:rgba(200,155,63,.3)}
+
+.panel-buttons{
+  display:flex; flex-direction:column; gap:10px;
+}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn-validate{
+  flex:1; min-width:120px;
+  padding:12px 16px;
+  border:none; border-radius:8px;
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:1rem; letter-spacing:.06em;
+  cursor:pointer; transition:all .2s;
+  text-transform:uppercase;
+}
+.btn-validate.approve{
+  background:linear-gradient(135deg, var(--success), #2b9b48);
+  color:#fff;
+  box-shadow:0 4px 14px rgba(64,192,87,.35);
+}
+.btn-validate.approve:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(64,192,87,.55)}
+.btn-validate.repeat{
+  background:linear-gradient(135deg, var(--amber), #cc8800);
+  color:#fff;
+  box-shadow:0 4px 14px rgba(255,170,0,.35);
+}
+.btn-validate.repeat:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(255,170,0,.55)}
+.btn-validate.escalate{
+  background:linear-gradient(135deg, var(--danger), #a8202a);
+  color:#fff;
+  box-shadow:0 4px 14px rgba(230,57,70,.35);
+}
+.btn-validate.escalate:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(230,57,70,.55)}
+.btn-validate.skip{
+  background:transparent;
+  border:1px solid #6b7d92; color:#9bb8d9;
+}
+.btn-validate.skip:hover{background:rgba(155,184,217,.1)}
+
+.captain-prompt{
+  background:rgba(200,155,63,.1);
+  border:1px solid var(--brass);
+  border-radius:6px; padding:10px 12px;
+  font-family:'Space Grotesk',sans-serif; font-style:italic;
+  color:var(--brass-glow); font-size:.92rem;
+  line-height:1.45;
+  max-height:140px; overflow-y:auto;
+}
+.captain-prompt .lbl{
+  display:block; font-style:normal; font-weight:700;
+  color:var(--brass); font-size:.7rem;
+  letter-spacing:.14em; text-transform:uppercase;
+  margin-bottom:4px;
+}
+.captain-prompt em{color:var(--brass-soft);font-style:normal}
+
+.panel-actions{display:flex;flex-direction:column;gap:8px}
+.btn-action{
+  background:rgba(30,58,95,.6);
+  border:1px solid rgba(200,155,63,.4);
+  color:var(--cream);
+  padding:8px 12px; border-radius:5px;
+  cursor:pointer; font-family:'Space Mono',monospace;
+  font-size:.78rem; letter-spacing:.08em;
+  text-align:left;
+  transition:all .2s;
+}
+.btn-action:hover{background:rgba(200,155,63,.18);color:var(--brass-glow)}
+.btn-action.danger{border-color:var(--warning);color:var(--amber-soft)}
+.btn-action.danger:hover{background:rgba(255,107,53,.15)}
+
+/* ============== EVENT TOASTS ============== */
+.event-toast{
+  position:fixed; top:90px; right:20px; z-index:500;
+  padding:16px 22px; border-radius:8px;
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:1rem; letter-spacing:.04em;
+  box-shadow:0 10px 36px rgba(0,0,0,.6);
+  animation:toastIn .4s ease, toastOut .4s ease 5.5s forwards;
+  max-width:380px;
+}
+.event-toast.alarm{background:linear-gradient(135deg, var(--danger), #a8202a);color:#fff;border:1px solid #fff}
+.event-toast.gift{background:linear-gradient(135deg, var(--brass-glow), var(--brass));color:var(--navy-deep)}
+.event-toast.weather{background:linear-gradient(135deg, var(--info), #2b87cf);color:#fff}
+.event-toast.port{background:linear-gradient(135deg, var(--teal), #1aa394);color:var(--navy-deep)}
+.event-toast .icon{font-size:1.6rem;margin-right:8px;vertical-align:middle}
+.event-toast .msg{display:block;font-size:.92rem;margin-top:4px;opacity:.95;font-weight:500;font-family:'Inter',sans-serif;line-height:1.45}
+.event-toast .speak-now{display:block;margin-top:8px;padding:8px 12px;background:rgba(0,0,0,.25);border-radius:4px;font-style:italic;font-size:.92rem}
+@keyframes toastIn{from{transform:translateX(420px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toastOut{from{transform:translateX(0);opacity:1}to{transform:translateX(420px);opacity:0}}
+
+/* ============== ACHIEVEMENT ============== */
+.achievement{
+  position:fixed; bottom:260px; left:50%; transform:translateX(-50%);
+  z-index:600; padding:14px 32px;
+  background:linear-gradient(135deg, var(--brass-glow), var(--brass));
+  color:var(--navy-deep); border-radius:50px;
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:1.05rem; letter-spacing:.04em;
+  box-shadow:0 0 44px rgba(255,212,122,.7);
+  animation:achIn .5s ease, achOut .5s ease 4s forwards;
+}
+.achievement .ic{font-size:1.7rem;margin-right:10px;vertical-align:middle}
+.achievement .sub{display:block;font-size:.78rem;opacity:.7;font-weight:600;margin-top:2px}
+@keyframes achIn{from{transform:translateX(-50%) translateY(100px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+@keyframes achOut{from{transform:translateX(-50%) translateY(0);opacity:1}to{transform:translateX(-50%) translateY(100px);opacity:0}}
+
+/* ============== MODAL ============== */
+.modal-bg{
+  display:none; position:fixed; inset:0; z-index:200;
+  background:rgba(0,0,0,.85); backdrop-filter:blur(5px);
+  align-items:center; justify-content:center; padding:20px;
+}
+.modal-bg.show{display:flex}
+.modal{
+  background:linear-gradient(180deg, rgba(16,42,67,.99) 0%, rgba(10,25,41,.99) 100%);
+  border:2px solid var(--brass); border-radius:10px;
+  padding:32px; max-width:640px; width:100%;
+  box-shadow:0 0 70px rgba(200,155,63,.3);
+  max-height:90vh; overflow-y:auto;
+}
+.modal h3{
+  font-family:'Space Grotesk',sans-serif; color:var(--brass-glow);
+  font-size:1.5rem; margin-bottom:12px;
+}
+.modal p{font-size:1.05rem;line-height:1.55;margin-bottom:10px}
+.modal .stats-box{
+  background:rgba(10,25,41,.55); padding:14px;
+  border-radius:6px; margin:12px 0;
+  font-family:'Space Mono',monospace; font-size:1rem;
+}
+.modal .stats-box div{margin:5px 0}
+.modal .stats-box b{color:var(--brass-glow)}
+.modal .bonus-box{
+  background:linear-gradient(135deg, var(--teal), #1aa394);
+  color:var(--navy-deep);
+  padding:12px 16px; border-radius:6px;
+  text-align:center; margin:12px 0;
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+}
+.modal-btn{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  padding:12px 28px;
+  background:linear-gradient(135deg, var(--brass-glow), var(--brass));
+  color:var(--navy-deep);
+  border:none; border-radius:6px; cursor:pointer;
+  font-size:1rem; letter-spacing:.08em; text-transform:uppercase;
+  margin-top:12px;
+}
+
+/* ============== FINAL ============== */
+.final-screen{
+  display:none; text-align:center;
+  background:radial-gradient(ellipse at center, rgba(200,155,63,.18) 0%, transparent 70%);
+  border:2px solid var(--brass);
+  border-radius:14px; padding:50px 28px;
+  margin-bottom:30px;
+}
+.final-screen.show{display:block;animation:stationIn 1s}
+.final-screen h2{
+  font-family:'Space Grotesk',sans-serif; color:var(--brass-glow);
+  font-size:2.6rem; margin-bottom:16px;
+  text-shadow:0 0 30px var(--brass-glow);
+}
+.anchor-emoji{font-size:4rem;margin:18px 0;display:inline-block;filter:drop-shadow(0 0 24px var(--brass-glow));animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.final-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:24px auto;max-width:720px}
+.final-stat{background:rgba(10,25,41,.55);border:1px solid var(--brass);padding:14px;border-radius:6px}
+.final-stat .lbl{font-family:'Space Mono',monospace;color:var(--brass-soft);font-size:.78rem;letter-spacing:.14em}
+.final-stat .val{font-family:'Inter',sans-serif;font-weight:900;font-size:1.7rem;color:var(--brass-glow);margin-top:4px}
+.grade-badge{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:2.4rem; color:var(--brass-glow);
+  margin:18px 0; text-shadow:0 0 36px currentColor;
+}
+.btn-export{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  padding:13px 30px; margin:8px;
+  background:linear-gradient(135deg, var(--brass-glow), var(--brass));
+  color:var(--navy-deep);
+  border:none; border-radius:6px; cursor:pointer;
+  font-size:1.02rem; letter-spacing:.08em; text-transform:uppercase;
+}
+.btn-export:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(255,212,122,.4)}
+.btn-export.secondary{background:transparent;color:var(--brass-glow);border:1px solid var(--brass)}
+.achievements-list{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:20px auto;max-width:680px}
+.ach-badge{
+  background:rgba(200,155,63,.15); border:1px solid var(--brass);
+  color:var(--brass-glow);
+  padding:8px 16px; border-radius:18px;
+  font-family:'Space Mono',monospace; font-size:.92rem;
+}
+
+/* ============== QUESTIONNAIRE ============== */
+.questionnaire-screen{
+  display:none;
+  background:linear-gradient(180deg, rgba(16,42,67,.92) 0%, rgba(10,25,41,.95) 100%);
+  border:2px solid var(--brass); border-radius:12px;
+  padding:30px; margin-bottom:30px;
+}
+.questionnaire-screen.show{display:block}
+.questionnaire-screen h2{
+  font-family:'Space Grotesk',sans-serif; color:var(--brass-glow);
+  font-size:1.5rem; margin-bottom:8px; text-align:center;
+}
+.q-intro{font-style:italic;color:#bcd2ee;text-align:center;margin-bottom:18px;line-height:1.5}
+.q-section{background:rgba(10,25,41,.5);border-left:3px solid var(--brass);padding:14px 16px;margin-bottom:16px;border-radius:5px}
+.q-section h3{font-family:'Space Grotesk',sans-serif;color:var(--brass-soft);font-size:1.05rem;margin-bottom:12px;letter-spacing:.04em}
+.q-section.optional h3::after{content:" (opcional)";font-size:.8rem;color:#9bb8d9;font-style:italic;font-weight:normal}
+.q-item{margin-bottom:14px;padding-bottom:12px;border-bottom:1px dashed rgba(200,155,63,.2)}
+.q-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.q-label{display:block;font-size:1rem;line-height:1.4;margin-bottom:8px}
+.q-label .num{display:inline-block;background:var(--brass);color:var(--navy-deep);padding:1px 8px;border-radius:10px;font-family:'Space Mono',monospace;font-size:.82rem;margin-right:6px;font-weight:bold}
+.likert-scale{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.likert-scale .lk-label{font-family:'Space Mono',monospace;font-size:.82rem;color:#9bb8d9;min-width:70px}
+.likert-scale .lk-options{display:flex;gap:5px;flex:1;justify-content:center}
+.likert-scale input[type="radio"]{display:none}
+.likert-scale .lk-opt{
+  width:40px;height:40px;
+  background:rgba(10,25,41,.6);
+  border:1px solid rgba(200,155,63,.3);
+  border-radius:50%;
+  font-family:'Inter',sans-serif;font-weight:700;font-size:.95rem;
+  color:var(--cream); cursor:pointer; user-select:none;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.likert-scale .lk-opt:hover{background:rgba(200,155,63,.2);transform:scale(1.1)}
+.likert-scale input[type="radio"]:checked + .lk-opt{background:var(--brass);color:var(--navy-deep);border-color:var(--brass-glow);box-shadow:0 0 12px rgba(255,212,122,.5)}
+.q-textarea{width:100%;padding:10px 12px;background:rgba(10,25,41,.6);border:1px solid rgba(200,155,63,.3);border-radius:4px;color:var(--cream);font-family:'Inter',sans-serif;font-size:1rem;min-height:70px;resize:vertical}
+.q-textarea:focus{outline:none;border-color:var(--brass)}
+.q-consent{background:rgba(200,155,63,.08);border:1px solid var(--brass);padding:12px 16px;border-radius:5px;margin-bottom:16px;font-size:.95rem;line-height:1.5}
+.q-consent label{display:flex;align-items:flex-start;gap:8px;cursor:pointer}
+.q-consent input[type="checkbox"]{margin-top:4px;width:18px;height:18px;accent-color:var(--brass)}
+.likert-legend{font-family:'Space Mono',monospace;font-size:.88rem;color:#9bb8d9;text-align:center;margin:12px 0}
+.btn-submit-q{
+  display:block;margin:24px auto 0;
+  font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;
+  padding:13px 36px;
+  background:linear-gradient(135deg, var(--brass-glow), var(--brass));
+  color:var(--navy-deep);
+  border:none;border-radius:6px;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;
+}
+.btn-skip-q{display:block;margin:10px auto 0;background:transparent;border:1px solid rgba(200,155,63,.4);color:var(--brass-soft);padding:8px 24px;font-family:'Space Mono',monospace;font-size:.95rem;border-radius:4px;cursor:pointer}
+
+@media (max-width:900px){
+  .stations-grid{grid-template-columns:repeat(3, 1fr)}
+  .panel-grid{grid-template-columns:1fr}
+  .top-hud{padding:8px 14px;gap:10px}
+  body{padding-bottom:340px}
+  h1{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TOP HUD ===== -->
+<div class="top-hud" id="topHud">
+  <div class="ship-name">MV PHONETICA</div>
+  <div class="hud-stat knots"><span class="lbl">Knots</span><span class="val" id="hudKnots">0</span></div>
+  <div class="hud-stat fuel" id="fuelStat"><span class="lbl">Fuel</span><span class="val" id="hudFuel">120:00</span></div>
+  <div class="hud-stat reputation"><span class="lbl">Reputation</span><span class="val" id="hudRep">0</span></div>
+  <div class="hud-stat station-progress"><span class="lbl">Station</span><span class="val"><span id="hudStation">0</span>/6</span></div>
+  <div style="margin-left:auto"></div>
+  <div class="score-box" id="scoreBox">
+    <div><span class="lbl">SCORE</span><span class="val" id="hudScore">0</span></div>
+  </div>
+</div>
+
+<div class="main-wrap">
+
+<header class="title-bar">
+  <div class="badge">⚓ Maritime English ◈ Bridge Command Simulation</div>
+  <h1>BRIDGE COMMAND</h1>
+  <p class="subtitle">An interactive oral training session for Maritime English in the professional sphere. 6 stations · ~2 hours · Captain–Officer dynamic with required oral interaction.</p>
+</header>
+
+<!-- ===== STATION MAP ===== -->
+<div class="station-map" id="stationMap" style="display:none">
+  <h3>▸ Voyage Progress — Bridge to Engine Room</h3>
+  <div class="stations-grid" id="stationsGrid"></div>
+</div>
+
+<!-- ===== START SCREEN ===== -->
+<section class="start-screen" id="startScreen">
+  <p class="narrator">— Incoming transmission from Naviera Internacional —</p>
+  <p>You are the Junior Officer aboard the <strong>MV Phonetica</strong>, a 220-metre dry cargo vessel preparing for departure. The Captain (your instructor) will guide you through six operational stations across this watch. <strong>This is a spoken simulation</strong>: most tasks require you to speak aloud, and the Captain will validate, correct or escalate your output.</p>
+
+  <div class="briefing-box">
+    <h3>⚓ The Six Stations</h3>
+    <ul>
+      <li><strong>01 · Bridge Radio</strong> — IMO Standard Marine Communication Phrases (SMCP). VHF calls.</li>
+      <li><strong>02 · Cargo Manifest Review</strong> — read, reformulate and report on cargo documentation.</li>
+      <li><strong>03 · Emergency Drill</strong> — random crisis events; you explain procedure orally under pressure.</li>
+      <li><strong>04 · Letter Desk</strong> — analyse complaint and application letters; dictate improved drafts.</li>
+      <li><strong>05 · Voyage Briefing</strong> — describe routes, weather, hazards orally to the bridge team.</li>
+      <li><strong>06 · Captain's Debrief</strong> — integrated final exchange, written report on the watch.</li>
+    </ul>
+  </div>
+
+  <div class="warning-box">
+    ⚠ <strong>RULES OF THE WATCH</strong>
+    <ul style="margin-top:6px">
+      <li><strong>Fuel</strong> (your time budget, 120 minutes) decreases as the simulation runs. Random events can refuel or drain it.</li>
+      <li><strong>Knots</strong> are your points. The faster and more accurately you complete tasks, the more knots you earn.</li>
+      <li><strong>Reputation</strong> is your streak with the company. Consecutive APPROVE validations build it; REPEAT or ESCALATE resets it.</li>
+      <li>The <strong>Captain (instructor)</strong> validates every spoken task from the bottom panel.</li>
+      <li>Random events trigger every 4–7 minutes: <strong>radio calls, port complaints, weather alerts, mayday signals</strong> — react fast.</li>
+      <li><strong>Power-ups</strong> are at the Captain's discretion: hints, anchor (pause), almanac (vocabulary).</li>
+    </ul>
+  </div>
+
+  <p class="narrator">"All hands on deck. Engines idle. The watch is yours."</p>
+  <button class="btn-launch" onclick="startVoyage()">⚓ DEPART HARBOUR ⚓</button>
+</section>
+
+<!-- ===== STATIONS CONTAINER ===== -->
+<div id="stationsContainer"></div>
+
+<!-- ===== POST QUESTIONNAIRE ===== -->
+<section class="questionnaire-screen" id="postQuestionnaire">
+  <h2>⚓ Watch Debrief — Resource Evaluation</h2>
+  <p class="q-intro">Before disembarking, we'd like your evaluation of the resource.<br>Estimated time: 4-5 minutes.</p>
+
+  <div class="q-consent">
+    <label>
+      <input type="checkbox" id="consent" checked>
+      <span>I consent to my responses and the data generated by my use of the resource being used for research purposes anonymously and in aggregate. Participation is voluntary; I may skip this questionnaire.</span>
+    </label>
+  </div>
+
+  <p class="likert-legend">Scale 1–5: <strong>1 = Strongly disagree · 5 = Strongly agree</strong></p>
+
+  <div class="q-section"><h3>U · Usability and interface</h3><div id="qU"></div></div>
+  <div class="q-section"><h3>E · Engagement and motivation</h3><div id="qE"></div></div>
+  <div class="q-section"><h3>O · Oral interaction with the instructor</h3><div id="qO"></div></div>
+  <div class="q-section"><h3>V · Overall value</h3><div id="qV"></div></div>
+
+  <div class="q-section optional"><h3>G · Open comments</h3>
+    <div class="q-item"><label class="q-label"><span class="num">G1</span>What did you like most about the resource?</label><textarea id="qOpen1" class="q-textarea" placeholder="Optional"></textarea></div>
+    <div class="q-item"><label class="q-label"><span class="num">G2</span>What difficulties did you encounter?</label><textarea id="qOpen2" class="q-textarea" placeholder="Optional"></textarea></div>
+    <div class="q-item"><label class="q-label"><span class="num">G3</span>What would you change or improve?</label><textarea id="qOpen3" class="q-textarea" placeholder="Optional"></textarea></div>
+    <div class="q-item"><label class="q-label"><span class="num">G4</span>Any other comments?</label><textarea id="qOpen4" class="q-textarea" placeholder="Optional"></textarea></div>
+  </div>
+
+  <button class="btn-submit-q" onclick="submitPostQ()">⚓ COMPLETE DEBRIEF ⚓</button>
+  <button class="btn-skip-q" onclick="skipPostQ()">Skip and see report</button>
+</section>
+
+<!-- ===== FINAL SCREEN ===== -->
+<section class="final-screen" id="finalScreen">
+  <div class="anchor-emoji">⚓</div>
+  <h2>WATCH COMPLETE</h2>
+  <p style="font-size:1.15rem">You've held the bridge. The harbour pilot has arrived.</p>
+  <div class="grade-badge" id="finalGrade">—</div>
+  <div class="final-stats" id="finalStats"></div>
+  <div class="achievements-list" id="finalAchievements"></div>
+  <div style="margin-top:24px">
+    <button class="btn-export" onclick="exportReport()">⚓ EXPORT WATCH REPORT</button>
+    <button class="btn-export secondary" onclick="location.reload()">↻ NEW WATCH</button>
+  </div>
+</section>
+
+</div><!-- /main-wrap -->
+
+<!-- ===== TEACHER PANEL (fixed bottom) ===== -->
+<div class="teacher-panel hidden" id="teacherPanel">
+  <div class="panel-header">
+    <div class="panel-title">CAPTAIN'S BRIDGE — Validation Panel</div>
+    <div class="panel-target">Task: <b id="panelTarget">—</b> · Mode: <b id="panelMode">—</b></div>
+    <button class="btn-toggle-panel" onclick="togglePanel()">Hide panel</button>
+  </div>
+  <div class="panel-grid">
+    <div class="panel-rubric">
+      <div class="rubric-title">Rubric — click stars (1-5)</div>
+      <div class="rubric-row"><span class="rubric-label">Grammar</span><div class="rubric-stars" data-rubric="grammar">
+        <span class="rubric-star" data-v="1">1</span><span class="rubric-star" data-v="2">2</span><span class="rubric-star" data-v="3">3</span><span class="rubric-star" data-v="4">4</span><span class="rubric-star" data-v="5">5</span>
+      </div></div>
+      <div class="rubric-row"><span class="rubric-label">Vocabulary</span><div class="rubric-stars" data-rubric="vocabulary">
+        <span class="rubric-star" data-v="1">1</span><span class="rubric-star" data-v="2">2</span><span class="rubric-star" data-v="3">3</span><span class="rubric-star" data-v="4">4</span><span class="rubric-star" data-v="5">5</span>
+      </div></div>
+      <div class="rubric-row"><span class="rubric-label">Pronunciation</span><div class="rubric-stars" data-rubric="pronunciation">
+        <span class="rubric-star" data-v="1">1</span><span class="rubric-star" data-v="2">2</span><span class="rubric-star" data-v="3">3</span><span class="rubric-star" data-v="4">4</span><span class="rubric-star" data-v="5">5</span>
+      </div></div>
+      <div class="rubric-row"><span class="rubric-label">Fluency</span><div class="rubric-stars" data-rubric="fluency">
+        <span class="rubric-star" data-v="1">1</span><span class="rubric-star" data-v="2">2</span><span class="rubric-star" data-v="3">3</span><span class="rubric-star" data-v="4">4</span><span class="rubric-star" data-v="5">5</span>
+      </div></div>
+    </div>
+    <div class="panel-buttons">
+      <div class="captain-prompt" id="captainPrompt">
+        <span class="lbl">Captain's script (your line)</span>
+        <span id="captainPromptText">Awaiting task…</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn-validate approve" onclick="validateTask('approve')">✓ APPROVE</button>
+        <button class="btn-validate repeat" onclick="validateTask('repeat')">↻ REPEAT</button>
+        <button class="btn-validate escalate" onclick="validateTask('escalate')">⚠ ESCALATE</button>
+      </div>
+    </div>
+    <div class="panel-actions">
+      <button class="btn-action" onclick="captainHint()">💡 GIVE BOSUN'S HINT</button>
+      <button class="btn-action" onclick="captainAnchor()">⚓ DROP ANCHOR (pause)</button>
+      <button class="btn-action" onclick="captainAlmanac()">📚 OPEN ALMANAC</button>
+      <button class="btn-action danger" onclick="captainTriggerEvent()">⚠ TRIGGER EVENT</button>
+      <button class="btn-validate skip" onclick="validateTask('skip')">↷ SKIP TASK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle">—</h3>
+    <div id="modalBody"></div>
+    <div style="text-align:center">
+      <button class="modal-btn" onclick="closeModalNext()">⚓ PROCEED</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====================== STATION DATA ====================== */
+const STATIONS = [
+  /* ============ STATION 1: BRIDGE RADIO (SMCP) ============ */
+  {
+    id:1, title:"Bridge Radio", icon:"🎙",
+    focus:"IMO Standard Marine Communication Phrases (SMCP) · VHF calls",
+    timeLimit:1200, // 20 min
+    context:`The bridge VHF crackles. Channel 16 is open. <em>"All ships in vicinity: report your position and intentions."</em> This station drills the IMO SMCP — the standardised phraseology used in all international maritime radio communication. The Captain will simulate the other vessel or station.`,
+    tasks:[
+      { id:"1.1", type:"speaking", points:100,
+        title:"Initial radio call — establish contact",
+        content:`<div class="task-prompt">You need to call <strong>Santander Port Control</strong> to announce your arrival. Use the standard four-element opening: identify them, identify yourself, switch channel, await reply.</div>
+        <div class="smcp">SMCP structure: "[Receiver], this is [Sender], on channel [number]. Over."</div>`,
+        captainScript:`(As Santander Port Control, voice flat and professional) "Vessel calling Santander Port Control, this is Santander Port Control. Identify yourself. Over."`,
+        studentExpected:`Santander Port Control, this is MV Phonetica, MV Phonetica, on channel one-six, requesting permission to enter port. Over.`,
+        hint:"Use 'this is' twice. Spell out channel number as words. End with 'Over'."
+      },
+      { id:"1.2", type:"speaking", points:120,
+        title:"Position report",
+        content:`<div class="task-prompt">Port Control asks for your <strong>position, course and speed</strong>. Report using SMCP standard format.</div>
+        <div class="document"><span class="label">▸ Current navigational data</span>
+        Position: 43°31'N 003°47'W<br>
+        Course: 270 degrees true<br>
+        Speed: 12.5 knots<br>
+        ETA Santander: 0830 LT</div>`,
+        captainScript:`"MV Phonetica, this is Santander Port Control. Report your position, course, speed and ETA. Over."`,
+        studentExpected:`Position 43 degrees 31 minutes north, 003 degrees 47 minutes west; course 270 degrees true; speed 12.5 knots; ETA Santander 0830 local time. Over.`,
+        hint:"Read coordinates as 'degrees / minutes / cardinal'. Course in degrees true. Speed in knots. ETA in 24-hour format."
+      },
+      { id:"1.3", type:"speaking", points:120,
+        title:"Distress urgency message (PAN PAN)",
+        content:`<div class="task-prompt">A passenger has fallen on the deck and may have broken their arm. Not life-threatening, but you need a doctor at the port. This requires a <strong>PAN PAN</strong> urgency call, not a Mayday.</div>
+        <div class="smcp">Structure: "PAN PAN" (×3), "All stations" (×3), "this is [vessel]", state nature of urgency, request action.</div>`,
+        captainScript:`(Listen, then assess. After the call:) "MV Phonetica, this is Santander Port Control. Urgency message received. Medical assistance will be standing by at berth. Over."`,
+        studentExpected:`PAN PAN, PAN PAN, PAN PAN. All stations, all stations, all stations. This is MV Phonetica. Position 43 degrees 31 minutes north, 003 degrees 47 minutes west. One injured crew member with a suspected fractured arm. Request medical assistance on arrival, ETA Santander 0830. Over.`,
+        hint:"Distinguish PAN PAN from MAYDAY (the latter is life-threatening only)."
+      },
+      { id:"1.4", type:"speaking", points:140,
+        title:"Acknowledgement and read-back",
+        content:`<div class="task-prompt">Port Control assigns you berth and pilot details. You must <strong>read back the instructions verbatim</strong> to confirm correct reception — this is a mandatory SMCP safety practice.</div>
+        <div class="captain-line">Captain reads: "MV Phonetica, you are assigned berth number 4, pilot boarding position one point five miles north of the breakwater at 0815 local time. Confirm."</div>`,
+        captainScript:`Read this aloud verbatim: "MV Phonetica, you are assigned berth number 4, pilot boarding position one point five miles north of the breakwater at 0815 local time. Confirm."`,
+        studentExpected:`Berth number 4, pilot boarding position one point five miles north of the breakwater at 0815 local time, confirmed. MV Phonetica out.`,
+        hint:"Read back every quantitative element. 'Out' ends the conversation; 'Over' invites response."
+      },
+      { id:"1.5", type:"speaking", points:160,
+        title:"Phonetic alphabet drill",
+        content:`<div class="task-prompt">The Captain will say a vessel name. You must spell it back using the <strong>NATO phonetic alphabet</strong>.</div>
+        <div class="document"><span class="label">▸ Quick reference</span>
+        A — Alfa &nbsp; B — Bravo &nbsp; C — Charlie &nbsp; D — Delta &nbsp; E — Echo &nbsp; F — Foxtrot<br>
+        G — Golf &nbsp; H — Hotel &nbsp; I — India &nbsp; J — Juliett &nbsp; K — Kilo &nbsp; L — Lima<br>
+        M — Mike &nbsp; N — November &nbsp; O — Oscar &nbsp; P — Papa &nbsp; Q — Quebec &nbsp; R — Romeo<br>
+        S — Sierra &nbsp; T — Tango &nbsp; U — Uniform &nbsp; V — Victor &nbsp; W — Whiskey<br>
+        X — X-ray &nbsp; Y — Yankee &nbsp; Z — Zulu</div>`,
+        captainScript:`Read these vessel names, one at a time, give student time to spell each: 1) "QUARTZ" — 2) "BLIZZARD" — 3) "JUVENTUS"`,
+        studentExpected:`QUARTZ: Quebec-Uniform-Alfa-Romeo-Tango-Zulu. BLIZZARD: Bravo-Lima-India-Zulu-Zulu-Alfa-Romeo-Delta. JUVENTUS: Juliett-Uniform-Victor-Echo-November-Tango-Uniform-Sierra.`,
+        hint:"Pronounce 'Juliett' with double-T, 'X-ray' as compound, and stress 'November' on the second syllable."
+      },
+      { id:"1.6", type:"speaking", points:140,
+        title:"Closing the call",
+        content:`<div class="task-prompt">Final exchange before berthing. Acknowledge, thank the controller, sign off correctly.</div>`,
+        captainScript:`"MV Phonetica, this is Santander Port Control. Welcome to Santander. Have a pleasant stay. Out."`,
+        studentExpected:`Santander Port Control, this is MV Phonetica. Thank you for the assistance. Out.`,
+        hint:"Reply 'Out', not 'Over and out' — that combination is incorrect SMCP."
+      }
+    ]
+  },
+
+  /* ============ STATION 2: CARGO MANIFEST REVIEW ============ */
+  {
+    id:2, title:"Cargo Manifest Review", icon:"📋",
+    focus:"Technical reports · Reading, reformulating and reporting cargo documentation orally",
+    timeLimit:1200,
+    context:`The Chief Officer hands you the cargo manifest for tomorrow's loading. <em>"The Captain wants a verbal summary at 1500."</em> You must read each document and present the key information orally — clearly, accurately, and in the correct register.`,
+    tasks:[
+      { id:"2.1", type:"speaking", points:120,
+        title:"Summarise the loading plan",
+        content:`<div class="document"><span class="label">▸ Cargo Manifest · MV Phonetica · Loading Plan</span>
+        Bay 03, Hold 1: 18,400 metric tonnes of steel coils, originating Bilbao, destination Rotterdam.<br>
+        Bay 05, Hold 2: 9,200 m.t. of bagged urea fertiliser, originating Bilbao, destination Hamburg.<br>
+        Bay 07, Hold 3: 6,500 m.t. of timber (sawn softwood), originating Santander, destination Antwerp.<br>
+        Stability: GM 1.42 m. Trim by stern: 0.85 m. All hatches sealed at 0700.</div>
+        <div class="task-prompt">Brief the Captain orally on the loading plan. <strong>Do not read verbatim</strong>: paraphrase, group cargo by hold, and end with the stability summary.</div>`,
+        captainScript:`"Number One, give me the loading plan. Just the essentials. I'm at the chart table."`,
+        studentExpected:`Sir, we have three holds loaded for European delivery. Hold 1 carries 18,400 tonnes of steel coils for Rotterdam. Hold 2 has 9,200 tonnes of bagged urea fertiliser for Hamburg. Hold 3 contains 6,500 tonnes of sawn softwood timber for Antwerp. Stability metrics are good: GM 1.42 metres, trim by stern 0.85 metres. All hatches sealed at 0700, sir.`,
+        hint:"Open with 'Sir, …' or 'Captain, …'. Use 'tonnes' (metric) consistently. Past tense for completed operations (sealed)."
+      },
+      { id:"2.2", type:"speaking", points:140,
+        title:"Identify a discrepancy",
+        content:`<div class="document"><span class="label">▸ Mate's Receipt vs Bill of Lading — extract</span>
+        Mate's Receipt #4471: 9,200 m.t. urea fertiliser, 184,000 bags @ 50 kg, condition AS RECEIVED.<br>
+        Bill of Lading: 9,200 m.t. urea fertiliser, 184,000 bags @ 50 kg, condition CLEAN ON BOARD.</div>
+        <div class="task-prompt">The Mate's Receipt notes "AS RECEIVED" but the Bill of Lading states "CLEAN ON BOARD". <strong>Explain orally the discrepancy</strong>, why it matters legally, and what should be done.</div>`,
+        captainScript:`"Number One, the agent is asking about the urea documentation. Walk me through what's wrong here."`,
+        studentExpected:`Sir, there's a documentary mismatch. The Mate's Receipt was noted as 'AS RECEIVED', meaning we acknowledged the cargo with no statement on its condition — possibly because some bags showed signs of damage on inspection. However, the Bill of Lading has been issued as 'CLEAN ON BOARD', which legally certifies the cargo was loaded in perfect condition. If there's underlying damage, this exposes the carrier to claims under the Hague-Visby Rules. I'd recommend clausing the Bill of Lading to match the Mate's Receipt before signing, or carrying out a re-inspection.`,
+        hint:"Key terms: 'claused B/L', 'clean B/L', 'Hague-Visby Rules', 'carrier liability'."
+      },
+      { id:"2.3", type:"speaking", points:140,
+        title:"Report a stowage problem",
+        content:`<div class="document"><span class="label">▸ Stowage Note from Bosun</span>
+        "Captain, while loading Hold 3, we noticed that two pallets of dunnage were left between courses of timber. The pallets are wet — they were stored on deck during yesterday's rain. Now sealed inside the hold."</div>
+        <div class="task-prompt">Report this issue orally to the Captain. <strong>Identify the risk and propose action.</strong> Use professional register.</div>`,
+        captainScript:`"What did the Bosun find in Hold 3? Speak."`,
+        studentExpected:`Sir, the Bosun reports two pallets of wet dunnage were sealed inside Hold 3 between courses of timber during loading. The dunnage absorbed rainwater yesterday before being stowed. The risk is twofold: moisture migration to the cargo, which could cause discolouration and quality claims; and elevated humidity inside the hold, which may trigger ventilation issues during the passage. I recommend opening the hold, removing the affected dunnage, and replacing it with dry material before sailing. Costs and time will be limited.`,
+        hint:"Use modal structures: 'could cause', 'may trigger'. Structure: identify → risk → recommendation."
+      },
+      { id:"2.4", type:"speaking", points:120,
+        title:"Dictate a Note of Protest entry",
+        content:`<div class="task-prompt">The Captain asks you to <strong>dictate a draft entry</strong> for the Note of Protest regarding the wet dunnage incident. Speak slowly and clearly; the Captain will pretend to write it down.</div>
+        <div class="document"><span class="label">▸ Facts to include</span>
+        Date: 14 March 2026<br>
+        Location: Santander port, Berth 4<br>
+        Vessel: MV Phonetica<br>
+        Incident: wet dunnage sealed in Hold 3 between timber courses<br>
+        Action requested: hold inspection upon arrival in Antwerp</div>`,
+        captainScript:`"Dictate the entry. I'll type it. Slowly."`,
+        studentExpected:`Date: 14 March 2026, comma. Location: Santander port, Berth 4, comma. Vessel: MV Phonetica, full stop. Incident: during loading operations, two pallets of wet dunnage were sealed inside Hold 3 between timber courses, comma, having been exposed to rain prior to stowage, full stop. The Master hereby gives Notice of Protest regarding any potential damage, deterioration, or claim arising from said circumstance, full stop. Hold inspection is requested upon arrival at the discharging port of Antwerp, full stop. Signed and stamped, MV Phonetica, comma, 14 March 2026.`,
+        hint:"Speak punctuation aloud: 'comma', 'full stop', 'new paragraph'. Formal register: 'hereby', 'said', 'thereof'."
+      },
+      { id:"2.5", type:"speaking", points:140,
+        title:"Read the dangerous goods declaration",
+        content:`<div class="document"><span class="label">▸ Dangerous Goods Note — Hold 2 supplementary cargo</span>
+        UN Number: 1170 · Proper Shipping Name: ETHANOL · IMO Class: 3 (Flammable Liquid) · Packing Group: II · Marine Pollutant: No · Quantity: 22 m.t. · Stowage: Category B</div>
+        <div class="task-prompt">Report the Dangerous Goods declaration to the Captain orally. Use the <strong>correct order of declaration</strong> as per IMDG Code.</div>`,
+        captainScript:`"Read me the DG note for Hold 2 supplementary cargo. Standard order."`,
+        studentExpected:`Sir, Hold 2 supplementary cargo: UN Number 1170, Proper Shipping Name Ethanol, IMO Class 3 Flammable Liquid, Packing Group two, not a marine pollutant, total quantity 22 metric tonnes, stowage Category B.`,
+        hint:"Strict IMDG order: UN → PSN → Class → PG → MP → quantity → stowage."
+      }
+    ]
+  },
+
+  /* ============ STATION 3: EMERGENCY DRILL ============ */
+  {
+    id:3, title:"Emergency Drill", icon:"⚠️",
+    focus:"Crisis response · Explain emergency procedures orally under pressure",
+    timeLimit:1200,
+    context:`The bridge alarm sounds. <em>"Drill activation. This is a drill. This is a drill."</em> The Captain will throw scenarios at you. You have ~60 seconds per response. Speak clearly, prioritise safety, and use proper SMCP urgency vocabulary.`,
+    tasks:[
+      { id:"3.1", type:"urgent", points:140,
+        title:"Fire in Hold 2",
+        content:`<div class="task-prompt"><strong>ALARM:</strong> Smoke detector triggered in Hold 2 (urea + supplementary ethanol). The bridge officer of the watch reports temperature rising in the hold.</div>
+        <div class="document"><span class="label">▸ Your situation</span>
+        Vessel position: open sea, 80 NM from Santander<br>
+        Wind: SW force 5<br>
+        Crew on board: 22</div>
+        <div class="task-prompt">Outline orally the <strong>immediate response sequence</strong>. 60 seconds.</div>`,
+        captainScript:`(Snap, urgent) "Number One, smoke in Hold 2. Temperature rising. Talk me through it. Now."`,
+        studentExpected:`Sir, immediate actions: one, sound the general emergency alarm and muster crew at stations. Two, alert the Master and Chief Engineer. Three, close all ventilation to Hold 2 and confirm fire dampers shut. Four, prepare CO2 fixed fire-fighting system for activation, but do not release yet — verify the hold is sealed and no crew is inside. Five, alter course to bring the wind off the bow, reducing oxygen draft. Six, issue an Urgency message PAN PAN on VHF 16. Seven, prepare to make for the nearest port of refuge if the fire is not contained within fifteen minutes.`,
+        hint:"Sequence: alarm → muster → master → ventilation → suppression system → course alteration → distress → port of refuge."
+      },
+      { id:"3.2", type:"urgent", points:140,
+        title:"Man overboard",
+        content:`<div class="task-prompt"><strong>ALARM:</strong> A deckhand fell overboard on the port side, approximately 30 seconds ago. Sea state moderate, visibility good.</div>
+        <div class="task-prompt">Explain the <strong>Williamson turn</strong> procedure and the standard man-overboard response in under 60 seconds.</div>`,
+        captainScript:`(Sharp, urgent) "MOB port side! Williamson turn now. Talk it through."`,
+        studentExpected:`Three quick steps, sir. One: helm hard to port — same side as the casualty — to swing the stern away from them. Two: release a lifebuoy with smoke and light marker immediately at the position. Three: shout three blasts on the whistle and post a permanent lookout pointing at the casualty. Then execute Williamson: full rudder to port until heading is sixty degrees off original course, then full rudder to starboard until heading is reciprocal — minus twenty degrees — then steady up. Reduce to manoeuvring speed. Launch rescue boat when in position. Issue MAYDAY relay if the casualty is not recovered within five minutes.`,
+        hint:"Williamson: 60 degrees off course, then full opposite rudder, then reciprocal."
+      },
+      { id:"3.3", type:"urgent", points:140,
+        title:"Mayday transmission",
+        content:`<div class="task-prompt"><strong>SCENARIO:</strong> The vessel has struck a partly submerged container at full speed. Hull breached forward of the engine room. Vessel taking water. You are the OOW (Officer of the Watch) and must transmit the MAYDAY immediately.</div>
+        <div class="smcp">SMCP MAYDAY structure: "MAYDAY" (×3), "this is [vessel]" (×3), repeat callsign, position, nature of distress, assistance required, number of persons, any other information, "OVER".</div>`,
+        captainScript:`"Transmit the Mayday. Channel 16. Full procedure. Go."`,
+        studentExpected:`MAYDAY, MAYDAY, MAYDAY. This is MV Phonetica, MV Phonetica, MV Phonetica. Callsign EBJK 7. Position 43 degrees 28 minutes north, 003 degrees 51 minutes west. Vessel has struck submerged object, hull breached forward of engine room, vessel taking water. Require immediate assistance and helicopter evacuation. Twenty-two persons on board. Vessel listing fifteen degrees to starboard. Over.`,
+        hint:"Position, nature of distress, assistance required, POB (persons on board). End with 'Over'."
+      },
+      { id:"3.4", type:"urgent", points:140,
+        title:"Abandon ship address",
+        content:`<div class="task-prompt"><strong>SCENARIO:</strong> The Master has ordered to abandon ship. You must make the public address to the crew over the loudhailer system. Be clear, calm, and direct.</div>
+        <div class="task-prompt">Deliver the <strong>abandon ship announcement</strong>. Include: the order, muster station, type of lifecraft, what to bring, what NOT to bring.</div>`,
+        captainScript:`(Listen, then assess delivery — calm, clear, no rushing) "Make the address. The crew is listening."`,
+        studentExpected:`Attention all crew. Attention all crew. This is the Officer of the Watch. The Master has ordered to abandon ship. Repeat: the Master has ordered to abandon ship. Proceed to your muster stations on the boat deck immediately. Bring lifejackets, immersion suits, and any prescribed medication. Do not bring personal belongings. Do not return to your cabins. Lifeboats one and two will be launched. Maintain calm. Move quickly but do not run. Officers, account for your watch personnel. This is not a drill.`,
+        hint:"Calm tone, short sentences, repetition of critical phrases ('abandon ship', 'not a drill')."
+      },
+      { id:"3.5", type:"urgent", points:160,
+        title:"Cargo shift / list correction",
+        content:`<div class="task-prompt"><strong>SCENARIO:</strong> The vessel has developed a 12-degree list to port due to cargo shift in Hold 1 during heavy weather. Explain the response and corrective sequence.</div>`,
+        captainScript:`"Number One, list of twelve degrees port. Cargo shift in Hold 1. What's the plan?"`,
+        studentExpected:`Sir, priorities: one, reduce speed and alter course to bring the seas on the lee bow, minimising further rolling. Two, sound all tanks and double-check the load condition. Three, transfer ballast — counter-flood starboard double bottom tanks gradually, monitoring stability margins. Do not exceed the maximum bending moment. Four, inspect Hold 1 with portable lighting when safe, assess what has shifted, and consider re-securing or re-stowing once weather moderates. Five, log the event and prepare to issue a Note of Protest. Six, monitor structural alarms continuously.`,
+        hint:"Counter-ballasting is the first technical response. Mention stability margins and bending moment."
+      }
+    ]
+  },
+
+  /* ============ STATION 4: LETTER DESK ============ */
+  {
+    id:4, title:"Letter Desk", icon:"✉️",
+    focus:"Complaint and application letters · Analyse, reformulate, dictate improvements",
+    timeLimit:1200,
+    context:`The shipping agent's office desk. Three letters await review. <em>"Some of these need to go out today. Some are coming in and need answering."</em> The Captain will discuss each with you and you'll dictate improvements aloud.`,
+    tasks:[
+      { id:"4.1", type:"speaking", points:140,
+        title:"Diagnose a poorly drafted complaint letter",
+        content:`<div class="document"><span class="label">▸ Draft letter from Chief Mate to charterers (DRAFT — UNSENT)</span>
+        Dear Sirs,<br><br>
+        I am very angry because the cargo was very bad and now we have big problems. The dock workers did not load it right and now the ship is in a bad state. You must pay for everything and also for our time. This is not the first time and we are tired of it.<br><br>
+        Please answer fast.<br><br>
+        Yours sincerely, Chief Mate</div>
+        <div class="task-prompt"><strong>Identify orally</strong> what is wrong with this letter. Discuss register, structure, vagueness, tone, and missing elements with the Captain.</div>`,
+        captainScript:`"The Chief Mate wants this letter to go out today. Tell me what you think. Don't hold back."`,
+        studentExpected:`Sir, there are several serious problems. First, register: phrases like 'I am very angry' and 'tired of it' are unprofessional. Commercial complaints require neutral, factual language. Second, structure: there's no reference number, no date of the incident, no concrete description of damages. Third, vagueness: 'big problems', 'bad state', 'everything' — none of these establish liability. Fourth, the demand 'you must pay' is too direct; English business convention prefers 'we hereby claim' or 'we request compensation'. Fifth, no quantified amount, no supporting documentation referenced. Finally, the closing is too informal. I'd recommend a full rewrite before sending.`,
+        hint:"Register, structure, specificity, evidence, tone. Five clear weaknesses."
+      },
+      { id:"4.2", type:"speaking", points:160,
+        title:"Dictate an improved opening paragraph",
+        content:`<div class="task-prompt">Dictate orally an improved <strong>opening paragraph</strong> for the complaint letter to the charterers. Include: reference to a date and incident, formal tone, statement of purpose.</div>
+        <div class="document"><span class="label">▸ Facts</span>
+        Date of incident: 12 March 2026<br>
+        Loading port: Bilbao<br>
+        Vessel: MV Phonetica<br>
+        Charter party reference: CP/2026/4471<br>
+        Issue: 184 bags of urea damaged due to negligent stevedoring</div>`,
+        captainScript:`"Dictate the new opening. I'll type."`,
+        studentExpected:`Dear Sirs, comma, new paragraph. We refer to the loading operations carried out aboard MV Phonetica at the port of Bilbao on 12 March 2026, under Charter Party reference CP slash 2026 slash 4471, comma, during which significant damage to cargo was sustained owing to deficient stevedoring practices, full stop. The purpose of this letter is to formally bring this matter to your attention and to claim compensation for the resulting losses, full stop.`,
+        hint:"Open with 'We refer to…'. Date format spelled out. Use 'sustained', 'owing to', 'formally bring to your attention'."
+      },
+      { id:"4.3", type:"speaking", points:140,
+        title:"Reply to a complaint received",
+        content:`<div class="document"><span class="label">▸ Incoming complaint from receivers (Rotterdam)</span>
+        "MV Phonetica delivered steel coils visibly contaminated with seawater. We refuse to accept the cargo in its current condition and hold you fully liable for damages estimated at €87,000."</div>
+        <div class="task-prompt">Outline orally the <strong>structure and key arguments</strong> of a reply that does not concede liability immediately but acknowledges the concern.</div>`,
+        captainScript:`"How do we reply to this? Walk me through your strategy. Three minutes."`,
+        studentExpected:`Sir, three principles. First, acknowledge receipt promptly without admitting liability — a phrase such as 'we acknowledge your communication of [date] and have taken note of your concerns' establishes good faith. Second, request supporting evidence: surveyor's report, photographs, joint survey, customs documentation. Third, defer substantive response until evidence is reviewed. The reply should reserve our rights under the relevant bill of lading and Hague-Visby Rules, mention that any contamination may have occurred at the receivers' terminal, and propose a joint survey before further discussion. Polite, firm, no admission.`,
+        hint:"Acknowledge — request evidence — defer — reserve rights — propose joint survey."
+      },
+      { id:"4.4", type:"speaking", points:140,
+        title:"Application letter for a new posting",
+        content:`<div class="task-prompt">You are applying for the position of <strong>Second Officer</strong> aboard a tanker. The vacancy requires fluency in English, dangerous goods endorsements, and three years on dry cargo vessels. You meet all criteria. Outline orally the <strong>three paragraphs</strong> of your application letter.</div>`,
+        captainScript:`"Draft your application out loud. Three paragraphs. Don't read me a CV — sell yourself."`,
+        studentExpected:`Sir, paragraph one: state the purpose — applying for the Second Officer position, where I saw it advertised, and that I have read the requirements carefully. Paragraph two: match my profile to the requirements specifically — three and a half years on dry cargo vessels including bulk carriers, current STCW dangerous goods endorsement IMDG and IGF, Cambridge Certificate of Advanced English, and prior watchkeeping experience in northern European waters. Paragraph three: motivation and availability — express interest in transitioning to tanker operations, mention I am available from a defined date, and request an interview. Close formally with 'I look forward to hearing from you' and 'Yours faithfully' since I would address it to 'Dear Sir or Madam'.`,
+        hint:"Structure: purpose → fit → motivation. 'Yours faithfully' with unknown recipient; 'Yours sincerely' with named recipient."
+      },
+      { id:"4.5", type:"speaking", points:120,
+        title:"Email register — a quick port agent message",
+        content:`<div class="task-prompt">Dictate a <strong>brief email</strong> to the Hamburg port agent requesting fresh water and provisions for arrival on 18 March. The email should be polite, short, and complete.</div>`,
+        captainScript:`"Quick email to Hamburg agent. Fresh water, provisions, 18 March. Dictate."`,
+        studentExpected:`Subject: MV Phonetica — Provisions and fresh water request — ETA 18 March. New paragraph. Dear Sir or Madam, comma, new paragraph. We are pleased to inform you that MV Phonetica is scheduled to arrive at Hamburg on 18 March 2026 at approximately 0600 local time, full stop. We kindly request the supply of fresh water — quantity 80 metric tonnes — and provisions as per the attached list, full stop. Please confirm availability and quoted prices at your earliest convenience, full stop. New paragraph. Kind regards, comma, Master, MV Phonetica.`,
+        hint:"Subject line must include vessel name, purpose, ETA. Body: short, specific, polite request."
+      }
+    ]
+  },
+
+  /* ============ STATION 5: VOYAGE BRIEFING ============ */
+  {
+    id:5, title:"Voyage Briefing", icon:"🗺",
+    focus:"Describe routes, weather, hazards · Brief the bridge team orally",
+    timeLimit:1200,
+    context:`The chart table. The next leg of the voyage is from Hamburg to Antwerp. <em>"Officers' briefing at 1600. Be ready."</em> You'll describe routes, weather, hazards and ETA to a small audience (the Captain plays the bridge officers).`,
+    tasks:[
+      { id:"5.1", type:"speaking", points:140,
+        title:"Describe the planned route",
+        content:`<div class="document"><span class="label">▸ Voyage Plan</span>
+        Departure: Hamburg, 0600 LT, 18 March<br>
+        Route: down River Elbe → German Bight → Texel TSS (Traffic Separation Scheme) → North Hinder Junction → Westerschelde → Antwerp<br>
+        Distance: approximately 290 nautical miles<br>
+        Average speed: 11 knots<br>
+        ETA Antwerp: 0500 LT, 20 March</div>
+        <div class="task-prompt">Brief the officers orally on the <strong>route, distance, speed, and ETA</strong>. Mention the key navigational landmarks in order.</div>`,
+        captainScript:`"Officers, gather round. Number One has the chart. Go ahead."`,
+        studentExpected:`Gentlemen, our next leg takes us from Hamburg to Antwerp, approximately 290 nautical miles. Departure 0600 local time on 18 March from Hamburg. We proceed down the River Elbe, exit into the German Bight, then transit the Texel Traffic Separation Scheme. From there, we pass the North Hinder Junction, enter the Westerschelde, and proceed upriver to Antwerp. Planned average speed eleven knots, ETA Antwerp 0500 local time on 20 March. Pilot boarding at Vlissingen for the Westerschelde transit.`,
+        hint:"Start with overview (distance, duration), then waypoints in order, end with ETA and pilot points."
+      },
+      { id:"5.2", type:"speaking", points:140,
+        title:"Brief weather and sea state",
+        content:`<div class="document"><span class="label">▸ Weather forecast (maritime radio format)</span>
+        German Bight, Texel: SW veering NW 5 to 7, occasionally gale 8 later. Rain at times. Visibility moderate or good, occasionally poor.<br>
+        Thames, Dover: NW 4 to 6. Showers. Visibility good.</div>
+        <div class="task-prompt">Brief the bridge orally on the <strong>expected weather and sea state</strong> for the passage. Translate the cryptic shipping forecast into clear briefing language.</div>`,
+        captainScript:`"Weather, please. Plain language. What should we expect?"`,
+        studentExpected:`Sir, the German Bight and Texel sectors expect south-westerly winds, force 5 to 7, veering north-west later in the period, with occasional gale 8. Rain at intervals. Visibility moderate to good, with occasional poor patches. Closer to the Belgian coast — Thames and Dover sectors — winds drop to north-west 4 to 6 with showers and good visibility. In practical terms: expect rough seas during the first night, deteriorating to potentially severe conditions before improving as we approach Vlissingen. Recommend securing for sea, briefing the cooks on heavy weather, and warning the engine room.`,
+        hint:"'Veering' = clockwise change, 'backing' = anticlockwise. Translate Beaufort numbers and visibility codes."
+      },
+      { id:"5.3", type:"speaking", points:160,
+        title:"Identify navigational hazards",
+        content:`<div class="document"><span class="label">▸ Navigational Warnings</span>
+        Notice to Mariners 14/26: WIND FARM CONSTRUCTION area 53°45'N 006°50'E — exclusion zone 500m.<br>
+        Notice to Mariners 18/26: WRECK reported at 52°10'N 003°20'E — depth uncertain, listed as foul ground.<br>
+        Notice to Mariners 22/26: SUBMARINE EXERCISES off Texel TSS, marked by patrol vessels with red flag.</div>
+        <div class="task-prompt">Brief the officers on the <strong>three hazards</strong> along our route. Specify location relative to the planned track and what action is required.</div>`,
+        captainScript:`"Hazards on the route. Three of them. Brief me."`,
+        studentExpected:`Sir, three hazards to note. One: a wind farm construction area at position 53 degrees 45 minutes north, 006 degrees 50 minutes east — approximately 35 nautical miles south of our planned track through the German Bight, with a 500-metre exclusion zone. No deviation required, but maintain visual lookout. Two: a wreck reported at 52 degrees 10 minutes north, 003 degrees 20 minutes east, listed as foul ground with uncertain depth — this is roughly on our line. I recommend altering course three miles to the east to clear it with safe margin. Three: submarine exercises off the Texel TSS, marked by patrol vessels with red flag — sound signals and lookout required while transiting; if we see a red flag patrol vessel, slow and maintain a wide berth.`,
+        hint:"For each hazard: location → distance to our track → action required."
+      },
+      { id:"5.4", type:"speaking", points:140,
+        title:"Pilot embarkation briefing",
+        content:`<div class="task-prompt">You'll embark a pilot at Vlissingen. Brief the bridge on the <strong>standard pilot reception procedures</strong>: ladder, lighting, speed, communication, handover.</div>`,
+        captainScript:`"Pilot at Vlissingen. Briefing for the bridge — pilot reception."`,
+        studentExpected:`Sir, pilot embarkation procedure. We reduce to manoeuvring speed, approximately six knots, on the lee side of the vessel to provide a flat surface. We rig the pilot ladder one metre above water on the port side, secured to ship's side with retrieval lines and properly lit at night. Two crew members station at the embarkation point, one with handheld VHF in contact with the bridge. As the pilot boards, we make a courtesy greeting and immediately initiate the master-pilot exchange: chart inspection, passage plan agreement, no-go areas, communication protocols, current cargo and stability condition, and any vessel peculiarities. Pilot card and bridge equipment check follow. Pilot has the conn only once formally accepted by the Master.`,
+        hint:"Sequence: speed reduction → ladder rigging → reception → master-pilot exchange → conn transfer."
+      },
+      { id:"5.5", type:"speaking", points:140,
+        title:"Risk assessment summary",
+        content:`<div class="task-prompt">Close the briefing with a <strong>concise risk assessment summary</strong>: top three risks for this passage and your proposed mitigations. Two minutes maximum.</div>`,
+        captainScript:`"Wrap it up. Top three risks, top three mitigations. Two minutes."`,
+        studentExpected:`Sir, three top risks. One: heavy weather in the German Bight, gale force 8 possible. Mitigation: secure all cargo, reduce speed proactively when seas exceed force 7, consider altering course if conditions worsen unexpectedly. Two: traffic density in the Westerschelde — among the busiest waterways in Europe. Mitigation: pilot on board, double watch, continuous AIS monitoring, no radar shadow zones. Three: wreck reported on or near our track. Mitigation: course alteration three miles east, increased lookout, soundings posted continuously. With these mitigations applied, the passage is assessed as moderate risk, manageable. End of briefing.`,
+        hint:"Closing structure: identify → mitigate → overall risk level → finish formally."
+      }
+    ]
+  },
+
+  /* ============ STATION 6: CAPTAIN'S DEBRIEF ============ */
+  {
+    id:6, title:"Captain's Debrief", icon:"🏆",
+    focus:"Integrated final exchange · Reflective discussion and written debrief preparation",
+    timeLimit:900,
+    context:`The Captain's day cabin. <em>"Sit down, Number One. Let's go through the watch."</em> A final integrated exchange combining everything from the previous five stations. Reflective, conversational, professional.`,
+    tasks:[
+      { id:"6.1", type:"speaking", points:120,
+        title:"Summarise the watch",
+        content:`<div class="task-prompt"><strong>Summarise the watch orally</strong>: events, communications, cargo, incidents, decisions taken. Two to three minutes. The Captain will interrupt with questions.</div>`,
+        captainScript:`"Number One, the watch is over. Give me a complete summary. Don't miss anything important. I'll interrupt if I need to."`,
+        studentExpected:`Sir, the watch began with the approach to Santander and routine bridge radio with port control — position reports, berthing instructions, pilot reception arranged. Two incidents in cargo operations: the urea documentation discrepancy between Mate's Receipt and Bill of Lading, which I flagged for clausing; and the wet dunnage incident in Hold 3, for which I prepared a Note of Protest. The watch included one emergency drill — fire in Hold 2 simulation, response sequence covered. Letter desk work covered a complaint reply to Rotterdam receivers, application letter, and routine agent emails. Voyage briefing prepared for Hamburg–Antwerp leg, with three identified hazards and weather mitigation. No actual emergencies. All standard.`,
+        hint:"Chronological or thematic; mention specific incidents with dates/numbers when possible."
+      },
+      { id:"6.2", type:"speaking", points:140,
+        title:"Justify a difficult decision",
+        content:`<div class="task-prompt">The Captain asks you to <strong>justify the decision</strong> to clause the Bill of Lading rather than sign it clean despite agent pressure.</div>`,
+        captainScript:`"The agent was unhappy. Why did you clause the B/L?"`,
+        studentExpected:`Sir, the Mate's Receipt was specifically marked 'as received' because some of the bags showed signs of damage on inspection. To sign a clean Bill of Lading in those circumstances would expose the carrier — that is, us — to claims under the Hague-Visby Rules. The agent's pressure to sign clean was understandable from his commercial perspective, but legally indefensible. If the receivers later claim damage, a clean B/L makes us strictly liable; a claused B/L preserves our defence. The few hours of delay are vastly preferable to the potential claim. My duty is to protect the vessel's legal position.`,
+        hint:"Frame as professional duty, legal protection, and risk management. Acknowledge the agent's pressure without conceding to it."
+      },
+      { id:"6.3", type:"speaking", points:140,
+        title:"Reflect on language strengths and weaknesses",
+        content:`<div class="task-prompt"><strong>Reflect orally</strong> on your own language performance during the watch: where were you fluent, where did you struggle, what will you work on?</div>`,
+        captainScript:`"Be honest with me. How was your English today? Strengths, weaknesses."`,
+        studentExpected:`Sir, my strengths were the technical vocabulary — cargo, navigation, SMCP phraseology came naturally because I have rehearsed them. The position reports and phonetic alphabet were fluent. My weaknesses: business correspondence still feels less natural — the formal register of complaint letters, the legalistic vocabulary, the indirect tone. Under time pressure during the emergencies, I tended to drop articles and connectors. Pronunciation of polysyllabic terms — 'reciprocal', 'precipitate' — needs work. Going forward, I'll focus on reading more commercial correspondence and practising the rhythm of formal English under simulated pressure. Self-recording would help.`,
+        hint:"Honest, specific, constructive. Strengths first, then weaknesses, then concrete action plan."
+      },
+      { id:"6.4", type:"speaking", points:120,
+        title:"Future learning plan",
+        content:`<div class="task-prompt">Propose your <strong>future Maritime English learning plan</strong> for the next term. Be specific: what materials, what skills, what evaluation metrics.</div>`,
+        captainScript:`"What's the plan to keep improving? Be specific."`,
+        studentExpected:`Sir, three areas. One: vocabulary expansion in business correspondence — daily review of fifteen items from Lloyd's List articles or maritime journals, with active production in writing. Two: SMCP fluency under pressure — twice weekly recorded radio simulation exercises, self-evaluated against the IMO Model Course. Three: pronunciation — focused practice on multisyllabic Latinate vocabulary common in maritime law and engineering, with peer feedback. Evaluation: a monthly fifteen-minute oral simulation with the instructor, plus periodic self-recorded role-plays reviewed against an explicit rubric. Goal for the term: confident handling of complaint letter exchanges in real time and zero hesitation in SMCP urgency procedures.`,
+        hint:"Specific materials → specific skills → specific evaluation → specific goals."
+      }
+    ]
+  }
+];
+
+/* ====================== STATE ====================== */
+const state = {
+  currentStation: 0,
+  currentTaskIdx: 0,
+  score: 0,
+  knots: 0,
+  fuel: 120 * 60, // 120 min in seconds
+  reputation: 0,
+  bestReputation: 0,
+  stationStartTime: 0,
+  totalTime: 0,
+  speakStartTime: 0,
+  speakDuration: 0,
+  rubricScores: {grammar:null, vocabulary:null, pronunciation:null, fluency:null},
+  history: [],
+  achievements: [],
+  events: [],
+  panelHidden: false,
+  paused: false,
+  dead: false,
+  victory: false,
+  postAnswers:{},
+  consent: false,
+  questionnaireSkipped: false,
+  hintsGiven: 0,
+};
+
+let stationTimer = null, totalTimerInt = null, eventTimer = null, speakTimer = null;
+let stationTimeLeft = 0;
+
+/* ====================== INIT ====================== */
+function startVoyage(){
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('teacherPanel').classList.remove('hidden');
+  document.getElementById('stationMap').style.display = 'block';
+  buildStationMap();
+  buildStations();
+  enterStation(0);
+  totalTimerInt = setInterval(()=>{
+    if(state.paused) return;
+    state.totalTime++;
+    state.fuel = Math.max(0, state.fuel - 1);
+    updateFuelDisplay();
+    if(state.fuel <= 0) outOfFuel();
+  }, 1000);
+}
+
+function updateFuelDisplay(){
+  const m = Math.floor(state.fuel/60);
+  const s = state.fuel%60;
+  const el = document.getElementById('hudFuel');
+  el.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  const fs = document.getElementById('fuelStat');
+  fs.classList.toggle('low', state.fuel<=20*60 && state.fuel>10*60);
+  fs.classList.toggle('critical', state.fuel<=10*60);
+}
+
+function outOfFuel(){
+  state.dead = true;
+  if(totalTimerInt) clearInterval(totalTimerInt);
+  if(stationTimer) clearInterval(stationTimer);
+  if(eventTimer) clearTimeout(eventTimer);
+  showModal("⛽ FUEL EXHAUSTED", `<p>The voyage cannot continue. The vessel has run out of operational time.</p><div class="stats-box"><div>Score: <b>${state.score}</b></div><div>Stations completed: <b>${state.currentStation}/6</b></div></div>`, ()=>{
+    goToPostQ();
+  });
+}
+
+function buildStationMap(){
+  const grid = document.getElementById('stationsGrid');
+  STATIONS.forEach((st, idx)=>{
+    const pill = document.createElement('div');
+    pill.className = 'station-pill';
+    pill.id = 'mapPill-'+st.id;
+    pill.innerHTML = `<span class="num">${String(st.id).padStart(2,'0')}</span><span class="ic">${st.icon}</span><span class="nm">${st.title}</span>`;
+    grid.appendChild(pill);
+  });
+}
+
+function buildStations(){
+  const cont = document.getElementById('stationsContainer');
+  STATIONS.forEach(st=>{
+    const sec = document.createElement('section');
+    sec.className = 'station';
+    sec.id = 'station-'+st.id;
+    let tasks = '';
+    st.tasks.forEach((t,i)=>{
+      tasks += renderTask(st.id, i, t);
+    });
+    sec.innerHTML = `
+      <div class="station-header">
+        <div class="station-icon">${st.icon}</div>
+        <div class="station-titles">
+          <div class="station-num">STATION ${String(st.id).padStart(2,'0')} · ${st.tasks.length} TASKS</div>
+          <div class="station-title">${st.title}</div>
+        </div>
+        <div class="station-timer" id="stTimer-${st.id}">20:00</div>
+      </div>
+      <p class="station-focus">FOCUS · ${st.focus}</p>
+      <div class="station-context">${st.context}</div>
+      <div id="tasks-${st.id}">${tasks}</div>
+      <div style="text-align:center;margin-top:18px">
+        <button class="btn-launch" style="font-size:1rem;padding:12px 28px" id="next-${st.id}" onclick="completeStation(${st.id})" disabled>⚓ COMPLETE STATION & ADVANCE</button>
+      </div>
+    `;
+    cont.appendChild(sec);
+  });
+}
+
+function renderTask(stId, idx, t){
+  const id = `task-${stId}-${idx}`;
+  return `
+    <div class="task-card" id="${id}" data-station="${stId}" data-idx="${idx}">
+      <div class="task-meta">
+        <span class="task-num">▸ CIPHER ${t.id}</span>
+        <span class="task-type ${t.type}">${t.type==='speaking'?'🎙 SPEAKING':t.type==='urgent'?'⚠ URGENT SPOKEN':t.type.toUpperCase()}</span>
+        <span class="task-points">${t.points} KNOTS</span>
+      </div>
+      <div class="task-title">${t.title}</div>
+      <div class="task-content">${t.content}</div>
+      <div class="task-action">
+        <button class="btn-speak" id="${id}-speak" onclick="toggleSpeaking('${id}')">🎙 START SPEAKING</button>
+        <span class="speak-timer" id="${id}-timer">00:00</span>
+        <span style="color:#9bb8d9;font-size:.92rem;font-style:italic;flex:1">Speak to the Captain. They will validate from the bottom panel.</span>
+      </div>
+    </div>
+  `;
+}
+
+function enterStation(idx){
+  if(idx >= STATIONS.length){ victory(); return; }
+  state.currentStation = idx;
+  state.currentTaskIdx = 0;
+  document.querySelectorAll('.station').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.station-pill').forEach(p=>p.classList.remove('active'));
+  const st = STATIONS[idx];
+  document.getElementById('station-'+st.id).classList.add('active');
+  document.getElementById('mapPill-'+st.id).classList.add('active');
+  document.getElementById('hudStation').textContent = idx+1;
+  state.stationStartTime = state.totalTime;
+  startStationTimer(st);
+  highlightCurrentTask();
+  scheduleNextEvent();
+  document.getElementById('station-'+st.id).scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function startStationTimer(st){
+  stationTimeLeft = st.timeLimit;
+  const el = document.getElementById('stTimer-'+st.id);
+  updateStTimer(el);
+  if(stationTimer) clearInterval(stationTimer);
+  stationTimer = setInterval(()=>{
+    if(state.paused) return;
+    stationTimeLeft--;
+    updateStTimer(el);
+    if(stationTimeLeft <= 120) document.body.classList.add('critical-mode');
+    if(stationTimeLeft <= 0){ clearInterval(stationTimer); /* don't kill — just warn */ }
+  }, 1000);
+}
+function updateStTimer(el){
+  const m = Math.floor(Math.max(0,stationTimeLeft)/60);
+  const s = Math.max(0,stationTimeLeft)%60;
+  el.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  el.classList.toggle('warn', stationTimeLeft<=300 && stationTimeLeft>120);
+  el.classList.toggle('danger', stationTimeLeft<=120);
+}
+
+function highlightCurrentTask(){
+  const st = STATIONS[state.currentStation];
+  document.querySelectorAll('.task-card').forEach(c=>c.classList.remove('current'));
+  if(state.currentTaskIdx < st.tasks.length){
+    const card = document.getElementById(`task-${st.id}-${state.currentTaskIdx}`);
+    if(card){
+      card.classList.add('current');
+      card.scrollIntoView({behavior:'smooth',block:'center'});
+      const t = st.tasks[state.currentTaskIdx];
+      document.getElementById('panelTarget').textContent = `${st.title} · Task ${t.id}`;
+      document.getElementById('panelMode').textContent = t.type==='urgent'?'URGENT':'STANDARD';
+      document.getElementById('captainPromptText').innerHTML = t.captainScript || '<em>No script for this task</em>';
+      resetRubric();
+    }
+  }
+}
+
+/* ====================== SPEAKING ====================== */
+function toggleSpeaking(taskId){
+  const btn = document.getElementById(taskId+'-speak');
+  if(btn.classList.contains('recording')){
+    // Stop
+    btn.classList.remove('recording');
+    btn.textContent = '🎙 START SPEAKING';
+    if(speakTimer) clearInterval(speakTimer);
+    state.speakDuration = state.totalTime - state.speakStartTime;
+  } else {
+    // Start
+    btn.classList.add('recording');
+    btn.textContent = '⏹ STOP SPEAKING';
+    state.speakStartTime = state.totalTime;
+    const timerEl = document.getElementById(taskId+'-timer');
+    let sec = 0;
+    timerEl.textContent = '00:00';
+    if(speakTimer) clearInterval(speakTimer);
+    speakTimer = setInterval(()=>{
+      sec++;
+      const m = Math.floor(sec/60), s = sec%60;
+      timerEl.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    }, 1000);
+  }
+}
+
+/* ====================== RUBRIC ====================== */
+document.addEventListener('click', e=>{
+  if(e.target.classList.contains('rubric-star')){
+    const v = parseInt(e.target.dataset.v);
+    const wrapper = e.target.parentElement;
+    const dim = wrapper.dataset.rubric;
+    state.rubricScores[dim] = v;
+    wrapper.querySelectorAll('.rubric-star').forEach(s=>{
+      s.classList.toggle('active', parseInt(s.dataset.v) <= v);
+    });
+  }
+});
+function resetRubric(){
+  state.rubricScores = {grammar:null, vocabulary:null, pronunciation:null, fluency:null};
+  document.querySelectorAll('.rubric-star').forEach(s=>s.classList.remove('active'));
+}
+
+/* ====================== VALIDATION ====================== */
+function validateTask(verdict){
+  const st = STATIONS[state.currentStation];
+  if(state.currentTaskIdx >= st.tasks.length){
+    toast('gift','⚓ ALL TASKS COMPLETE','Press COMPLETE STATION & ADVANCE.');
+    return;
+  }
+  const t = st.tasks[state.currentTaskIdx];
+  const card = document.getElementById(`task-${st.id}-${state.currentTaskIdx}`);
+  let pointsAwarded = 0;
+  let knotsAwarded = 0;
+
+  // Compute average rubric (if any star clicked)
+  const rubricValues = Object.values(state.rubricScores).filter(v=>v!=null);
+  const avgRubric = rubricValues.length ? rubricValues.reduce((s,v)=>s+v,0)/rubricValues.length : null;
+
+  if(verdict === 'approve'){
+    let factor = 1;
+    if(avgRubric !== null){
+      // Rubric 1=20%, 2=40%, 3=60%, 4=80%, 5=100%
+      factor = avgRubric / 5;
+    }
+    pointsAwarded = Math.round(t.points * factor);
+    knotsAwarded = pointsAwarded;
+    state.reputation++;
+    if(state.reputation > state.bestReputation) state.bestReputation = state.reputation;
+    card.classList.add('done');
+    flashScore(pointsAwarded, 'teal');
+    if(state.reputation === 5) awardAchievement('🌟 Reliable Officer', '5 consecutive approvals');
+    else if(state.reputation === 10) awardAchievement('⚓ Master Mariner', '10 consecutive approvals');
+    else if(state.reputation === 15) awardAchievement('👑 Captain\'s Choice', '15 consecutive approvals');
+    // Fuel reward for fast & high-quality
+    if(avgRubric !== null && avgRubric >= 4){
+      state.fuel = Math.min(120*60, state.fuel + 60);
+      toast('gift','⛽ FUEL BONUS','+1 minute fuel for excellent performance');
+    }
+    advanceTask(verdict, t, pointsAwarded);
+  } else if(verdict === 'repeat'){
+    state.reputation = 0;
+    toast('alarm','↻ REPEAT','Captain asks you to repeat the task. Try again — partial credit only.');
+    // Reduce points available by 50% for next attempt (handled by re-validation)
+    t.points = Math.max(40, Math.round(t.points * 0.5));
+    document.querySelector(`#task-${st.id}-${state.currentTaskIdx} .task-points`).textContent = t.points + ' KNOTS';
+    return; // Do not advance
+  } else if(verdict === 'escalate'){
+    state.reputation = 0;
+    toast('alarm','⚠ ESCALATED','Captain escalates — minimal points, advance.');
+    pointsAwarded = Math.round(t.points * 0.15);
+    knotsAwarded = pointsAwarded;
+    card.classList.add('done');
+    flashScore(pointsAwarded, 'danger');
+    advanceTask(verdict, t, pointsAwarded);
+  } else if(verdict === 'skip'){
+    card.classList.add('done');
+    advanceTask(verdict, t, 0);
+  }
+
+  state.score += pointsAwarded;
+  state.knots += knotsAwarded;
+  document.getElementById('hudScore').textContent = state.score;
+  document.getElementById('hudKnots').textContent = state.knots;
+  document.getElementById('hudRep').textContent = state.reputation;
+
+  // History
+  state.history.push({
+    station: st.id, task: t.id, title: t.title, verdict,
+    pointsAwarded, rubricScores: {...state.rubricScores}, avgRubric,
+    speakDuration: state.speakDuration, totalTimeAt: state.totalTime,
+  });
+}
+
+function flashScore(delta, cls){
+  const sb = document.getElementById('scoreBox');
+  sb.classList.remove('bump'); void sb.offsetWidth; sb.classList.add('bump');
+  const pop = document.createElement('div');
+  pop.className = 'point-popup '+(cls||'');
+  pop.textContent = (delta>=0?'+':'')+delta;
+  const rect = sb.getBoundingClientRect();
+  pop.style.left = (rect.left + rect.width/2 - 20)+'px';
+  pop.style.top = (rect.bottom + 8)+'px';
+  document.body.appendChild(pop);
+  setTimeout(()=>pop.remove(), 1600);
+}
+
+function advanceTask(verdict, t, pts){
+  state.currentTaskIdx++;
+  const st = STATIONS[state.currentStation];
+  if(state.currentTaskIdx >= st.tasks.length){
+    document.getElementById('next-'+st.id).disabled = false;
+    document.getElementById('next-'+st.id).scrollIntoView({behavior:'smooth',block:'center'});
+    toast('gift','✓ STATION TASKS COMPLETE','Press COMPLETE STATION to advance.');
+  } else {
+    highlightCurrentTask();
+  }
+}
+
+function completeStation(stId){
+  if(stationTimer) clearInterval(stationTimer);
+  if(eventTimer) clearTimeout(eventTimer);
+  document.body.classList.remove('critical-mode');
+  const st = STATIONS.find(s=>s.id===stId);
+  document.getElementById('station-'+stId).classList.add('completed');
+  document.getElementById('mapPill-'+stId).classList.add('completed');
+  document.getElementById('mapPill-'+stId).classList.remove('active');
+
+  const timeUsed = st.timeLimit - stationTimeLeft;
+  let stationPts = 0;
+  state.history.filter(h=>h.station===stId).forEach(h=>stationPts+=h.pointsAwarded);
+
+  // Speed bonus
+  let speedHtml = '';
+  if(timeUsed < st.timeLimit * 0.7){
+    const bonus = Math.round(stationPts * 0.3);
+    state.score += bonus; state.knots += bonus;
+    document.getElementById('hudScore').textContent = state.score;
+    document.getElementById('hudKnots').textContent = state.knots;
+    flashScore(bonus, 'teal');
+    speedHtml = `<div class="bonus-box">⚡ SPEED BONUS! Completed in ${fmtTime(timeUsed)} → +${bonus} knots (30% bonus)</div>`;
+    awardAchievement('⚡ Full Steam Ahead', 'Station '+stId+' completed fast');
+  }
+  // Refuel
+  state.fuel = Math.min(120*60, state.fuel + 300);
+  updateFuelDisplay();
+
+  showModal(`⚓ STATION ${stId} SEALED — ${st.title}`, `
+    <p style="color:var(--brass-soft);font-style:italic">${st.focus}</p>
+    <div class="stats-box">
+      <div>Tasks completed: <b>${st.tasks.length}</b></div>
+      <div>Knots earned this station: <b>+${stationPts}</b></div>
+      <div>Time used: <b>${fmtTime(timeUsed)}</b> of ${fmtTime(st.timeLimit)}</div>
+      <div>Total score: <b>${state.score}</b></div>
+      <div>Reputation: <b>${state.reputation}</b></div>
+      <div>Fuel: <b>${fmtTime(state.fuel)}</b> (+5 min)</div>
+    </div>
+    ${speedHtml}
+    <p>Bridge handover complete. Next station awaits.</p>
+  `, ()=>{
+    enterStation(state.currentStation+1);
+  });
+}
+
+/* ====================== RANDOM EVENTS ====================== */
+const EVENTS = [
+  {type:'alarm', title:'🚨 MAYDAY RELAY', msg:'Another vessel is in distress on channel 16.',
+    captainAction:'Read aloud to the student: "Another vessel calling Mayday. Acknowledge the relay. Now."',
+    delta:{fuel:-60}},
+  {type:'weather', title:'🌊 SUDDEN SQUALL', msg:'Bridge officer reports rapid wind increase. Brief the watch in 30 seconds.',
+    captainAction:'Read aloud: "Wind has jumped from force 4 to force 7. Brief the watch. Quickly."',
+    delta:{fuel:-30}},
+  {type:'port', title:'📞 PORT AUTHORITY CALL', msg:'Inspector wants clarification on the cargo declaration.',
+    captainAction:'Play the inspector: read accusingly: "Master, we have discrepancies in your cargo declaration. Explain."',
+    delta:{}},
+  {type:'gift', title:'⛽ FAVOURABLE CURRENT', msg:'You\'re ahead of schedule. +2 minutes of fuel.',
+    captainAction:null, delta:{fuel:120, knots:50}},
+  {type:'alarm', title:'⚠ ENGINE ROOM ALERT', msg:'Chief Engineer needs verbal authorisation for repair.',
+    captainAction:'Read as Chief Engineer: "Number One, I need to take the main engine offline for 20 minutes for valve repair. Authorise or hold."',
+    delta:{}},
+  {type:'gift', title:'🏆 COMPANY COMMENDATION', msg:'Naviera notes excellent watch performance. +100 knots.',
+    captainAction:null, delta:{knots:100, points:100}},
+  {type:'weather', title:'🌫 FOG BANK AHEAD', msg:'Visibility dropping fast. Brief actions verbally.',
+    captainAction:'Read urgently: "Fog bank closing fast. What\'s your immediate procedure?"',
+    delta:{fuel:-30}},
+];
+function scheduleNextEvent(){
+  if(eventTimer) clearTimeout(eventTimer);
+  // 4-7 min
+  const delay = (240 + Math.random()*180) * 1000;
+  eventTimer = setTimeout(triggerRandomEvent, delay);
+}
+function triggerRandomEvent(){
+  if(state.dead || state.victory || state.paused) return;
+  const ev = EVENTS[Math.floor(Math.random()*EVENTS.length)];
+  state.events.push({...ev, atTime: state.totalTime, station: state.currentStation+1});
+  let msgHtml = ev.msg;
+  if(ev.captainAction){
+    msgHtml += `<span class="speak-now">🎙 <strong>Captain:</strong> ${ev.captainAction}</span>`;
+  }
+  if(ev.delta){
+    if(ev.delta.fuel){
+      state.fuel = Math.max(0, Math.min(120*60, state.fuel + ev.delta.fuel));
+      updateFuelDisplay();
+    }
+    if(ev.delta.knots){
+      state.knots += ev.delta.knots;
+      document.getElementById('hudKnots').textContent = state.knots;
+    }
+    if(ev.delta.points){
+      state.score += ev.delta.points;
+      document.getElementById('hudScore').textContent = state.score;
+      flashScore(ev.delta.points, 'teal');
+    }
+  }
+  toast(ev.type, ev.title, msgHtml);
+  scheduleNextEvent();
+}
+
+function toast(type, title, msg){
+  const t = document.createElement('div');
+  t.className = 'event-toast '+type;
+  t.innerHTML = `<span class="icon">${type==='alarm'?'🚨':type==='gift'?'🎁':type==='weather'?'🌊':type==='port'?'📞':'⚓'}</span><strong>${title}</strong><span class="msg">${msg}</span>`;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 6000);
+}
+
+/* ====================== CAPTAIN POWERS ====================== */
+function captainHint(){
+  const st = STATIONS[state.currentStation];
+  const t = st.tasks[state.currentTaskIdx];
+  if(!t) return;
+  state.hintsGiven++;
+  toast('gift', '💡 BOSUN\'S HINT', t.hint || 'No hint available for this task.');
+}
+function captainAnchor(){
+  state.paused = !state.paused;
+  toast('gift', state.paused?'⚓ ANCHOR DROPPED':'⚓ ANCHOR WEIGHED', state.paused?'Timers paused. Take your time.':'Timers resumed. Carry on.');
+}
+function captainAlmanac(){
+  const st = STATIONS[state.currentStation];
+  const ALMANAC = {
+    1: 'SMCP key: OVER (await reply), OUT (end), STAND BY (await call), READ BACK (verify), SAY AGAIN (repeat).',
+    2: 'Cargo terms: stevedore, dunnage, manifest, Bill of Lading, Mate\'s Receipt, claused B/L, clean on board.',
+    3: 'Emergency: MAYDAY (life-threatening), PAN PAN (urgency), SECURITÉ (safety). Williamson, Anderson, Scharnov turns.',
+    4: 'Letter register: "We refer to", "We hereby", "owing to", "We kindly request", "Yours faithfully/sincerely".',
+    5: 'Weather: veering vs backing; visibility: good/moderate/poor/very poor; Beaufort scale 0-12.',
+    6: 'Debrief: chronological vs thematic structure; reflective vocabulary: strengths, areas for improvement.',
+  };
+  toast('port', '📚 ALMANAC OPEN', ALMANAC[st.id] || 'No almanac entry.');
+}
+function captainTriggerEvent(){ triggerRandomEvent(); }
+
+function togglePanel(){
+  const p = document.getElementById('teacherPanel');
+  state.panelHidden = !state.panelHidden;
+  p.classList.toggle('hidden', state.panelHidden);
+  document.body.classList.toggle('no-panel', state.panelHidden);
+}
+
+/* ====================== ACHIEVEMENTS ====================== */
+function awardAchievement(title, sub){
+  if(state.achievements.find(a=>a.title===title)) return;
+  state.achievements.push({title, sub});
+  const a = document.createElement('div');
+  a.className = 'achievement';
+  a.innerHTML = `<span class="ic">🏆</span><span>${title}<span class="sub">${sub}</span></span>`;
+  document.body.appendChild(a);
+  setTimeout(()=>a.remove(), 4500);
+}
+
+/* ====================== MODAL ====================== */
+let modalCb = null;
+function showModal(title, body, cb){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = body;
+  document.getElementById('modal').classList.add('show');
+  modalCb = cb;
+}
+function closeModalNext(){
+  document.getElementById('modal').classList.remove('show');
+  if(modalCb){const c = modalCb; modalCb = null; c();}
+}
+
+/* ====================== VICTORY ====================== */
+function fmtTime(s){
+  const m = Math.floor(s/60), sec = s%60;
+  return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+function victory(){
+  state.victory = true;
+  if(totalTimerInt) clearInterval(totalTimerInt);
+  if(stationTimer) clearInterval(stationTimer);
+  if(eventTimer) clearTimeout(eventTimer);
+  goToPostQ();
+}
+
+function goToPostQ(){
+  document.querySelectorAll('.station').forEach(s=>s.classList.remove('active'));
+  document.getElementById('stationMap').style.display = 'none';
+  document.getElementById('teacherPanel').classList.add('hidden');
+  document.body.classList.add('no-panel');
+  renderQ('qU', LIKERT_U);
+  renderQ('qE', LIKERT_E);
+  renderQ('qO', LIKERT_O);
+  renderQ('qV', LIKERT_V);
+  document.getElementById('postQuestionnaire').classList.add('show');
+  document.getElementById('postQuestionnaire').scrollIntoView({behavior:'smooth'});
+}
+
+const LIKERT_U = [
+  {id:"U1", text:"The interface is clear and easy to understand."},
+  {id:"U2", text:"I could use the resource without needing additional instructions."},
+  {id:"U3", text:"The visual design is pleasant."},
+  {id:"U4", text:"The information on screen is well organised."},
+  {id:"U5", text:"The instructor's panel allowed smooth validation of my responses."},
+  {id:"U6", text:"The Captain's prompt for each task was clear."},
+];
+const LIKERT_E = [
+  {id:"E1", text:"The activity held my attention throughout."},
+  {id:"E2", text:"The maritime theme increased my engagement."},
+  {id:"E3", text:"The reward system (knots, fuel, reputation) motivated me to perform better."},
+  {id:"E4", text:"The random events added a useful sense of urgency."},
+  {id:"E5", text:"The timer pressure felt productive, not excessive."},
+  {id:"E6", text:"I would willingly use a similar resource again."},
+];
+const LIKERT_O = [
+  {id:"O1", text:"Speaking aloud to the instructor was central to the experience."},
+  {id:"O2", text:"The validation panel made my oral output feel authentic and assessed."},
+  {id:"O3", text:"The Captain's lines and prompts created realistic dialogue."},
+  {id:"O4", text:"I produced more spoken English than I would in a traditional class."},
+  {id:"O5", text:"The dynamic of two-way oral interaction improved my confidence."},
+  {id:"O6", text:"The technical maritime content was contextualised effectively for oral practice."},
+];
+const LIKERT_V = [
+  {id:"V1", text:"This resource has clear pedagogical value for Maritime English."},
+  {id:"V2", text:"It is more effective than a conventional textbook exercise."},
+  {id:"V3", text:"I would recommend this resource to other Maritime Engineering students."},
+  {id:"V4", text:"This is a good example of digital technology integrated into a one-to-one class."},
+  {id:"V5", text:"The resource is transferable to other ESP contexts."},
+];
+
+function renderQ(containerId, items){
+  const c = document.getElementById(containerId);
+  let html = '';
+  items.forEach(it=>{
+    const name = containerId+'_'+it.id;
+    html += `<div class="q-item">
+      <label class="q-label"><span class="num">${it.id}</span>${it.text}</label>
+      <div class="likert-scale">
+        <span class="lk-label">Disagree</span>
+        <div class="lk-options">`;
+    for(let v=1;v<=5;v++){
+      html += `<label><input type="radio" name="${name}" value="${v}"><span class="lk-opt">${v}</span></label>`;
+    }
+    html += `</div><span class="lk-label" style="text-align:right">Agree</span></div></div>`;
+  });
+  c.innerHTML = html;
+}
+
+function collectLikert(prefix, items){
+  const out = {};
+  items.forEach(it=>{
+    const sel = document.querySelector(`input[name="${prefix}_${it.id}"]:checked`);
+    out[it.id] = sel ? parseInt(sel.value) : null;
+  });
+  return out;
+}
+
+function submitPostQ(){
+  state.consent = document.getElementById('consent').checked;
+  state.postAnswers = {
+    timestamp: new Date().toISOString(),
+    likertU: collectLikert('qU', LIKERT_U),
+    likertE: collectLikert('qE', LIKERT_E),
+    likertO: collectLikert('qO', LIKERT_O),
+    likertV: collectLikert('qV', LIKERT_V),
+    open1: document.getElementById('qOpen1').value.trim(),
+    open2: document.getElementById('qOpen2').value.trim(),
+    open3: document.getElementById('qOpen3').value.trim(),
+    open4: document.getElementById('qOpen4').value.trim(),
+  };
+  document.getElementById('postQuestionnaire').classList.remove('show');
+  document.getElementById('postQuestionnaire').style.display = 'none';
+  renderFinal();
+}
+function skipPostQ(){
+  state.questionnaireSkipped = true;
+  document.getElementById('postQuestionnaire').classList.remove('show');
+  document.getElementById('postQuestionnaire').style.display = 'none';
+  renderFinal();
+}
+function renderFinal(){
+  document.getElementById('finalScreen').classList.add('show');
+  const total = STATIONS.reduce((s,st)=>s+st.tasks.reduce((ss,t)=>ss+t.points,0), 0);
+  const pct = Math.round((state.score/total)*100);
+  let grade = 'F · DECKHAND';
+  if(pct >= 110) grade = '⚓ FLEET ADMIRAL';
+  else if(pct >= 95) grade = '⭐ MASTER MARINER';
+  else if(pct >= 80) grade = 'A · CHIEF OFFICER';
+  else if(pct >= 65) grade = 'B · SECOND OFFICER';
+  else if(pct >= 50) grade = 'C · THIRD OFFICER';
+  else if(pct >= 35) grade = 'D · CADET';
+  document.getElementById('finalGrade').textContent = grade;
+  document.getElementById('finalStats').innerHTML = `
+    <div class="final-stat"><div class="lbl">SCORE</div><div class="val">${state.score}</div></div>
+    <div class="final-stat"><div class="lbl">OUT OF</div><div class="val">${total}</div></div>
+    <div class="final-stat"><div class="lbl">ACCURACY</div><div class="val">${pct}%</div></div>
+    <div class="final-stat"><div class="lbl">KNOTS</div><div class="val">${state.knots}</div></div>
+    <div class="final-stat"><div class="lbl">BEST REPUTATION</div><div class="val">${state.bestReputation}</div></div>
+    <div class="final-stat"><div class="lbl">TIME</div><div class="val">${fmtTime(state.totalTime)}</div></div>
+    <div class="final-stat"><div class="lbl">EVENTS</div><div class="val">${state.events.length}</div></div>
+    <div class="final-stat"><div class="lbl">HINTS</div><div class="val">${state.hintsGiven}</div></div>`;
+  document.getElementById('finalAchievements').innerHTML =
+    state.achievements.map(a=>`<span class="ach-badge">🏆 ${a.title}</span>`).join('') || '<span class="ach-badge">No achievements</span>';
+  document.getElementById('finalScreen').scrollIntoView({behavior:'smooth'});
+}
+
+/* ====================== EXPORT ====================== */
+function exportReport(){
+  let txt = '════════════════════════════════════════════════════════\n';
+  txt += '   BRIDGE COMMAND — WATCH REPORT\n';
+  txt += '   Maritime English oral simulation\n';
+  txt += '════════════════════════════════════════════════════════\n\n';
+  txt += `Status: ${state.victory?'WATCH COMPLETED ✓':state.dead?'FUEL EXHAUSTED ✗':'INCOMPLETE'}\n`;
+  txt += `Total time: ${fmtTime(state.totalTime)}\n`;
+  txt += `Final score: ${state.score}\n`;
+  txt += `Knots: ${state.knots} · Best reputation streak: ${state.bestReputation}\n`;
+  txt += `Stations completed: ${state.currentStation+(state.victory?1:0)}/6\n`;
+  txt += `Random events triggered: ${state.events.length}\n`;
+  txt += `Hints given: ${state.hintsGiven}\n`;
+  txt += `Consent: ${state.consent?'Yes':'No / not collected'}\n\n`;
+
+  txt += 'ACHIEVEMENTS:\n';
+  state.achievements.forEach(a=>txt+=`  🏆 ${a.title} — ${a.sub}\n`);
+
+  txt += '\n────────────────────────────────────────────────────────\n';
+  txt += '   TASKS BY STATION\n';
+  txt += '────────────────────────────────────────────────────────\n';
+  STATIONS.forEach(st=>{
+    txt += `\n▸ STATION ${String(st.id).padStart(2,'0')} — ${st.title}\n  Focus: ${st.focus}\n  ${'─'.repeat(54)}\n`;
+    st.tasks.forEach((t,i)=>{
+      const h = state.history.find(x=>x.station===st.id && x.task===t.id);
+      txt += `  ${t.id} ${t.title}\n      Type: ${t.type} · Max points: ${t.points}\n`;
+      if(h){
+        txt += `      Verdict: ${h.verdict.toUpperCase()} · Points: ${h.pointsAwarded}\n`;
+        if(h.avgRubric!==null) txt += `      Rubric avg: ${h.avgRubric.toFixed(2)} (G:${h.rubricScores.grammar??'—'} V:${h.rubricScores.vocabulary??'—'} P:${h.rubricScores.pronunciation??'—'} F:${h.rubricScores.fluency??'—'})\n`;
+        if(h.speakDuration) txt += `      Speaking time: ${h.speakDuration}s\n`;
+      } else {
+        txt += `      Not attempted\n`;
+      }
+    });
+  });
+
+  if(state.postAnswers.timestamp){
+    txt += '\n────────────────────────────────────────────────────────\n';
+    txt += '   POST-RESOURCE QUESTIONNAIRE\n';
+    txt += '────────────────────────────────────────────────────────\n';
+    [
+      {label:'U · Usability', items:LIKERT_U, ans:state.postAnswers.likertU},
+      {label:'E · Engagement', items:LIKERT_E, ans:state.postAnswers.likertE},
+      {label:'O · Oral interaction', items:LIKERT_O, ans:state.postAnswers.likertO},
+      {label:'V · Overall value', items:LIKERT_V, ans:state.postAnswers.likertV},
+    ].forEach(({label,items,ans})=>{
+      txt += `\n${label}\n`;
+      items.forEach(it=>txt+=`  ${it.id}: ${ans[it.id]??'—'} — ${it.text}\n`);
+    });
+    txt += `\nOpen comments:\n`;
+    if(state.postAnswers.open1) txt += `  G1 (liked most): ${state.postAnswers.open1}\n`;
+    if(state.postAnswers.open2) txt += `  G2 (difficulties): ${state.postAnswers.open2}\n`;
+    if(state.postAnswers.open3) txt += `  G3 (improvements): ${state.postAnswers.open3}\n`;
+    if(state.postAnswers.open4) txt += `  G4 (other): ${state.postAnswers.open4}\n`;
+  }
+
+  txt += '\n════════════════════════════════════════════════════════\n   END OF REPORT · Safe seas, fair winds.\n════════════════════════════════════════════════════════\n';
+
+  const date = new Date().toISOString().slice(0,10);
+  downloadFile(`bridge-command-report-${date}.txt`, txt, 'text/plain');
+  exportCSV(date);
+}
+
+function exportCSV(date){
+  const cols = [], vals = [];
+  cols.push('status'); vals.push(state.victory?'completed':state.dead?'failed':'incomplete');
+  cols.push('total_time_sec'); vals.push(state.totalTime);
+  cols.push('final_score'); vals.push(state.score);
+  cols.push('knots'); vals.push(state.knots);
+  cols.push('best_reputation'); vals.push(state.bestReputation);
+  cols.push('stations_completed'); vals.push(state.currentStation+(state.victory?1:0));
+  cols.push('events_triggered'); vals.push(state.events.length);
+  cols.push('hints_given'); vals.push(state.hintsGiven);
+  cols.push('achievements_count'); vals.push(state.achievements.length);
+  cols.push('consent'); vals.push(state.consent?'1':'0');
+  cols.push('post_completed'); vals.push(state.postAnswers.timestamp?'1':'0');
+
+  // Per-station scores
+  STATIONS.forEach(st=>{
+    const hs = state.history.filter(h=>h.station===st.id);
+    const pts = hs.reduce((s,h)=>s+h.pointsAwarded,0);
+    const approves = hs.filter(h=>h.verdict==='approve').length;
+    const repeats = hs.filter(h=>h.verdict==='repeat').length;
+    const escalates = hs.filter(h=>h.verdict==='escalate').length;
+    cols.push('st'+st.id+'_points'); vals.push(pts);
+    cols.push('st'+st.id+'_approves'); vals.push(approves);
+    cols.push('st'+st.id+'_repeats'); vals.push(repeats);
+    cols.push('st'+st.id+'_escalates'); vals.push(escalates);
+    // Rubric averages per station
+    const rubrics = hs.filter(h=>h.avgRubric!==null);
+    const avg = rubrics.length ? rubrics.reduce((s,h)=>s+h.avgRubric,0)/rubrics.length : null;
+    cols.push('st'+st.id+'_rubric_avg'); vals.push(avg!==null?avg.toFixed(3):'');
+  });
+
+  // Likert
+  [{p:'qU',items:LIKERT_U,a:state.postAnswers.likertU},
+   {p:'qE',items:LIKERT_E,a:state.postAnswers.likertE},
+   {p:'qO',items:LIKERT_O,a:state.postAnswers.likertO},
+   {p:'qV',items:LIKERT_V,a:state.postAnswers.likertV}].forEach(({p,items,a})=>{
+    items.forEach(it=>{
+      cols.push('post_'+it.id);
+      vals.push(a?(a[it.id]??''):'');
+    });
+  });
+
+  // Block means
+  const meanOf = obj => {
+    if(!obj) return '';
+    const v = Object.values(obj).filter(x=>x!=null);
+    return v.length ? (v.reduce((s,x)=>s+x,0)/v.length).toFixed(3) : '';
+  };
+  cols.push('mean_U'); vals.push(meanOf(state.postAnswers.likertU));
+  cols.push('mean_E'); vals.push(meanOf(state.postAnswers.likertE));
+  cols.push('mean_O'); vals.push(meanOf(state.postAnswers.likertO));
+  cols.push('mean_V'); vals.push(meanOf(state.postAnswers.likertV));
+
+  const esc = s => (s||'').replace(/"/g,'""').replace(/[\r\n]+/g,' ');
+  cols.push('open_liked'); vals.push(esc(state.postAnswers.open1));
+  cols.push('open_difficulties'); vals.push(esc(state.postAnswers.open2));
+  cols.push('open_improvements'); vals.push(esc(state.postAnswers.open3));
+  cols.push('open_other'); vals.push(esc(state.postAnswers.open4));
+
+  const csv = cols.join(',')+'\n'+vals.map(v=>{
+    const s = String(v??'');
+    return s.includes(',')||s.includes('"')||s.includes('\n')?`"${s.replace(/"/g,'""')}"`:s;
+  }).join(',');
+
+  downloadFile(`bridge-command-data-${date}.csv`, csv, 'text/csv');
+}
+
+function downloadFile(name, content, mime){
+  const blob = new Blob([content], {type:mime+';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

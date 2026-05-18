@@ -317,6 +317,11 @@ h3 {
   margin-bottom: 24px;
 }
 
+.rooms-grid {
+  display: grid;
+  gap: 20px;
+}
+
 .room-card,
 .data-band {
   position: relative;
@@ -339,6 +344,10 @@ h3 {
 
 .room-card:hover {
   border-color: rgba(101, 231, 255, 0.6);
+}
+
+.room-card--maritime:hover {
+  border-color: rgba(185, 255, 114, 0.6);
 }
 
 .room-card__shine {
