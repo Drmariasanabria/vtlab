@@ -52,8 +52,10 @@ Export utilities live in:
 
 `/research/export.js`
 
-Room-specific logic lives in:
+Room-specific files live in:
 
-`/rooms/phonetics-whovian-vault/`
+`/rooms/phonetics-time-vault/`
+
+`/rooms/bridge-command/`
 
 Firebase integration may be added later for cohort tracking, cross-device persistence, and structured research datasets.
