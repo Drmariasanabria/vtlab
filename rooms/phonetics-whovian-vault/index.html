@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Phonetics Whovian Vault, a VT Lab phonetics escape room for English language learning.">
+    <title>Phonetics Whovian Vault | VT Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="module" src="./game.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#mission">Skip to mission content</a>
+    <main class="room-shell">
+      <section class="splash" id="splash" aria-labelledby="room-title">
+        <nav class="room-nav" aria-label="Room navigation">
+          <a href="../../index.html">VT Lab</a>
+          <span>Research-enabled escape room</span>
+        </nav>
+        <div class="time-core" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="splash__content">
+          <p class="kicker">Current mission</p>
+          <h1 id="room-title">Phonetics Whovian Vault</h1>
+          <p>A time-travel-inspired phonetics escape room for IPA transcription, voicing, manner of articulation, and English pronunciation awareness.</p>
+          <div class="splash__actions">
+            <button class="button button--primary" type="button" data-open-pre>Begin entry flow</button>
+            <a class="button button--ghost" href="../../index.html">Back to VT Lab</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="mission is-locked" id="mission" aria-labelledby="mission-title">
+        <div class="mission__header">
+          <div>
+            <p class="kicker">Demo chamber</p>
+            <h2 id="mission-title">Phonetics Control Console</h2>
+          </div>
+          <div class="score" aria-live="polite">
+            <span>Score</span>
+            <strong id="score">0 / 3</strong>
+          </div>
+        </div>
+
+        <div class="lock-panel" id="lock-panel">
+          <h3>Pre-questionnaire required</h3>
+          <p>The mission stays locked until the pre-task questionnaire is submitted or explicitly skipped.</p>
+          <button class="button button--primary" type="button" data-open-pre>Open pre-questionnaire</button>
+        </div>
+
+        <form class="chamber-grid" id="mission-form" hidden>
+          <div id="chambers"></div>
+          <div class="mission__actions">
+            <button class="button button--primary" type="submit">Complete Mission</button>
+            <button class="button button--ghost" type="button" data-open-post>Exit + post-questionnaire</button>
+          </div>
+        </form>
+
+        <section class="completion" id="completion" hidden aria-live="polite">
+          <h3>Vault sequence complete</h3>
+          <p>Your demo run is complete. Please submit the post-task questionnaire to unlock export options.</p>
+          <button class="button button--primary" type="button" data-open-post>Open post-questionnaire</button>
+        </section>
+
+        <section class="exports" id="exports" hidden aria-labelledby="exports-title">
+          <h3 id="exports-title">Export options</h3>
+          <div class="export-grid">
+            <button type="button" data-export="pre-pdf">Export pre-questionnaire as PDF</button>
+            <button type="button" data-export="pre-word">Export pre-questionnaire as Word</button>
+            <button type="button" data-export="post-pdf">Export post-questionnaire as PDF</button>
+            <button type="button" data-export="post-word">Export post-questionnaire as Word</button>
+            <button type="button" data-export="combined-pdf">Export combined pre/post research report as PDF</button>
+            <button type="button" data-export="combined-word">Export combined pre/post research report as Word</button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <dialog class="questionnaire" id="pre-dialog" aria-labelledby="pre-title">
+      <form method="dialog" id="pre-form"></form>
+    </dialog>
+
+    <dialog class="questionnaire" id="post-dialog" aria-labelledby="post-title">
+      <form method="dialog" id="post-form"></form>
+    </dialog>
+  </body>
+</html>

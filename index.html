@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="VT Lab is a GitHub Pages hub for educational escape rooms, gamified English learning, and research-informed classroom resources.">
+    <title>VT Lab | Educational Escape Rooms</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/global.css">
+  </head>
+  <body>
+    <div class="startup" id="startup" aria-live="polite" aria-label="VT Lab loading">
+      <div class="startup__aurora"></div>
+      <div class="startup__panel">
+        <div class="startup__mark" aria-hidden="true">VT</div>
+        <p class="startup__eyebrow">Starting VT Lab</p>
+        <div class="startup__bar" aria-hidden="true"><span></span></div>
+      </div>
+    </div>
+
+    <main class="site-shell">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="orbital-field" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <nav class="topbar" aria-label="Primary navigation">
+          <a class="brand" href="./index.html" aria-label="VT Lab home">
+            <span class="brand__glyph">VT</span>
+            <span>Lab</span>
+          </a>
+          <a class="topbar__link" href="./teacher/">Teacher Hub</a>
+        </nav>
+        <div class="hero__content">
+          <p class="kicker">Educational escape rooms · research-ready classroom tools</p>
+          <h1 id="hero-title">VT Lab</h1>
+          <p class="subtitle">A vibe-coding project by Dr María Sanabria (Universidad de Cantabria)</p>
+          <p class="hero__description">A modular platform for gamified English language learning, educational escape rooms, classroom experimentation, and research-informed data collection.</p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="./rooms/phonetics-whovian-vault/">Enter the Vault</a>
+            <a class="button button--ghost" href="#research">Teaching + Research</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="featured section" aria-labelledby="featured-room">
+        <div class="section__intro">
+          <p class="kicker">Current escape room</p>
+          <h2 id="featured-room">Featured Mission</h2>
+        </div>
+        <article class="room-card">
+          <div class="room-card__shine" aria-hidden="true"></div>
+          <div>
+            <p class="room-card__label">Time-travel-inspired phonetics practice</p>
+            <h3>Phonetics Whovian Vault</h3>
+            <p>IPA transcription · voicing · manner of articulation · gamified phonetics</p>
+          </div>
+          <a class="button button--primary" href="./rooms/phonetics-whovian-vault/">Enter the Vault</a>
+        </article>
+      </section>
+
+      <section class="section split" id="research" aria-labelledby="research-title">
+        <div>
+          <p class="kicker">Teaching + Research</p>
+          <h2 id="research-title">Classroom experimentation with a research spine</h2>
+        </div>
+        <p>VT Lab is designed for classroom implementation and research into educational technology, vibe-coded resources, gamification, learner experience, and digital pedagogy. Each resource can be adapted for teaching moments, piloting, feedback, and reflective analysis.</p>
+      </section>
+
+      <section class="section data-band" aria-labelledby="data-title">
+        <div>
+          <p class="kicker">Data Collection</p>
+          <h2 id="data-title">Pre/post feedback that travels with each room</h2>
+          <p>Escape rooms can include a pre-task questionnaire and post-task questionnaire, stored locally in the browser and exportable as classroom or research-oriented reports.</p>
+        </div>
+        <div class="data-grid" aria-label="Available exports">
+          <span>Pre-questionnaire PDF</span>
+          <span>Pre-questionnaire Word</span>
+          <span>Post-questionnaire PDF</span>
+          <span>Post-questionnaire Word</span>
+          <span>Combined report PDF</span>
+          <span>Combined report Word</span>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      VT Lab · Dr María Sanabria · Universidad de Cantabria
+    </footer>
+
+    <script src="./assets/js/main.js"></script>
+  </body>
+</html>
