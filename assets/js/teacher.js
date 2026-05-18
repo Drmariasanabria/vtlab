@@ -1,3 +1,6 @@
+let cohortCreateInFlight = false;
+let cohortLoadToken = 0;
+
 window.addEventListener("DOMContentLoaded", async () => {
   const app = document.querySelector("#teacher-app");
   if (!app) return;
@@ -89,21 +92,33 @@ async function renderTeacherApp() {
 
   app.querySelector("#cohortForm").addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (cohortCreateInFlight) return;
     const form = event.currentTarget;
+    const submitButton = form.querySelector("button[type='submit']");
     const error = app.querySelector("#cohortError");
     error.textContent = "";
     const name = new FormData(form).get("cohortName");
+    cohortCreateInFlight = true;
+    submitButton.disabled = true;
+    submitButton.textContent = "Creating...";
     if (session.testMode) {
       renderCohorts([{ code: "TEST01", name, testMode: true }]);
       form.reset();
+      cohortCreateInFlight = false;
+      submitButton.disabled = false;
+      submitButton.textContent = "Create cohort";
       return;
     }
     try {
       await window.VTLabFirebase.createCohort(name);
       form.reset();
-      loadCohorts();
+      await loadCohorts();
     } catch (err) {
       error.textContent = err.message || "Could not create cohort.";
+    } finally {
+      cohortCreateInFlight = false;
+      submitButton.disabled = false;
+      submitButton.textContent = "Create cohort";
     }
   });
 
@@ -111,22 +126,24 @@ async function renderTeacherApp() {
 }
 
 async function loadCohorts() {
+  const token = ++cohortLoadToken;
   const session = window.VTLabFirebase.getLocalSession();
   if (session.testMode) {
     renderCohorts([{ code: "TEST01", name: "Test cohort", testMode: true }]);
     return;
   }
   const cohorts = await window.VTLabFirebase.listTeacherCohorts();
-  renderCohorts(cohorts);
+  if (token === cohortLoadToken) renderCohorts(cohorts);
 }
 
 function renderCohorts(cohorts) {
   const list = document.querySelector("#cohortList");
-  if (!cohorts.length) {
+  const uniqueCohorts = dedupeCohorts(cohorts);
+  if (!uniqueCohorts.length) {
     list.innerHTML = `<p>No cohorts yet.</p>`;
     return;
   }
-  list.innerHTML = cohorts.map((cohort) => `
+  list.innerHTML = uniqueCohorts.map((cohort) => `
     <article class="cohort-row">
       <div>
         <strong>${escapeHtml(cohort.name)}</strong>
@@ -134,19 +151,19 @@ function renderCohorts(cohorts) {
       </div>
       <div class="cohort-actions">
         <button class="button button--ghost" type="button" data-open-cohort="${escapeHtml(cohort.code)}">Open</button>
-        <button class="button button--danger" type="button" data-delete-cohort="${escapeHtml(cohort.code)}">Delete</button>
+        <button class="button button--danger" type="button" data-delete-cohort="${escapeHtml(cohort.code)}">Delete cohort</button>
       </div>
     </article>
   `).join("");
 
   list.querySelectorAll("[data-open-cohort]").forEach((button) => {
-    button.addEventListener("click", () => openCohort(button.dataset.openCohort, cohorts.find((item) => item.code === button.dataset.openCohort)));
+    button.addEventListener("click", () => openCohort(button.dataset.openCohort, uniqueCohorts.find((item) => item.code === button.dataset.openCohort)));
   });
 
   list.querySelectorAll("[data-delete-cohort]").forEach((button) => {
     button.addEventListener("click", async () => {
       const code = button.dataset.deleteCohort;
-      const cohort = cohorts.find((item) => item.code === code);
+      const cohort = uniqueCohorts.find((item) => item.code === code);
       if (!confirm(`Delete cohort "${cohort?.name || code}" and its saved student sessions?`)) return;
       const session = window.VTLabFirebase.getLocalSession();
       if (session.testMode) {
@@ -154,11 +171,27 @@ function renderCohorts(cohorts) {
         document.querySelector("#cohortDetail").hidden = true;
         return;
       }
-      await window.VTLabFirebase.deleteCohort(code);
-      document.querySelector("#cohortDetail").hidden = true;
-      loadCohorts();
+      button.disabled = true;
+      button.textContent = "Deleting...";
+      try {
+        await window.VTLabFirebase.deleteCohort(code);
+        document.querySelector("#cohortDetail").hidden = true;
+        await loadCohorts();
+      } catch (err) {
+        alert(err.message || "Could not delete this cohort.");
+        button.disabled = false;
+        button.textContent = "Delete cohort";
+      }
     });
   });
+}
+
+function dedupeCohorts(cohorts) {
+  const byCode = new Map();
+  cohorts.forEach((cohort) => {
+    if (cohort?.code && !byCode.has(cohort.code)) byCode.set(cohort.code, cohort);
+  });
+  return Array.from(byCode.values()).sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
 }
 
 async function openCohort(code, cohort) {
@@ -179,6 +212,7 @@ async function openCohort(code, cohort) {
         <p>Share this code with students. Their saved room sessions will appear here after they complete or skip the post-use questionnaire.</p>
       </div>
       <button class="button button--primary" type="button" data-export-cohort>Download cohort CSV</button>
+      <button class="button button--danger" type="button" data-delete-open-cohort>Delete cohort</button>
     </div>
     <div class="teacher-table-wrap">
       <table class="teacher-table">
@@ -213,6 +247,17 @@ async function openCohort(code, cohort) {
   `;
 
   detail.querySelector("[data-export-cohort]").addEventListener("click", () => downloadCsv(`vtlab_${code}_cohort_records.csv`, records));
+  detail.querySelector("[data-delete-open-cohort]").addEventListener("click", async () => {
+    if (!confirm(`Delete cohort "${cohort?.name || code}" and its saved student sessions?`)) return;
+    if (session.testMode) {
+      detail.hidden = true;
+      renderCohorts([]);
+      return;
+    }
+    await window.VTLabFirebase.deleteCohort(code);
+    detail.hidden = true;
+    await loadCohorts();
+  });
   detail.querySelectorAll("[data-export-record]").forEach((button) => {
     button.addEventListener("click", () => downloadCsv(`vtlab_${code}_${button.dataset.exportRecord}.csv`, [records[Number(button.dataset.recordIndex)]]));
   });

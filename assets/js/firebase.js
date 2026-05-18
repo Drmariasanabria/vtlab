@@ -78,7 +78,10 @@ function saveLocalTestSession(payload) {
 
 function authReady() {
   return new Promise((resolve) => {
-    onAuthStateChanged(auth, (user) => resolve(user));
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
   });
 }
 
@@ -110,7 +113,7 @@ function startTestMode(role = "student") {
 async function createCohort(name) {
   const user = auth.currentUser || await authReady();
   if (!user) throw new Error("Please sign in with Google first.");
-  const code = generateCode();
+  const code = await generateUniqueCode();
   await setDoc(doc(db, "cohorts", code), {
     code,
     name,
@@ -120,6 +123,15 @@ async function createCohort(name) {
     createdAt: serverTimestamp(),
   });
   return { code, name };
+}
+
+async function generateUniqueCode() {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const code = generateCode();
+    const existing = await getDoc(doc(db, "cohorts", code));
+    if (!existing.exists()) return code;
+  }
+  throw new Error("Could not generate a unique cohort code. Please try again.");
 }
 
 async function listTeacherCohorts() {
