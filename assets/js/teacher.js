@@ -89,17 +89,18 @@ async function renderTeacherApp() {
 
   app.querySelector("#cohortForm").addEventListener("submit", async (event) => {
     event.preventDefault();
+    const form = event.currentTarget;
     const error = app.querySelector("#cohortError");
     error.textContent = "";
-    const name = new FormData(event.currentTarget).get("cohortName");
+    const name = new FormData(form).get("cohortName");
     if (session.testMode) {
       renderCohorts([{ code: "TEST01", name, testMode: true }]);
-      event.currentTarget.reset();
+      form.reset();
       return;
     }
     try {
       await window.VTLabFirebase.createCohort(name);
-      event.currentTarget.reset();
+      form.reset();
       loadCohorts();
     } catch (err) {
       error.textContent = err.message || "Could not create cohort.";
