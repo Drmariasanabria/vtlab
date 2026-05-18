@@ -59,3 +59,29 @@ Room-specific files live in:
 `/rooms/bridge-command/`
 
 Firebase integration may be added later for cohort tracking, cross-device persistence, and structured research datasets.
+
+## Firebase
+
+The site includes a lightweight Firebase setup for GitHub Pages in:
+
+`/assets/js/firebase.js`
+
+The landing page initializes Firebase Analytics when supported. The escape rooms send final session records to the Firestore collection:
+
+`roomSessions`
+
+Firestore must be enabled in the Firebase console, and security rules must allow the intended classroom write workflow.
+
+## Generic Research Questionnaires
+
+The shared questionnaire flow lives in:
+
+`/assets/js/research-flow.js`
+
+Each escape room now uses the same generic pre-use and post-use questionnaires. The questions focus on experience with educational escape rooms, interactive learning resources, AI-assisted/vibe-coded resources, usability, engagement, motivation, and perceived value. They are intentionally not specific to a particular subject area.
+
+Questionnaire reports can be exported from each room as PDF or Word-compatible files for:
+
+- Pre-use questionnaire
+- Post-use questionnaire
+- Combined pre/post report

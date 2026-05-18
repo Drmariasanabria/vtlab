@@ -7,6 +7,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;500;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+<script type="module" src="../../assets/js/firebase.js"></script>
+<script>
+window.VTLabResearchConfig = {
+  roomId: 'phonetics-time-vault',
+  roomName: 'Phonetics Time Vault',
+  startSelector: '.btn-start',
+  startFunction: 'startMission',
+  postFunction: 'goToPostQuestionnaire',
+  afterPostFunction: 'showFinalOrDeath'
+};
+</script>
 <style>
 :root{
   --timevault:#003B6F; --timevault-deep:#001b3a; --timevault-light:#1e5fa8;
@@ -1614,6 +1625,7 @@ function submitPostQuestionnaire(){
   };
   document.getElementById('postQuestionnaire').classList.remove('show');
   document.getElementById('postQuestionnaire').style.display='none';
+  saveToFirebase('post-questionnaire-submitted');
   showFinalOrDeath();
 }
 
@@ -1621,6 +1633,7 @@ function skipPostQuestionnaire(){
   state.questionnaireSkipped.post=true;
   document.getElementById('postQuestionnaire').classList.remove('show');
   document.getElementById('postQuestionnaire').style.display='none';
+  saveToFirebase('post-questionnaire-skipped');
   showFinalOrDeath();
 }
 
@@ -2216,6 +2229,32 @@ function renderFinalScreen(){
   document.getElementById('finalAchievements').innerHTML=state.achievements.map(a=>`<span class="ach-badge">🏆 ${a.title}</span>`).join('') || '<span class="ach-badge">No achievements earned</span>';
 }
 
+function saveToFirebase(eventName){
+  if(!window.VTLabFirebase) return;
+  window.VTLabFirebase.saveRoomSession({
+    event: eventName,
+    roomId: 'phonetics-time-vault',
+    roomName: 'Phonetics Time Vault',
+    consent: !!state.consent,
+    questionnaireSkipped: state.questionnaireSkipped,
+    postAnswers: state.postAnswers,
+    result: {
+      victory: !!state.victory,
+      dead: !!state.dead,
+      score: state.score,
+      currentChamber: state.currentChamber,
+      totalTime: state.totalTime,
+      itemsSolved: state.itemsSolved,
+      itemsExhausted: state.itemsExhausted,
+      perfectFirstTry: state.perfectFirstTry,
+      bestStreak: state.bestStreak,
+      lives: state.lives,
+      totalAttempts: state.totalAttempts,
+      achievements: state.achievements,
+    },
+  }).catch(err=>console.warn('VT Lab Firebase save failed', err));
+}
+
 /* =================== EXPORT =================== */
 function exportReport(){
   let txt='════════════════════════════════════════════════════════\n';
@@ -2383,5 +2422,6 @@ document.addEventListener('keydown',e=>{
   }
 });
 </script>
+<script src="../../assets/js/research-flow.js"></script>
 </body>
 </html>

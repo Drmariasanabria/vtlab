@@ -7,6 +7,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<script type="module" src="../../assets/js/firebase.js"></script>
+<script>
+window.VTLabResearchConfig = {
+  roomId: 'bridge-command',
+  roomName: 'Bridge Command',
+  startSelector: '.btn-launch',
+  startFunction: 'startVoyage',
+  postFunction: 'goToPostQ',
+  afterPostFunction: 'renderFinal'
+};
+</script>
 <style>
 :root{
   --navy-deep:#0a1929;
@@ -1873,12 +1884,14 @@ function submitPostQ(){
   };
   document.getElementById('postQuestionnaire').classList.remove('show');
   document.getElementById('postQuestionnaire').style.display = 'none';
+  saveToFirebase('post-questionnaire-submitted');
   renderFinal();
 }
 function skipPostQ(){
   state.questionnaireSkipped = true;
   document.getElementById('postQuestionnaire').classList.remove('show');
   document.getElementById('postQuestionnaire').style.display = 'none';
+  saveToFirebase('post-questionnaire-skipped');
   renderFinal();
 }
 function renderFinal(){
@@ -1905,6 +1918,30 @@ function renderFinal(){
   document.getElementById('finalAchievements').innerHTML =
     state.achievements.map(a=>`<span class="ach-badge">🏆 ${a.title}</span>`).join('') || '<span class="ach-badge">No achievements</span>';
   document.getElementById('finalScreen').scrollIntoView({behavior:'smooth'});
+}
+
+function saveToFirebase(eventName){
+  if(!window.VTLabFirebase) return;
+  window.VTLabFirebase.saveRoomSession({
+    event: eventName,
+    roomId: 'bridge-command',
+    roomName: 'Bridge Command',
+    consent: !!state.consent,
+    questionnaireSkipped: state.questionnaireSkipped,
+    postAnswers: state.postAnswers,
+    result: {
+      victory: !!state.victory,
+      dead: !!state.dead,
+      score: state.score,
+      knots: state.knots,
+      currentStation: state.currentStation,
+      totalTime: state.totalTime,
+      bestReputation: state.bestReputation,
+      events: state.events,
+      hintsGiven: state.hintsGiven,
+      achievements: state.achievements,
+    },
+  }).catch(err=>console.warn('VT Lab Firebase save failed', err));
 }
 
 /* ====================== EXPORT ====================== */
@@ -2046,5 +2083,6 @@ function downloadFile(name, content, mime){
   URL.revokeObjectURL(url);
 }
 </script>
+<script src="../../assets/js/research-flow.js"></script>
 </body>
 </html>
