@@ -1,5 +1,6 @@
 let cohortCreateInFlight = false;
 let cohortLoadToken = 0;
+const TEACHER_GATE_HASH = "c206d74f2f5174b782e33c2cd5524ebe8a33bf1f860ed34bf1b639ca58f9abcd";
 
 window.addEventListener("DOMContentLoaded", async () => {
   const app = document.querySelector("#teacher-app");
@@ -14,6 +15,11 @@ async function renderTeacherApp() {
   const app = document.querySelector("#teacher-app");
   const session = window.VTLabFirebase.getLocalSession();
   const user = window.VTLabFirebase.auth.currentUser;
+
+  if (!session.teacherGateOk) {
+    renderTeacherGate(app);
+    return;
+  }
 
   if (session.role !== "teacher" || (!user && !session.testMode)) {
     app.innerHTML = `
@@ -125,6 +131,40 @@ async function renderTeacherApp() {
   loadCohorts();
 }
 
+function renderTeacherGate(app) {
+  app.innerHTML = `
+    <div class="access-panel teacher-gate">
+      <p class="kicker">Restricted teacher area</p>
+      <h2>Teacher access</h2>
+      <p>Enter the teacher access key to continue.</p>
+      <form id="teacherGateForm">
+        <label>Access key <input name="teacherKey" type="password" autocomplete="current-password" required></label>
+        <button class="button button--primary" type="submit">Continue</button>
+      </form>
+      <p class="access-error" id="teacherGateError" role="alert"></p>
+    </div>
+  `;
+  app.querySelector("#teacherGateForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const key = new FormData(form).get("teacherKey");
+    const hash = await sha256(key);
+    if (hash !== TEACHER_GATE_HASH) {
+      app.querySelector("#teacherGateError").textContent = "Access key not accepted.";
+      form.reset();
+      return;
+    }
+    window.VTLabFirebase.setLocalSession({ teacherGateOk: true });
+    renderTeacherApp();
+  });
+}
+
+async function sha256(value) {
+  const bytes = new TextEncoder().encode(String(value || ""));
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 async function loadCohorts() {
   const token = ++cohortLoadToken;
   const session = window.VTLabFirebase.getLocalSession();
@@ -201,7 +241,8 @@ async function openCohort(code, cohort) {
 
   const session = window.VTLabFirebase.getLocalSession();
   const records = session.testMode ? demoRecords(code) : await window.VTLabFirebase.getCohortSessions(code);
-  const students = groupByStudent(records);
+  const progressRecords = session.testMode ? demoProgress(code) : await window.VTLabFirebase.getCohortToolProgress(code);
+  const students = groupByStudent([...records, ...progressRecords]);
   const studentList = Object.entries(students);
 
   detail.innerHTML = `
@@ -231,6 +272,22 @@ async function openCohort(code, cohort) {
         </tbody>
       </table>
     </div>
+    <h3 class="teacher-subtitle">Saved tool progress</h3>
+    <div class="teacher-table-wrap">
+      <table class="teacher-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Tool</th>
+            <th>Progress</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${progressRecords.length ? progressRecords.map(progressRow).join("") : `<tr><td colspan="4">No saved tool progress yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
     <h3 class="teacher-subtitle">Students</h3>
     <div class="student-list">
       ${studentList.length ? studentList.map(([studentKey, studentRecords]) => `
@@ -243,10 +300,10 @@ async function openCohort(code, cohort) {
         </article>
       `).join("") : `<p>No students yet.</p>`}
     </div>
-    <p class="student-count">${Object.keys(students).length} student(s) · ${records.length} saved record(s)</p>
+    <p class="student-count">${Object.keys(students).length} student(s) · ${records.length} questionnaire/session record(s) · ${progressRecords.length} progress record(s)</p>
   `;
 
-  detail.querySelector("[data-export-cohort]").addEventListener("click", () => downloadCsv(`vtlab_${code}_cohort_records.csv`, records));
+  detail.querySelector("[data-export-cohort]").addEventListener("click", () => downloadCsv(`vtlab_${code}_cohort_records.csv`, [...records, ...progressRecords]));
   detail.querySelector("[data-delete-open-cohort]").addEventListener("click", async () => {
     if (!confirm(`Delete cohort "${cohort?.name || code}" and its saved student sessions?`)) return;
     if (session.testMode) {
@@ -295,6 +352,30 @@ function rowForRecord(record, index) {
       <td><button type="button" data-export-record="${escapeHtml(record.id || index)}" data-record-index="${index}">CSV</button></td>
     </tr>
   `;
+}
+
+function progressRow(record) {
+  return `
+    <tr>
+      <td>${escapeHtml(record.studentName || record.studentEmail || record.studentUid || "Anonymous")}</td>
+      <td>${escapeHtml(record.roomName || record.roomId || "")}</td>
+      <td>${escapeHtml(progressSummary(record))}</td>
+      <td>${escapeHtml(formatDate(record.updatedAt))}</td>
+    </tr>
+  `;
+}
+
+function progressSummary(record) {
+  const result = record.result || {};
+  if (result.progressPercent != null) return `${result.progressPercent}% · ${result.filledFields || 0} fields · step ${result.currentStep || 0}`;
+  if (result.score != null) return `Score ${result.score}`;
+  return "Saved";
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  if (value.toDate) return value.toDate().toLocaleString();
+  return String(value);
 }
 
 function groupByStudent(records) {
@@ -357,6 +438,18 @@ function demoRecords(code) {
     result: { score: 1200, currentChamber: 3, totalTime: 840 },
     preQuestionnaire: { participantCode: "TEST", pre_1: "4", expectations: "Try the resource." },
     postQuestionnaire: { post_1: "5", open1: "It was engaging." },
+  }];
+}
+
+function demoProgress(code) {
+  return [{
+    id: "demo-clil-progress",
+    cohortCode: code,
+    studentName: "Test Student",
+    roomName: "CLIL Studio Pro",
+    event: "clil-progress-saved",
+    result: { progressPercent: 62, filledFields: 28, currentStep: 12 },
+    updatedAt: new Date().toISOString(),
   }];
 }
 

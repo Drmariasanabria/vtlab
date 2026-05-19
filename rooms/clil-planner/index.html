@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLIL Studio Pro - Planificador AICLE avanzado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script type="module" src="../../assets/js/firebase.js"></script>
+<style>
+:root{
+  --paper:#fffefa;
+  --surface:#ffffff;
+  --wash:#f4efe4;
+  --ink:#141823;
+  --muted:#667085;
+  --line:#ded7ca;
+  --line-soft:#ece6db;
+  --content:#315fce;
+  --communication:#c13e63;
+  --cognition:#16826f;
+  --culture:#b46a1b;
+  --violet:#7257c7;
+  --gold:#c59a2d;
+  --green:#1f9d6a;
+  --red:#c2413d;
+  --cyan:#0891b2;
+  --pink:#db2777;
+  --lime:#65a30d;
+  --orange:#ea580c;
+  --blue-soft:#e8f0ff;
+  --pink-soft:#ffe8f1;
+  --green-soft:#e7f8ef;
+  --gold-soft:#fff2cc;
+  --shadow:0 16px 55px rgba(42,35,20,.12);
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,system-ui,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(96,165,250,.35), transparent 28%),
+    radial-gradient(circle at 86% 18%, rgba(244,114,182,.28), transparent 30%),
+    radial-gradient(circle at 74% 86%, rgba(52,211,153,.24), transparent 36%),
+    linear-gradient(135deg,#172033 0%,#263a67 38%,#3c2453 70%,#182f34 100%),
+    var(--paper);
+  background-size:130% 130%,120% 120%,120% 120%,100% 100%,auto;
+  line-height:1.55;
+  padding-bottom:84px;
+  animation:bgFlow 18s ease-in-out infinite alternate;
+}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.18;background:radial-gradient(circle at 45% 25%,rgba(255,255,255,.65),transparent 24%),radial-gradient(circle at 28% 76%,rgba(255,255,255,.35),transparent 18%)}
+@keyframes bgFlow{0%{background-position:0% 0%,100% 0%,70% 100%,0 0}100%{background-position:8% 6%,90% 12%,78% 84%,0 0}}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.topbar{
+  position:sticky;top:0;z-index:80;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:12px 22px;
+  background:rgba(255,255,255,.88);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(14px);
+}
+.brand{display:flex;align-items:center;gap:12px;min-width:270px}
+.mark{
+  width:42px;height:42px;border-radius:10px;
+  display:grid;place-items:center;color:#fff;font-weight:900;
+  background:conic-gradient(from 220deg,var(--content),var(--communication),var(--culture),var(--cognition),var(--content));
+  box-shadow:0 8px 25px rgba(0,0,0,.16);
+  animation:spinGlow 9s linear infinite;
+}
+@keyframes spinGlow{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+.brand-title{font-family:Fraunces,serif;font-size:1.42rem;font-weight:800;letter-spacing:-.02em}
+.brand-sub{font-size:.78rem;color:var(--muted);margin-top:-3px}
+.top-actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lang-switch{display:flex;gap:3px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px;box-shadow:0 5px 16px rgba(20,24,35,.06)}
+.lang-switch button{border:0;border-radius:999px;background:transparent;padding:7px 10px;font-weight:900;color:var(--muted)}
+.lang-switch button.active{background:var(--ink);color:#fff}
+.icon-btn,.nav-btn,.pill-btn{
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--ink);
+  border-radius:10px;
+  padding:9px 12px;
+  font-weight:700;
+  transition:.18s ease;
+}
+.icon-btn{width:42px;height:42px;display:grid;place-items:center;padding:0}
+.nav-btn.primary,.pill-btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+.nav-btn:hover,.pill-btn:hover,.icon-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.10)}
+.mini-progress{width:180px;height:9px;background:var(--wash);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.mini-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--content),var(--cognition),var(--culture));transition:.35s ease}
+.layout{max-width:1260px;margin:0 auto;padding:22px}
+.hero{
+  min-height:calc(100vh - 92px);
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);
+  gap:34px;align-items:center;
+  padding:26px 0 42px;
+}
+.hero-copy h1{
+  font-family:Fraunces,serif;
+  font-size:clamp(3rem,6vw,6.4rem);
+  line-height:.92;
+  letter-spacing:-.04em;
+  margin:0 0 18px;
+}
+.hero-copy p{font-size:1.18rem;color:#3f4656;max-width:760px;margin:0 0 18px}
+.project-credit{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(49,95,206,.25);background:#fff;border-radius:999px;padding:8px 12px;font-weight:900;color:#1e3a8a;margin-bottom:16px;box-shadow:0 10px 24px rgba(49,95,206,.08)}
+.hero-strip{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}
+.micro-tag{
+  border:1px solid var(--line);background:rgba(255,255,255,.75);
+  border-radius:999px;padding:7px 11px;font-size:.83rem;font-weight:700;color:#3f4656;
+}
+.hero-board{
+  min-height:530px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.74);
+  box-shadow:var(--shadow);position:relative;overflow:hidden;padding:18px;
+}
+.hero-board:before{
+  content:"";position:absolute;inset:0;opacity:.55;pointer-events:none;
+  background:radial-gradient(circle at 20% 15%,rgba(49,95,206,.16),transparent 28%),radial-gradient(circle at 82% 28%,rgba(219,39,119,.12),transparent 30%),radial-gradient(circle at 54% 82%,rgba(22,130,111,.12),transparent 34%);
+}
+.floating-card{
+  position:absolute;width:210px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fff;
+  box-shadow:0 12px 30px rgba(0,0,0,.10);animation:drift 7s ease-in-out infinite;
+}
+.floating-card b{display:block;font-family:Fraunces,serif;font-size:1.08rem;margin-bottom:4px}
+.floating-card small{color:var(--muted)}
+.f1{top:42px;left:38px;border-top:4px solid var(--content)}
+.f2{top:150px;right:32px;border-top:4px solid var(--communication);animation-delay:-1.2s}
+.f3{bottom:132px;left:80px;border-top:4px solid var(--cognition);animation-delay:-2.1s}
+.f4{bottom:34px;right:70px;border-top:4px solid var(--culture);animation-delay:-3.4s}
+.hero-line{position:absolute;height:3px;background:var(--ink);opacity:.13;transform-origin:left center}
+.l1{width:260px;top:132px;left:214px;transform:rotate(16deg)}
+.l2{width:240px;top:274px;right:190px;transform:rotate(150deg)}
+.l3{width:230px;bottom:118px;left:290px;transform:rotate(-12deg)}
+@keyframes drift{0%,100%{transform:translateY(0) rotate(-.2deg)}50%{transform:translateY(-14px) rotate(.6deg)}}
+.citation{
+  display:inline-block;border-left:4px solid var(--gold);background:#fff;padding:10px 14px;border-radius:0 10px 10px 0;
+  color:#4b5563;font-size:.94rem;margin:12px 0 20px;
+}
+.step-rail{
+  position:sticky;top:67px;z-index:70;margin:0 -22px 22px;padding:12px 22px;
+  background:rgba(255,255,255,.88);border-bottom:1px solid rgba(255,255,255,.35);backdrop-filter:blur(12px);display:none;
+}
+.step-scroll{display:flex;gap:8px;overflow:auto;padding-bottom:4px}
+.step-chip{
+  flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;
+  display:flex;align-items:center;gap:8px;color:#4b5563;font-size:.9rem;font-weight:700;white-space:nowrap;
+}
+.step-chip span:first-child{width:24px;height:24px;border-radius:999px;background:var(--wash);display:grid;place-items:center;font-family:JetBrains Mono,monospace;font-size:.75rem}
+.step-chip.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.step-chip.active span:first-child{background:#fff;color:var(--ink)}
+.step-chip.done{border-color:rgba(31,157,106,.45);color:#14734d}
+.panel{
+  display:none;background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(255,250,238,.88));border:1px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow);padding:28px;margin-bottom:24px;
+  position:relative;overflow:hidden;
+}
+.panel:before{content:"";position:absolute;inset:0 0 auto;height:6px;background:linear-gradient(90deg,var(--content),var(--communication),var(--culture),var(--cognition),var(--cyan));opacity:.9}
+.panel.active{display:block;animation:enter .35s ease}
+@keyframes enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.eyebrow{font-family:JetBrains Mono,monospace;font-size:.76rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.panel h2{font-family:Fraunces,serif;font-size:2.55rem;line-height:1.05;margin:0 0 10px;letter-spacing:-.025em}
+.lead{font-size:1.08rem;color:#4b5563;max-width:850px;margin:0 0 22px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.field{margin:0 0 16px}
+.field label{display:block;font-weight:800;margin:0 0 6px}
+.help{font-size:.88rem;color:var(--muted);margin:0 0 8px}
+input,textarea,select{
+  width:100%;border:1px solid var(--line);background:#fffefa;border-radius:10px;padding:12px 13px;color:var(--ink);
+}
+textarea{min-height:92px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--ink);box-shadow:0 0 0 4px rgba(20,24,35,.07);background:#fff}
+.theory{
+  border:1px solid var(--line);border-left:5px solid var(--violet);border-radius:12px;background:#fff;padding:15px 16px;margin:16px 0;
+}
+.theory strong:first-child{font-family:JetBrains Mono,monospace;font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;color:var(--violet)}
+.theory p{margin:8px 0 0;color:#3f4656}
+.source{display:block;margin-top:8px;color:var(--muted);font-family:JetBrains Mono,monospace;font-size:.78rem}
+.callout{border:1px solid var(--line);border-radius:12px;padding:15px;background:linear-gradient(135deg,#fff,#fffaf0);margin:14px 0;box-shadow:0 8px 22px rgba(20,24,35,.045)}
+.callout h3{font-family:Fraunces,serif;margin:0 0 8px;font-size:1.35rem}
+.c-content{color:var(--content)}.c-communication{color:var(--communication)}.c-cognition{color:var(--cognition)}.c-culture{color:var(--culture)}
+.c-card{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fff;position:relative;overflow:hidden;min-height:170px}
+.c-card:after{content:attr(data-letter);position:absolute;right:12px;top:0;font-family:Fraunces,serif;font-weight:800;font-size:5rem;opacity:.10}
+.c-card h3{margin:0 0 8px;font-family:Fraunces,serif;font-size:1.45rem}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;background:var(--wash);font-size:.75rem;font-weight:800;color:#3f4656}
+.canvas-wrap{display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px}
+.tools{border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px;align-self:start}
+.tools h3{font-family:Fraunces,serif;font-size:1.25rem;margin:0 0 10px}
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.tool-grid button,.full-tool{
+  border:1px solid var(--line);background:#fffefa;border-radius:9px;padding:9px;font-weight:800;
+}
+.tool-grid button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.full-tool{width:100%;margin-top:8px;text-align:left}
+#brainCanvas{width:100%;height:620px;border:1px solid var(--line);border-radius:12px;background:#fff;touch-action:none;display:block}
+.matrix{
+  display:grid;grid-template-columns:70px 1fr 1fr;grid-template-rows:56px 1fr 1fr;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;margin:16px 0;
+}
+.mx-cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px;min-height:150px;position:relative}
+.mx-cell:nth-child(3n){border-right:0}.mx-cell:nth-last-child(-n+3){border-bottom:0}
+.mx-head{background:var(--wash);font-weight:900;text-align:center;display:grid;place-items:center;min-height:auto}
+.mx-axis{background:#f7f3ea;font-weight:900;writing-mode:vertical-rl;text-align:center;display:grid;place-items:center}
+.quadrant{font-family:Fraunces,serif;font-size:1.3rem;margin-bottom:5px}
+.q-a{border-top:5px solid #94a3b8}.q-b{border-top:5px solid var(--green)}.q-c{border-top:5px solid var(--gold)}.q-d{border-top:5px solid var(--red)}
+.station-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+.station{
+  background:linear-gradient(150deg,#fff,var(--blue-soft));border:1px solid var(--line);border-radius:12px;padding:15px;position:relative;overflow:hidden;
+  transition:.2s ease;
+}
+.station:nth-child(4n+2){background:linear-gradient(150deg,#fff,var(--pink-soft))}
+.station:nth-child(4n+3){background:linear-gradient(150deg,#fff,var(--green-soft))}
+.station:nth-child(4n+4){background:linear-gradient(150deg,#fff,var(--gold-soft))}
+.station:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(20,24,35,.10)}
+.station:before{content:attr(data-n);position:absolute;right:10px;top:6px;font-family:Fraunces,serif;font-size:3rem;font-weight:800;opacity:.08}
+.station h3{font-family:Fraunces,serif;margin:0 0 8px;font-size:1.32rem}
+.station small{display:block;color:var(--muted);font-weight:700;margin-bottom:8px}
+.checklist{display:grid;gap:8px;margin:12px 0}
+.check{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);border-radius:9px;background:#fff;padding:10px}
+.check input{width:auto;margin-top:4px}
+.accordion{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;margin:12px 0}
+.acc-head{width:100%;border:0;border-bottom:1px solid var(--line);background:#fff;padding:13px 15px;text-align:left;font-weight:900;display:flex;justify-content:space-between;align-items:center}
+.acc-body{display:none;padding:15px;background:#fffefa}
+.accordion.open .acc-body{display:block}
+.scenario{border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,#fff,#f8f3e9);padding:17px;margin:16px 0}
+.scenario h3{font-family:Fraunces,serif;margin:0 0 8px;font-size:1.45rem}
+.option{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;margin:8px 0;display:flex;gap:10px;align-items:flex-start}
+.option:hover{border-color:#a69d90}
+.option.correct{border-color:var(--green);background:#eaf8f0}
+.option.wrong{border-color:var(--red);background:#fff0ee}
+.feedback{display:none;margin-top:10px;border-left:4px solid var(--green);background:#fff;padding:12px;border-radius:0 9px 9px 0}
+.feedback.show{display:block}
+.lesson-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:table}
+.lesson-table th,.lesson-table td{border:1px solid var(--line);padding:10px;vertical-align:top;text-align:left}
+.lesson-table th{background:var(--wash);font-size:.82rem;text-transform:uppercase;letter-spacing:.06em}
+.lesson-table textarea{min-height:70px;border:0;background:#fff;padding:6px}
+.table-tools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.danger-btn{border:1px solid #f1b8b4;background:#fff4f2;color:#9f2923;border-radius:9px;padding:8px 10px;font-weight:800}
+.small-btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 10px;font-weight:800}
+.evidence-note{border:1px solid rgba(8,145,178,.35);border-left:5px solid var(--cyan);background:#ecfeff;border-radius:12px;padding:14px;margin:12px 0;color:#164e63}
+.escape-room{border:1px solid rgba(219,39,119,.35);border-radius:14px;background:linear-gradient(135deg,#fff,#fdf2f8);padding:16px;margin:16px 0}
+.escape-room h3{font-family:Fraunces,serif;margin:0 0 8px}
+.escape-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.escape-card{border:1px solid var(--line);background:#fff;border-radius:12px;padding:13px;position:relative;overflow:hidden}
+.escape-card:before{content:attr(data-lock);position:absolute;right:10px;top:4px;font-family:JetBrains Mono,monospace;font-weight:900;color:rgba(219,39,119,.25);font-size:1.8rem}
+.source-link{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px;margin:8px 0;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.draft-box{border:2px solid rgba(49,95,206,.18);background:#fff;border-radius:14px;padding:14px;margin:12px 0}
+.draft-box textarea{min-height:130px}
+.source-drawer{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.source-card{border:1px solid var(--line);background:linear-gradient(135deg,#fff,#f8fafc);border-radius:12px;padding:12px;max-height:280px;overflow:auto}
+.source-card h4{font-family:Fraunces,serif;margin:0 0 8px}
+.apa-list li{margin:8px 0}
+.rubric{display:grid;grid-template-columns:180px repeat(4,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.rubric div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px;min-height:70px}
+.rubric div:nth-child(5n){border-right:0}.rubric div:nth-last-child(-n+5){border-bottom:0}
+.rubric .head{background:var(--wash);font-weight:900}
+.final-template{display:grid;gap:14px}
+.template-block{border:1px solid var(--line);border-radius:12px;background:#fff;padding:16px}
+.template-block h3{font-family:Fraunces,serif;font-size:1.35rem;margin:0 0 10px}
+.preview-field{border-top:1px solid var(--line-soft);padding:9px 0}
+.preview-field b{display:block;font-family:JetBrains Mono,monospace;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.empty{color:#8a8277;font-style:italic}
+.nav-row{display:flex;justify-content:space-between;gap:10px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line);flex-wrap:wrap}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--ink);color:#fff;border-radius:999px;padding:10px 14px;z-index:120;font-size:.9rem;box-shadow:0 12px 30px rgba(0,0,0,.22);opacity:0;transform:translateY(12px);transition:.25s}
+.toast.show{opacity:1;transform:translateY(0)}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(20,24,35,.62);z-index:140;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
+.modal-backdrop.show{display:flex}
+.modal{max-width:760px;width:100%;max-height:86vh;overflow:auto;background:#fff;border-radius:16px;padding:24px;box-shadow:0 28px 80px rgba(0,0,0,.32)}
+.modal h3{font-family:Fraunces,serif;font-size:1.8rem;margin:0 0 10px}
+.modal p,.modal li{color:#3f4656}
+.modal ul{padding-left:20px}
+.close-x{float:right;border:1px solid var(--line);background:#fff;border-radius:8px;width:36px;height:36px}
+.sr-only{position:absolute;left:-9999px}
+.startup{position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.22),transparent 30%),linear-gradient(135deg,#07111f,#1d2b65 42%,#7c1d54 74%,#0f766e);color:#fff;overflow:hidden}
+.startup:before{content:"";position:absolute;inset:-30%;background:conic-gradient(from 0deg,transparent,rgba(255,255,255,.20),transparent,rgba(255,255,255,.12),transparent);animation:aurora 9s linear infinite}
+@keyframes aurora{to{transform:rotate(360deg)}}
+.login-card{position:relative;z-index:1;width:min(760px,94vw);text-align:center;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);border-radius:28px;padding:34px;box-shadow:0 35px 90px rgba(0,0,0,.35);backdrop-filter:blur(18px)}
+.login-avatar{width:112px;height:112px;margin:0 auto 18px;border-radius:28px;display:grid;place-items:center;background:linear-gradient(135deg,#60a5fa,#f472b6,#facc15,#34d399);font-size:3rem;box-shadow:0 20px 50px rgba(0,0,0,.25);animation:breathe 2.6s ease-in-out infinite}
+@keyframes breathe{50%{transform:translateY(-8px) scale(1.03)}}
+.login-title-rotator{position:relative;min-height:clamp(5rem,10vw,9.4rem);margin:0 0 12px}
+.login-title-rotator h1{position:absolute;inset:0;display:grid;place-items:center;font-family:Fraunces,serif;font-size:clamp(2.4rem,5vw,4.8rem);line-height:.95;margin:0;animation:rotateWelcome 8s ease-in-out infinite}
+.login-title-rotator h1:nth-child(2){opacity:0;animation-delay:4s}
+.login-card p{font-size:1.05rem;color:rgba(255,255,255,.86)}
+.login-rotator{position:relative;min-height:58px;margin:10px auto 0;max-width:650px}
+.login-rotator p{position:absolute;inset:0;margin:0;animation:rotateWelcome 8s ease-in-out infinite}
+.login-rotator p:nth-child(2){opacity:0;animation-delay:4s}
+@keyframes rotateWelcome{0%,42%{opacity:1;transform:translateY(0)}50%,92%{opacity:0;transform:translateY(-8px)}100%{opacity:1;transform:translateY(0)}}
+.login-dock{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:22px 0}.login-dock span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);border-radius:14px;padding:10px 12px;font-weight:800}
+.login-btn{border:0;background:#fff;color:#111827;border-radius:999px;padding:14px 26px;font-weight:900;font-size:1.05rem;box-shadow:0 18px 45px rgba(0,0,0,.22);min-width:260px;min-height:54px;position:relative;overflow:hidden}
+.login-btn span{position:absolute;inset:0;display:grid;place-items:center;animation:rotateWelcome 8s ease-in-out infinite}
+.login-btn span:nth-child(2){opacity:0;animation-delay:4s}
+.startup.hide{opacity:0;pointer-events:none;transition:.7s ease}
+.assistant-widget{position:fixed;right:18px;bottom:18px;z-index:180;width:340px;max-width:calc(100vw - 28px);background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 22px 70px rgba(20,24,35,.24);overflow:hidden}
+.assistant-widget.min{width:auto}.assistant-widget.min .assistant-body{display:none}.assistant-widget.min .assistant-title span:last-child{display:none}
+.assistant-head{display:flex;align-items:center;gap:10px;padding:12px 13px;background:linear-gradient(135deg,#111827,#315fce);color:#fff}
+.assistant-face{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#fef3c7,#f9a8d4,#93c5fd);display:grid;place-items:center;font-size:1.35rem;animation:breathe 3s ease-in-out infinite}
+.assistant-title{font-weight:900;line-height:1.15;flex:1}.assistant-title small{display:block;font-weight:600;color:rgba(255,255,255,.75)}
+.assistant-head button{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);color:#fff;border-radius:8px;width:32px;height:32px}
+.assistant-body{padding:12px}.assistant-tabs{display:flex;gap:5px;margin-bottom:8px}.assistant-tabs button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 8px;font-size:.78rem;font-weight:900}.assistant-tabs button.active{background:var(--ink);color:#fff}.assistant-pane{display:none}.assistant-pane.active{display:block}.assistant-pane textarea{min-height:112px}
+.finale{min-height:58vh;display:grid;place-items:center;text-align:center;position:relative;overflow:hidden}.finale h2{font-size:clamp(2.4rem,5vw,5rem)}.spark{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--gold);animation:spark 2.8s ease-in-out infinite}.spark:nth-child(2){left:15%;top:28%;animation-delay:-.5s;background:var(--pink)}.spark:nth-child(3){right:18%;top:22%;animation-delay:-1s;background:var(--cyan)}.spark:nth-child(4){left:24%;bottom:22%;animation-delay:-1.6s;background:var(--green)}@keyframes spark{0%,100%{transform:translateY(0) scale(.7);opacity:.35}50%{transform:translateY(-32px) scale(1.4);opacity:1}}
+@media(max-width:920px){
+  .hero{grid-template-columns:1fr;min-height:auto}.hero-board{min-height:420px}.canvas-wrap{grid-template-columns:1fr}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}.matrix{grid-template-columns:44px 1fr 1fr}.rubric{grid-template-columns:1fr}
+  .rubric div,.rubric div:nth-child(5n){border-right:0}.panel h2{font-size:2rem}.layout{padding:16px}.step-rail{margin:0 -16px 18px;padding:10px 16px}
+}
+</style>
+</head>
+<body>
+<div class="startup" id="startup">
+  <div class="login-card">
+    <div class="login-avatar">4C</div>
+    <div class="project-credit" style="background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.28)">Proyecto de Dr María Sanabria · UNICAN</div>
+    <div class="login-title-rotator">
+      <h1>Bienvenida a CLIL Studio Pro</h1>
+      <h1>Welcome to CLIL Studio Pro</h1>
+    </div>
+    <div class="login-rotator">
+      <p>Inicia tu sesión de diseño: primero mapearás ideas, después construirás la unidad, revisarás con el checklist de Coyle y cerrarás exportando tu plantilla final.</p>
+      <p>Start your design session: map ideas, build the unit, review it with Coyle’s checklist, and export your final CLIL template.</p>
+    </div>
+    <div class="login-dock"><span>Canvas</span><span>4Cs</span><span>LOMLOE</span><span>Notas</span><span>APA</span><span>Export</span></div>
+    <button class="login-btn" onclick="loginStart()"><span>Iniciar sesión de diseño</span><span>Start design session</span></button>
+  </div>
+</div>
+<div class="topbar">
+  <div class="brand">
+    <div class="mark">CLIL</div>
+    <div>
+      <div class="brand-title">CLIL Studio Pro</div>
+      <div class="brand-sub">Proyecto de Dr María Sanabria (UNICAN) · Diseño académico de unidades AICLE</div>
+    </div>
+  </div>
+  <div class="mini-progress" title="Progreso del taller"><span id="progressBar"></span></div>
+  <div class="top-actions">
+    <div class="lang-switch" aria-label="Cambiar idioma"><button id="langES" class="active" onclick="switchLang('es')">ES</button><button id="langEN" onclick="switchLang('en')">EN</button></div>
+    <button class="icon-btn" onclick="openTheory('mapa')" title="Mapa de la herramienta">?</button>
+    <button class="pill-btn" onclick="saveAll()">Guardar</button>
+    <button class="pill-btn" onclick="exportWord()">Word</button>
+    <button class="pill-btn primary" onclick="exportPdf()">PDF</button>
+    <button class="icon-btn" onclick="resetAll()" title="Nuevo plan">↺</button>
+  </div>
+</div>
+<div class="layout">
+  <section id="hero" class="hero">
+    <div class="hero-copy">
+      <div class="project-credit">Proyecto de Dr María Sanabria · UNICAN</div>
+      <div class="eyebrow">AICLE / CLIL · Coyle, Hood & Marsh · nivel avanzado</div>
+      <h1>Diseña una unidad CLIL que piense, hable y deje huella.</h1>
+      <p>Un estudio interactivo para convertir una idea inicial en una secuencia AICLE completa: visión, contexto, pizarra de brainstorming, 4Cs, tríptico lingüístico, matriz CLIL, estaciones, andamiaje, evaluación, metarreflexión y plantilla final.</p>
+      <div class="citation">Basado en los ejes del <b>CLIL Teacher's Tool Kit</b>, las 4Cs, el <b>Language Triptych</b>, la <b>CLIL Matrix</b> y la lógica plan-do-review de Coyle, Hood & Marsh (2010).</div>
+      <div class="hero-strip">
+        <span class="micro-tag">Pizarra canvas</span>
+        <span class="micro-tag">Matriz CLIL</span>
+        <span class="micro-tag">12 estaciones</span>
+        <span class="micro-tag">Checklist docente</span>
+        <span class="micro-tag">Evaluación dual</span>
+        <span class="micro-tag">Metarreflexión</span>
+      </div>
+      <button class="nav-btn primary" onclick="startStudio()">Entrar al estudio →</button>
+    </div>
+    <div class="hero-board" aria-hidden="true">
+      <div class="hero-line l1"></div><div class="hero-line l2"></div><div class="hero-line l3"></div>
+      <div class="floating-card f1"><b>Content</b><small>Conceptos, progresión disciplinar y resultados observables.</small></div>
+      <div class="floating-card f2"><b>Communication</b><small>Language of, for and through learning.</small></div>
+      <div class="floating-card f3"><b>Cognition</b><small>LOTS, HOTS, preguntas y demanda cognitiva.</small></div>
+      <div class="floating-card f4"><b>Culture</b><small>Identidad, comunidad, comparación y perspectiva crítica.</small></div>
+    </div>
+  </section>
+  <div class="step-rail" id="stepRail"><div class="step-scroll" id="stepScroll"></div></div>
+  <main id="panels"></main>
+</div>
+<div class="assistant-widget" id="assistantWidget">
+  <div class="assistant-head">
+    <div class="assistant-face">✎</div>
+    <div class="assistant-title"><span>Cuaderno CLIL</span><small>Notas, enlaces y APA siempre a mano</small></div>
+    <button onclick="toggleAssistant()" title="Minimizar">–</button>
+  </div>
+  <div class="assistant-body">
+    <div class="assistant-tabs"><button class="active" onclick="assistantTab('notes',this)">Notas</button><button onclick="assistantTab('links',this)">Enlaces</button><button onclick="assistantTab('apa',this)">APA</button></div>
+    <div class="assistant-pane active" id="pane-notes"><textarea id="assistant_notes" oninput="saveAll(false)" placeholder="Ideas rápidas, dudas, frases para clase..."></textarea></div>
+    <div class="assistant-pane" id="pane-links"><textarea id="assistant_links" oninput="saveAll(false)" placeholder="Pega enlaces, recursos, vídeos, lecturas..."></textarea></div>
+    <div class="assistant-pane" id="pane-apa"><textarea id="assistant_biblio" oninput="saveAll(false)" placeholder="Añade referencias APA o DOI..."></textarea></div>
+    <div class="table-tools"><button class="small-btn" onclick="exportAssistantNotes()">Exportar cuaderno</button><button class="small-btn" onclick="insertApaRefs()">Añadir APA base</button><button class="small-btn" onclick="openApaBuilder()">Crear APA 7</button></div>
+  </div>
+</div>
+<div id="toast" class="toast">Guardado</div>
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <button class="close-x" onclick="closeModal()">×</button>
+    <h3 id="modalTitle">Teoría CLIL</h3>
+    <div id="modalBody"></div>
+  </div>
+</div>
+<script>
+const steps = [
+  ['vision','Visión compartida'],
+  ['context','Contexto'],
+  ['canvas','Pizarra Coyle'],
+  ['theory','Arquitectura 4Cs'],
+  ['content','Content'],
+  ['communication','Communication'],
+  ['cognition','Cognition'],
+  ['culture','Culture'],
+  ['matrix','Matriz CLIL'],
+  ['stations','Estaciones'],
+  ['scaffolding','Andamiaje'],
+  ['assessment','Evaluación'],
+  ['lesson','Lesson plan'],
+  ['reflection','Metarreflexión'],
+  ['library','Biblioteca teórica'],
+  ['questions','Banco de preguntas'],
+  ['escape','Escape room'],
+  ['lomloe','Currículo LOMLOE'],
+  ['coylecheck','Checklist Coyle'],
+  ['template','Plantilla final'],
+  ['finish','Cierre']
+];
+const fieldDefs = [
+  'vision_expectations','vision_ideal','vision_student_goals','vision_teacher_goals','vision_nonnegotiables',
+  'subject','level','age','l2','cefr','sessions','minutes','topic','curriculum','group_profile','prior_knowledge','needs','resources','community',
+  'content_bigideas','content_concepts','content_skills','content_outcomes','content_misconceptions','content_progression',
+  'lang_of','lang_for','lang_through','lang_genres','lang_functions','lang_interaction','lang_wall',
+  'cog_lots','cog_hots','cog_questions','cog_bloom','cog_metacog','cog_problem',
+  'culture_self','culture_other','culture_global','culture_community','culture_critical','culture_product',
+  'matrix_a','matrix_b','matrix_c','matrix_d','matrix_audit',
+  'stations_goal','stations_rotation','stations_grouping','stations_outputs',
+  'scaff_lang','scaff_content','scaff_interaction','scaff_affective','scaff_fade','scaff_access',
+  'assess_intentions','assess_success','assess_formative','assess_summative','assess_content','assess_language','assess_peer','assess_self','assess_evidence',
+  'lesson_hook','lesson_vocab','lesson_tasks','lesson_assess','teacher_checklist','learner_checklist',
+  'monitor_progress','monitor_feedback','monitor_visibility','monitor_mindmap','reflection_teacher','reflection_students','reflection_inquiry','next_iteration'
+  ,'escape_c1','escape_c2','escape_c3','escape_c4','escape_bloom','escape_matrix','lomloe_stage','lomloe_key_competences','lomloe_specific_competences','lomloe_descriptors','lomloe_assessment_criteria','lomloe_basic_knowledge','lomloe_learning_situations','lomloe_inclusion','lomloe_interdisciplinary','coyle_unit_strengths','coyle_unit_risks','coyle_unit_revision','assistant_notes','assistant_links','assistant_biblio','final_title','final_context_synthesis','final_4cs_synthesis','final_lesson_synthesis','final_lomloe_synthesis','final_assessment_synthesis','final_reflection_synthesis','final_bibliography_note'
+  ,'export_author','export_institution','export_footer','export_style','export_include_cover','export_include_4cs','export_include_context','export_include_lesson','export_include_lomloe','export_include_assessment','export_include_coyle','export_include_reflection','export_include_theory','export_include_session_table','export_include_stations','export_include_canvas','export_include_notebook','export_include_escape','export_include_refs','export_apa_custom','apa_type','apa_author','apa_year','apa_title','apa_source','apa_publisher','apa_doi'
+];
+const theoryTexts = {
+  mapa:`<p>La herramienta sigue una lectura práctica del Tool Kit de Coyle, Hood y Marsh: visión compartida, análisis del contexto, planificación de unidad, preparación, monitorización/evaluación y reflexión profesional.</p><ul><li>La pizarra previa funciona como mapa mental de unidad.</li><li>La matriz ayuda a auditar tareas por demanda cognitiva y apoyo lingüístico/contextual.</li><li>La plantilla final reúne todos los componentes de una unidad CLIL académicamente defendible.</li></ul>`,
+  triptych:`<p>El Language Triptych distingue la lengua <b>of learning</b> (conceptos y léxico disciplinar), <b>for learning</b> (funciones para operar en el aula) y <b>through learning</b> (lengua emergente que aparece mientras se piensa y se interactúa).</p>`,
+  matrix:`<p>La CLIL Matrix adapta la tensión entre demanda cognitiva y apoyo contextual/lingüístico. El objetivo no es simplificar el pensamiento, sino sostenerlo: alta demanda cognitiva con alto apoyo es el cuadrante más fértil.</p>`,
+  scaffold:`<p>El andamiaje CLIL debe sostener contenido, lengua, interacción, afecto y autonomía. Es temporal: se planifica también cómo se retira para que el alumnado gane control.</p>`,
+  assessment:`<p>La evaluación CLIL separa evidencias de contenido y evidencias de lengua, pero las interpreta de forma integrada. Combina evaluación formativa frecuente, criterios de éxito visibles, auto/coevaluación y productos finales variados.</p>`
+};
+const stationSeed = [
+  ['Activación visual','Imagen, objeto, dato sorprendente o mini-demostración para activar conocimiento previo.','El alumnado produce hipótesis iniciales y preguntas.'],
+  ['Léxico en contexto','Clasificar términos, emparejar imagen-concepto, crear glosario visual.','Banco de language of learning.'],
+  ['Input multimodal','Vídeo corto, texto adaptado, infografía, experimento o fuente primaria.','Notas guiadas con evidencias.'],
+  ['Talk to learn','Think-pair-share, information gap, jigsaw o debate estructurado.','Uso de language for learning.'],
+  ['Procesamiento LOTS','Identificar, ordenar, etiquetar, resumir, secuenciar.','Base conceptual segura.'],
+  ['Desafío HOTS','Comparar, justificar, diseñar, evaluar, resolver problema.','Producto con pensamiento visible.'],
+  ['Cultura crítica','Comparación local-global, voces ausentes, valores, conflicto o ciudadanía.','Reflexión intercultural.'],
+  ['Taller de producción','Póster, informe, maqueta, podcast, explicación oral, mapa o experimento.','Output multimodal.'],
+  ['Language wall','Registrar lengua emergente, errores útiles, conectores y reformulaciones.','Corpus vivo de aula.'],
+  ['Feedback clínico','Mini-conferencias, rúbrica rápida, semáforo, checklist o peer review.','Próximo paso concreto.'],
+  ['Metacognición','¿Qué cambió en mi comprensión? ¿Qué estrategia me ayudó?','Diario de aprendizaje.'],
+  ['Transferencia','Aplicar a contexto nuevo, comunidad, problema real o caso comparativo.','Aprendizaje con sentido.']
+];
+const apaRefs = [
+  'Anderson, L. W., & Krathwohl, D. R. (Eds.). (2001). A taxonomy for learning, teaching, and assessing: A revision of Bloom’s taxonomy of educational objectives. Longman.',
+  'Black, P., & Wiliam, D. (1998). Assessment and classroom learning. Assessment in Education: Principles, Policy & Practice, 5(1), 7-74.',
+  'Byram, M. (1997). Teaching and assessing intercultural communicative competence. Multilingual Matters.',
+  'Coyle, D. (2007). Content and Language Integrated Learning: Towards a connected research agenda for CLIL pedagogies. International Journal of Bilingual Education and Bilingualism, 10(5), 543-562.',
+  'Coyle, D., Hood, P., & Marsh, D. (2010). CLIL: Content and language integrated learning. Cambridge University Press.',
+  'Cummins, J. (1984). Bilingualism and special education: Issues in assessment and pedagogy. Multilingual Matters.',
+  'Dale, L., & Tanner, R. (2012). CLIL activities: A resource for subject and language teachers. Cambridge University Press.',
+  'Gibbons, P. (2002). Scaffolding language, scaffolding learning: Teaching second language learners in the mainstream classroom. Heinemann.',
+  'García, O., & Wei, L. (2014). Translanguaging: Language, bilingualism and education. Palgrave Macmillan.',
+  'Marsh, D. (2002). CLIL/EMILE: The European dimension. European Commission.',
+  'Mehisto, P., Marsh, D., & Frigols, M. J. (2008). Uncovering CLIL: Content and language integrated learning in bilingual and multilingual education. Macmillan.',
+  'Meyer, O. (2010). Towards quality CLIL: Successful planning and teaching strategies. Pulso, 33, 11-29.',
+  'Nikula, T., & Moore, P. (2019). Exploring translanguaging in CLIL. International Journal of Bilingual Education and Bilingualism, 22(2), 237-249.',
+  'Wood, D., Bruner, J. S., & Ross, G. (1976). The role of tutoring in problem solving. Journal of Child Psychology and Psychiatry, 17(2), 89-100.'
+];
+const scenarios = {
+  s1:{answer:1, text:'Una secuencia sobre volcanes pide copiar definiciones, etiquetar partes y completar huecos. ¿Qué intervención mejora más su calidad CLIL?', opts:['Añadir más vocabulario técnico al inicio.','Introducir una tarea de comparación/evaluación con apoyo visual y marcos lingüísticos.','Traducir todo el texto al español.','Eliminar el producto final.'], fb:'La mejora clave es elevar Cognition sin retirar apoyo: comparación/evaluación + andamiaje.'},
+  s2:{answer:2, text:'Un alumno entiende el proceso científico pero no puede explicarlo por escrito en L2. ¿Qué evaluación evita confundir contenido con lengua?', opts:['Suspender el contenido porque la explicación escrita no es correcta.','Evaluar solo vocabulario.','Permitir diagrama, explicación oral con sentence frames y rúbrica separada de contenido/lengua.','No evaluar la lengua.'], fb:'La evaluación dual recoge evidencia conceptual y lingüística por canales diferentes.'},
+  s3:{answer:0, text:'¿Qué ejemplo pertenece principalmente a language FOR learning?', opts:['Can you repeat that? I agree because... In my group we found...','Evaporation, condensation, precipitation.','El uso emergente espontáneo de although tras un debate.','La definición de aqueduct.'], fb:'FOR learning es la lengua funcional para participar, cooperar, preguntar, negociar y explicar.'}
+};
+let current = 0;
+let canvasState = {tool:'note',items:[],selected:null,drag:null,start:null};
+let lessonRows = Array.from({length:8},(_,i)=>({id:i+1}));
+let customStations = [];
+let savedFieldValues = {};
+let currentLang = localStorage.getItem('clil_lang') || 'es';
+function el(id){return document.getElementById(id)}
+function startStudio(){el('hero').style.display='none';el('stepRail').style.display='block';go(1)}
+function loginStart(){playTone(523,.08);setTimeout(()=>playTone(784,.10),90);el('startup').classList.add('hide');setTimeout(()=>{el('startup').style.display='none';startStudio()},520)}
+function buildSteps(){
+  el('stepScroll').innerHTML = steps.map((s,i)=>`<button class="step-chip" onclick="go(${i+1})" id="chip-${i+1}"><span>${i+1}</span>${s[1]}</button>`).join('');
+}
+function panel(id, eyebrow, title, lead, body){
+  return `<section class="panel" id="panel-${id}"><div class="eyebrow">${eyebrow}</div><h2>${title}</h2><p class="lead">${lead}</p>${body}<div class="nav-row"><button class="nav-btn" onclick="prev()">← Atrás</button><button class="nav-btn primary" onclick="next()">Continuar →</button></div></section>`;
+}
+function input(id,label,help='',type='textarea',ph=''){
+  if(type==='select') return `<div class="field"><label for="${id}">${label}</label><p class="help">${help}</p><select id="${id}" onchange="saveAll(false)">${ph}</select></div>`;
+  if(type==='input'||type==='number') return `<div class="field"><label for="${id}">${label}</label><p class="help">${help}</p><input id="${id}" type="${type==='number'?'number':'text'}" placeholder="${ph}" oninput="saveAll(false)"></div>`;
+  return `<div class="field"><label for="${id}">${label}</label><p class="help">${help}</p><textarea id="${id}" placeholder="${ph}" oninput="saveAll(false)"></textarea></div>`;
+}
+function theory(key,title='Teoría aplicada'){
+  return `<div class="theory"><strong>${title}</strong>${theoryTexts[key]||''}<span class="source">Síntesis basada en Coyle, Hood & Marsh (2010) y apuntes de clase.</span></div>`;
+}
+function scenario(id){
+  const s=scenarios[id];
+  return `<div class="scenario"><h3>Caso de decisión</h3><p>${s.text}</p>${s.opts.map((o,i)=>`<button class="option" onclick="answerScenario('${id}',${i},this)"><b>${String.fromCharCode(65+i)}</b><span>${o}</span></button>`).join('')}<div class="feedback" id="fb-${id}">${s.fb}</div></div>`;
+}
+function buildPanels(){
+  const levelOpts = `<option value="">Selecciona</option><option>Infantil</option><option>Primaria 1-2</option><option>Primaria 3-4</option><option>Primaria 5-6</option><option>ESO 1-2</option><option>ESO 3-4</option><option>Bachillerato</option><option>Formación profesional</option><option>Universidad</option>`;
+  const cefrOpts = `<option value="">Selecciona</option><option>Pre-A1</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option>`;
+  const panels = [
+    panel(1,'Stage 1 · Shared Vision','Visión compartida antes de planificar','Coyle insiste en empezar por una visión común: qué entendemos por CLIL, qué esperamos del alumnado y qué compromisos metodológicos asumimos.',
+      theory('mapa','Tool Kit')+`<div class="grid-2">${input('vision_expectations','Expectativas de CLIL','¿Qué esperas que cambie respecto a una clase tradicional de lengua o contenido?')}${input('vision_ideal','Clase CLIL ideal','Describe una escena concreta de aula: qué hacen, dicen, piensan y producen los estudiantes.')}${input('vision_student_goals','Objetivos para el alumnado','Incluye contenido, lengua, autonomía, colaboración y ciudadanía.')}${input('vision_teacher_goals','Objetivos docentes','¿Qué quieres aprender o mejorar tú como docente CLIL?')}</div>${input('vision_nonnegotiables','No negociables metodológicos','Ej.: input comprensible, interacción real, apoyo visual, pensamiento de orden superior, feedback formativo.')}
+      <div class="checklist">${check('La unidad parte del contenido, no de una lista gramatical.')}${check('La lengua es medio y objetivo de aprendizaje.')}${check('Hay pensamiento visible, cooperación y reflexión.')}${check('La evaluación no reduce el contenido a precisión lingüística.')}</div>`),
+    panel(2,'Stage 2 · Context','Analiza el contexto real de tu aula','La calidad CLIL depende del ajuste entre currículo, edad, nivel lingüístico, recursos, necesidades y comunidad.',
+      `<div class="grid-3">${input('subject','Área / asignatura','', 'input','Ciencias, Historia, Música...')}${input('level','Etapa / curso','', 'select', levelOpts)}${input('age','Edad del alumnado','', 'input','10-11, 2º ESO...')}${input('l2','Lengua vehicular','', 'input','English / French...')}${input('cefr','Nivel aproximado L2','', 'select', cefrOpts)}${input('sessions','Sesiones','', 'number','6')}${input('minutes','Minutos por sesión','', 'number','50')}${input('topic','Título de la unidad','', 'input','Water in our city...')}${input('curriculum','Referencia curricular','Bloque, saberes básicos, competencias o standards.','input')}</div><div class="grid-2">${input('group_profile','Perfil del grupo','Motivación, diversidad, dinámica, experiencia CLIL previa.')}${input('prior_knowledge','Conocimientos previos','Qué saben ya de contenido, lengua y estrategias.')}${input('needs','Barreras previsibles','Lingüísticas, cognitivas, afectivas, culturales o materiales.')}${input('resources','Recursos disponibles','Auxiliar, TIC, laboratorio, biblioteca, entorno local, familias.')}</div>${input('community','Vínculo con comunidad o mundo real','¿Dónde vive esta unidad fuera del aula?')}`),
+    panel(3,'Pre-stage · Coyle mind map','Pizarra de brainstorming','Antes de cerrar objetivos, abre el pensamiento. Añade notas, formas y flechas para mapear contenidos, lengua, preguntas y productos.',
+      `<div class="canvas-wrap"><aside class="tools"><h3>Herramientas</h3><div class="tool-grid"><button id="tool-note" class="active" onclick="setTool('note')">Nota</button><button id="tool-box" onclick="setTool('box')">Caja</button><button id="tool-circle" onclick="setTool('circle')">Círculo</button><button id="tool-arrow" onclick="setTool('arrow')">Flecha</button></div><button class="full-tool" onclick="addPromptNote()">Añadir pregunta CLIL</button><button class="full-tool" onclick="autoMindMap()">Sembrar mapa 4Cs</button><button class="full-tool" onclick="clearCanvas()">Limpiar pizarra</button><button class="full-tool" onclick="downloadCanvas()">Exportar imagen</button><p class="help">Arrastra elementos para moverlos. Con Flecha: arrastra desde origen hasta destino. Doble clic en una nota para editar texto.</p></aside><canvas id="brainCanvas" width="1000" height="620"></canvas></div><div class="callout"><h3>Preguntas de brainstorming</h3><p>¿Qué conceptos son irrenunciables? ¿Qué lengua bloquea o desbloquea el pensamiento? ¿Dónde aparecerá una voz cultural distinta? ¿Qué producto probará que han aprendido algo que antes no podían hacer?</p></div>`),
+    panel(4,'Framework · 4Cs','Arquitectura 4Cs y principios de calidad','Una unidad CLIL sólida integra contenido, comunicación, cognición y cultura; no añade inglés a una ficha ni traduce una unidad existente.',
+      `<div class="grid-4"><div class="c-card" data-letter="C"><h3 class="c-content">Content</h3><p>Conocimiento, comprensión y destrezas disciplinares. Incluye conceptos clave, progresión y errores previsibles.</p></div><div class="c-card" data-letter="C"><h3 class="c-communication">Communication</h3><p>Lengua de, para y a través del aprendizaje. Incluye interacción y géneros discursivos.</p></div><div class="c-card" data-letter="C"><h3 class="c-cognition">Cognition</h3><p>Procesos de pensamiento: LOTS, HOTS, resolución de problemas, metacognición y transferencia.</p></div><div class="c-card" data-letter="C"><h3 class="c-culture">Culture</h3><p>Identidad, alteridad, comunidad, ciudadanía, valores y perspectiva crítica.</p></div></div>${scenario('s1')}<div class="accordion"><button class="acc-head" onclick="toggleAcc(this)">Criterios de una unidad CLIL potente <span>+</span></button><div class="acc-body"><div class="checklist">${['Contenido curricular claro y exigente.','Lengua planificada como herramienta de pensamiento.','Interacción significativa entre iguales.','Andamiaje conceptual y lingüístico explícito.','Producto auténtico con audiencia o propósito.','Evaluación formativa frecuente y visible.','Cultura tratada como perspectiva, no decoración.'].map(check).join('')}</div></div></div>`),
+    panel(5,'C1 · Content','Diseña el contenido disciplinar','No basta con nombrar un tema. Hay que decidir conceptos nucleares, destrezas de la disciplina, progresión y evidencias.',
+      `<div class="grid-2">${input('content_bigideas','Big ideas','Dos o tres ideas potentes que estructuran la unidad.')}${input('content_concepts','Conceptos clave','Vocabulario conceptual, procesos, principios, relaciones.')}${input('content_skills','Destrezas disciplinares','Observar, clasificar, interpretar fuentes, modelizar, medir, argumentar...')}${input('content_outcomes','Resultados de aprendizaje','Al final el alumnado podrá...')}</div><div class="grid-2">${input('content_misconceptions','Errores o concepciones alternativas','¿Qué suelen malentender?')}${input('content_progression','Progresión del contenido','De lo concreto a lo abstracto, de caso local a patrón general, etc.')}</div>`),
+    panel(6,'C2 · Communication','Planifica el Language Triptych','La lengua no se improvisa: se anticipa la lengua obligatoria, la lengua funcional y la lengua emergente.',
+      theory('triptych','Language Triptych')+`<div class="grid-3">${input('lang_of','Language OF learning','Léxico técnico, estructuras conceptuales, símbolos, nominalizaciones, definición.')}${input('lang_for','Language FOR learning','Preguntar, debatir, justificar, negociar, pedir ayuda, comparar, reportar.')}${input('lang_through','Language THROUGH learning','Cómo recogerás lengua emergente: language wall, reformulaciones, corpus de aula.')}</div><div class="grid-2">${input('lang_genres','Géneros y textos','Informe científico, línea del tiempo, explicación causal, debate, descripción de gráfico...')}${input('lang_functions','Funciones comunicativas','Definir, comparar, secuenciar, inferir, justificar, persuadir...')}${input('lang_interaction','Patrones de interacción','Parejas, jigsaw, expertos, entrevista, fishbowl, role cards...')}${input('lang_wall','Language wall / corpus','Qué se registrará y cómo se reutilizará.')}</div>${scenario('s3')}`),
+    panel(7,'C3 · Cognition','Eleva el pensamiento con apoyo','La clave no es hacer tareas difíciles sin más, sino sostener pensamiento complejo con andamiaje suficiente.',
+      `<div class="grid-2">${input('cog_lots','LOTS necesarios','Recordar, comprender, aplicar: ¿qué base necesitan?')}${input('cog_hots','HOTS de la unidad','Analizar, evaluar, crear: ¿dónde ocurre el salto cognitivo?')}${input('cog_questions','Preguntas poderosas','¿Por qué? ¿Cómo lo sabes? ¿Qué evidencia? ¿Qué pasaría si...?')}${input('cog_bloom','Verbos de Bloom revisado','Clasificar, contrastar, modelizar, diseñar, defender, revisar...')}${input('cog_metacog','Metacognición','Cómo harán visible su forma de aprender y pensar.')}${input('cog_problem','Problema o reto central','Reto auténtico que vertebra la unidad.')}</div>`),
+    panel(8,'C4 · Culture / Community','Diseña cultura como perspectiva','Culture no es “food, flags and festivals”. En CLIL abre comparación, identidad, voces, comunidad y ciudadanía.',
+      `<div class="grid-2">${input('culture_self','Self-awareness','¿Qué descubrirán sobre su propia comunidad, supuestos o identidad?')}${input('culture_other','Otherness','¿Qué otra perspectiva entrará en la unidad?')}${input('culture_global','Dimensión global','Comparaciones, interdependencias, sostenibilidad, justicia o movilidad.')}${input('culture_community','Acción comunitaria','Producto, decisión o diálogo que sale del aula.')}${input('culture_critical','Pregunta crítica','¿Qué voces faltan? ¿Quién gana/pierde? ¿Qué valores hay detrás?')}${input('culture_product','Producto cultural/intercultural','Debate, campaña, museo, carta, guía, exposición, podcast...')}</div>`),
+    panel(9,'Audit · CLIL Matrix','Audita tareas con la matriz CLIL','Clasifica tareas por demanda cognitiva y apoyo. El objetivo es mover tareas hacia alta demanda con alto apoyo.',
+      theory('matrix','CLIL Matrix')+`<div class="matrix"><div></div><div class="mx-head">Alto apoyo lingüístico/contextual</div><div class="mx-head">Bajo apoyo lingüístico/contextual</div><div class="mx-axis">Alta demanda cognitiva</div><div class="mx-cell q-b"><div class="quadrant">B · Zona CLIL fértil</div>${input('matrix_b','Tareas aquí','', 'textarea','Resolver problema con organizador, sentence frames y datos visuales.')}</div><div class="mx-cell q-c"><div class="quadrant">C · Riesgo de sobrecarga</div>${input('matrix_c','Tareas aquí','', 'textarea','Texto abstracto sin apoyo, debate libre sin preparación.')}</div><div class="mx-axis">Baja demanda cognitiva</div><div class="mx-cell q-a"><div class="quadrant">A · Entrada segura</div>${input('matrix_a','Tareas aquí','', 'textarea','Etiquetar, emparejar, ordenar con imágenes.')}</div><div class="mx-cell q-d"><div class="quadrant">D · Zona pobre</div>${input('matrix_d','Tareas aquí','', 'textarea','Copiar, traducir mecánicamente, repetir listas.')}</div></div>${input('matrix_audit','Decisiones tras la auditoría','¿Qué tarea subirás de nivel? ¿Qué apoyo añadirás?')}`),
+    panel(10,'Task design · Stations','Diseña estaciones de aprendizaje','Una secuencia por estaciones permite alternar input, interacción, pensamiento, producción y feedback. Ahora puedes añadir tantas estaciones propias como quieras.',
+      `<div class="grid-2">${input('stations_goal','Propósito de las estaciones','Qué aprenderán al rotar.')}${input('stations_rotation','Rotación y tiempos','Duración, número de grupos, orden, señales.')}${input('stations_grouping','Agrupamientos y roles','Roles lingüísticos/cognitivos: facilitator, evidence finder, language monitor...')}${input('stations_outputs','Evidencias por estación','Qué queda producido o registrado.')}</div><div class="evidence-note"><b>Qué cuenta como evidencia aquí:</b> una producción, interacción, decisión, explicación, borrador, registro o revisión que permite inferir aprendizaje. No es solo “actividad hecha”: debe mostrar qué sabe, qué puede hacer o cómo está pensando el alumnado.</div><div class="table-tools"><button class="small-btn" onclick="addCustomStation()">+ Añadir estación propia</button><button class="small-btn" onclick="seedCustomStations()">Generar 4 estaciones extra</button></div><div class="station-board" id="stationBoard"></div>`),
+    panel(11,'Support · Scaffolding','Andamiaje multinivel y retirada gradual','Planifica apoyo lingüístico, conceptual, interactivo, afectivo y de acceso. Luego decide cómo desaparecerá.',
+      theory('scaffold','Scaffolding')+`<div class="grid-2">${input('scaff_lang','Andamiaje lingüístico','Sentence frames, word banks, recasts, modelos, pronunciación, conectores.')}${input('scaff_content','Andamiaje conceptual','Organizadores gráficos, ejemplos resueltos, manipulativos, mapas, visuales.')}${input('scaff_interaction','Andamiaje de interacción','Roles, turnos, estructuras cooperativas, accountable talk.')}${input('scaff_affective','Andamiaje afectivo','Seguridad, elección, ensayo, tolerancia al error, participación gradual.')}${input('scaff_access','Accesibilidad y diversidad','DUA, apoyos sensoriales, adaptaciones, extensiones.')}${input('scaff_fade','Retirada del andamiaje','Qué apoyo se retira, cuándo y con qué señal de autonomía.')}</div>`),
+    panel(12,'Assessment · Dual focus','Evaluación formativa, sumativa y dual','La evaluación CLIL debe hacer visible el progreso y distinguir contenido y lengua sin separarlos artificialmente.',
+      theory('assessment','Assessment for Learning')+scenario('s2')+`<div class="grid-2">${input('assess_intentions','Learning intentions','Qué se compartirá al inicio con el alumnado.')}${input('assess_success','Success criteria','Criterios de éxito observables, co-construidos o modelados.')}${input('assess_formative','Evaluación formativa','Exit tickets, mini-whiteboards, observación, feedback, conferencias.')}${input('assess_summative','Evaluación sumativa','Producto final, prueba práctica, presentación, portfolio.')}${input('assess_content','Evidencia de Content','Cómo demostrarán comprensión disciplinar.')}${input('assess_language','Evidencia de Language','Qué mirarás en lengua: funciones, léxico, género, interacción.')}${input('assess_peer','Coevaluación','Rutina, rúbrica o protocolo entre iguales.')}${input('assess_self','Autoevaluación','Preguntas o escala de autonomía y conciencia lingüística.')}</div>${input('assess_evidence','Triangulación de evidencias','Producto, proceso, interacción, cuaderno, oralidad, observación, portfolio.')}<div class="rubric"><div class="head">Criterio</div><div class="head">Inicial</div><div class="head">En desarrollo</div><div class="head">Competente</div><div class="head">Excelente</div>${['Conceptual accuracy','Use of evidence','Language of learning','Interaction / language for learning','Reflection and transfer'].map(r=>`<div class="head">${r}</div><div contenteditable="true">Necesita apoyo intensivo.</div><div contenteditable="true">Muestra avances con apoyo.</div><div contenteditable="true">Logra el objetivo con claridad.</div><div contenteditable="true">Transfiere, justifica y mejora.</div>`).join('')}</div>`),
+    panel(13,'Stage 4 · Lesson plan','Secuencia de sesiones y checklist docente','Convierte la unidad en sesiones: activar, construir vocabulario, tarea, feedback y evaluación. Puedes añadir o borrar filas según tu unidad real.',
+      `<div class="evidence-note"><b>Definición operativa de evidencia:</b> en una unidad CLIL, una evidencia es cualquier dato observable del aprendizaje que permite tomar una decisión docente: un producto, una explicación oral, una pregunta, una interacción, una revisión tras feedback, un mapa conceptual, un ticket de salida, una anotación en el language wall o una actuación en una tarea. Debe indicar <i>qué contenido comprende</i>, <i>qué lengua usa</i> y/o <i>qué proceso cognitivo despliega</i>.</div><div class="table-tools"><button class="small-btn" onclick="addLessonRow()">+ Añadir sesión</button><button class="small-btn" onclick="addLessonRows(3)">+ Añadir 3</button><button class="small-btn" onclick="renumberLessonRows()">Renumerar</button></div><table class="lesson-table"><thead><tr><th>Sesión</th><th>Objetivo CLIL</th><th>Input / materiales</th><th>Interacción</th><th>Andamiaje</th><th>Evidencia</th><th></th></tr></thead><tbody id="lessonBody"></tbody></table><div class="grid-2">${input('lesson_hook','Activating prior knowledge','Actividad inicial y diagnóstico.')}${input('lesson_vocab','Building vocabulary','Cómo se introduce y recicla léxico.')}${input('lesson_tasks','Task-based activities','Tareas centrales y producto.')}${input('lesson_assess','Assessment moments','Dónde aparece feedback, auto/coevaluación y evaluación final.')}${input('teacher_checklist','Checklist del docente','Qué comprobarás antes/durante/después.')}${input('learner_checklist','Checklist del alumnado','Qué podrán comprobar ellos mismos.')}</div>`),
+    panel(14,'Stage 5-6 · Monitor and inquiry','Metarreflexión y mejora profesional','Coyle conecta la planificación con observación, evaluación de la acción y comunidades de indagación docente.',
+      `<div class="grid-2">${input('monitor_progress','Cómo monitorizarás progreso','Contenido, lengua, participación y autonomía.')}${input('monitor_feedback','Feedback incorporado','Qué feedback, cuándo y cómo se usará.')}${input('monitor_visibility','Progreso visible','Portfolio, mapa, tracker, rúbrica, language wall.')}${input('monitor_mindmap','Revisita del mapa mental','Cuándo vuelve la clase a la pizarra inicial y qué cambia.')}${input('reflection_teacher','Metarreflexión docente','¿Qué funcionó, qué no, qué evidencia tengo?')}${input('reflection_students','Metarreflexión del alumnado','Preguntas sobre estrategias, lengua, contenido, identidad.')}${input('reflection_inquiry','Pregunta de indagación','Una pregunta investigable para mejorar la siguiente iteración.')}${input('next_iteration','Siguiente ciclo','Qué cambiarás en materiales, tareas, apoyo o evaluación.')}</div><div class="callout"><h3>Preguntas de alto nivel</h3><p>¿Estoy bajando la demanda cognitiva cuando en realidad debería subir el apoyo? ¿Qué parte de la lengua ha emergido porque el alumnado necesitaba pensar? ¿Qué evidencia demuestra aprendizaje y no solo cumplimiento? ¿Qué voz cultural ha desplazado una mirada cómoda?</p></div>`),
+    panel(15,'Theory · Biblioteca CLIL','Biblioteca teórica aplicada','Un repositorio de teoría accionable para justificar decisiones de diseño, formar docentes y enriquecer la discusión académica.',
+      `<div class="grid-2">
+        <div class="callout"><h3>1. CLIL como enfoque dual</h3><p>CLIL no es una asignatura traducida ni una clase de lengua con temática curricular. Es una arquitectura de aprendizaje donde contenido y lengua se co-construyen. El contenido proporciona necesidad comunicativa y la lengua permite acceder, procesar y comunicar conocimiento.</p><p><b>Implicación de diseño:</b> cada tarea debe poder responder a dos preguntas: qué conocimiento se construye y qué lengua permite construirlo.</p></div>
+        <div class="callout"><h3>2. Content-driven planning</h3><p>La planificación empieza en el contenido porque el contenido determina las necesidades lingüísticas, cognitivas y culturales. Si se empieza por una estructura gramatical, el riesgo es producir una clase de lengua tematizada.</p><p><b>Decisión práctica:</b> formula primero conceptos, destrezas disciplinares y evidencias de comprensión.</p></div>
+        <div class="callout"><h3>3. Las 4Cs como sistema</h3><p>Content, Communication, Cognition y Culture no son apartados independientes. Funcionan como un sistema: el contenido exige pensamiento; el pensamiento exige lenguaje; el lenguaje se usa en comunidades con valores, perspectivas e identidades.</p><p><b>Señal de calidad:</b> una modificación en una C obliga a revisar las demás.</p></div>
+        <div class="callout"><h3>4. Language Triptych</h3><p>La lengua <i>of learning</i> recoge el léxico y discurso disciplinar; la lengua <i>for learning</i> sostiene la interacción y la vida del aula; la lengua <i>through learning</i> emerge cuando el alumnado negocia sentido, descubre huecos y necesita nuevas formas de expresión.</p><p><b>Decisión práctica:</b> planifica OF y FOR antes de la clase, y captura THROUGH durante la clase.</p></div>
+        <div class="callout"><h3>5. Dialogic learning</h3><p>El aprendizaje profundo exige interacción: explicar, preguntar, justificar, reformular, contradecir con respeto y construir sobre la idea de otra persona. En CLIL esta interacción necesita ser enseñada lingüísticamente.</p><p><b>Señal de riesgo:</b> si el docente habla el 80% del tiempo, la unidad probablemente reduce comunicación a input.</p></div>
+        <div class="callout"><h3>6. Cognición y lenguaje</h3><p>La competencia cognitiva del alumnado suele ser más alta que su competencia en la lengua vehicular. Un diseño pobre baja el pensamiento para adecuarlo a la lengua. Un diseño CLIL sólido mantiene el reto y aumenta el apoyo.</p><p><b>Movimiento experto:</b> no simplifiques la pregunta; simplifica el acceso a la pregunta.</p></div>
+        <div class="callout"><h3>7. Matriz CLIL</h3><p>La matriz permite analizar tareas según demanda cognitiva y apoyo lingüístico/contextual. Una tarea de alta demanda sin apoyo genera ansiedad; una tarea de baja demanda con poco apoyo genera actividad pobre; la zona fértil combina reto y andamiaje.</p><p><b>Uso recomendado:</b> auditar cada estación y cada evaluación.</p></div>
+        <div class="callout"><h3>8. Andamiaje</h3><p>El andamiaje no es ayuda indiscriminada. Es apoyo temporal, ajustado y retirado progresivamente. Puede ser lingüístico, conceptual, procedimental, interactivo, afectivo, visual, digital o metacognitivo.</p><p><b>Pregunta clave:</b> ¿qué podrá hacer el alumnado mañana sin el apoyo que hoy necesita?</p></div>
+        <div class="callout"><h3>9. Cultura como ciudadanía</h3><p>Culture implica conciencia de uno mismo y de los otros, comparación crítica, comunidad, pertenencia y participación. No se limita a países de habla inglesa ni a celebraciones superficiales.</p><p><b>Prueba de profundidad:</b> la tarea cultural cambia una perspectiva, no solo añade un dato curioso.</p></div>
+        <div class="callout"><h3>10. Evaluación dual</h3><p>La evaluación CLIL debe evitar que la falta de lengua oculte el conocimiento, y que el contenido sirva de excusa para no observar progreso lingüístico. La solución no es separar completamente, sino generar evidencias complementarias.</p><p><b>Diseño experto:</b> rúbricas con criterios separados y producto multimodal.</p></div>
+        <div class="callout"><h3>11. Assessment for Learning</h3><p>Compartir intenciones de aprendizaje, criterios de éxito, feedback accionable, autoevaluación y coevaluación convierte la evaluación en motor del aprendizaje. En CLIL es especialmente importante porque el alumnado necesita ver progreso en contenido y lengua.</p><p><b>Rutina potente:</b> antes de entregar, cada estudiante marca una evidencia de contenido y una evidencia de lengua.</p></div>
+        <div class="callout"><h3>12. Materiales auténticos</h3><p>Los materiales auténticos aumentan relevancia, pero pueden sobrecargar. La adaptación CLIL no elimina autenticidad: añade rutas de acceso, segmenta input, anticipa vocabulario, activa conocimiento previo y da propósito a la lectura/escucha.</p><p><b>Auditoría:</b> input, procesamiento, output y feedback.</p></div>
+        <div class="callout"><h3>13. Aprendizaje cooperativo</h3><p>La cooperación en CLIL no es sentar al alumnado en grupos. Requiere interdependencia positiva, responsabilidad individual, roles, lengua funcional, producto común y evaluación del proceso.</p><p><b>Roles útiles:</b> language monitor, evidence finder, summariser, questioner, connector.</p></div>
+        <div class="callout"><h3>14. Metacognición</h3><p>El alumnado debe aprender a observar cómo aprende: qué estrategias usa para comprender input, cómo negocia significado, qué hace cuando no tiene lengua suficiente y cómo revisa sus productos.</p><p><b>Diario breve:</b> hoy entendí..., necesité decir..., resolví el problema usando...</p></div>
+        <div class="callout"><h3>15. Inclusión y DUA</h3><p>Una unidad CLIL avanzada anticipa diversidad: distintos canales de input, opciones de output, apoyos visuales, tiempos, colaboración, tecnología, extensión para alumnado avanzado y acceso para necesidades específicas.</p><p><b>Regla:</b> accesibilidad no baja expectativas; multiplica caminos.</p></div>
+        <div class="callout"><h3>16. Profesional reflexivo</h3><p>El Tool Kit no termina en la plantilla. La observación de aula, el análisis de incidentes críticos y la revisión de evidencias permiten convertir cada unidad en investigación docente.</p><p><b>Cierre académico:</b> documenta una decisión, una evidencia y una mejora para la próxima iteración.</p></div>
+      </div>
+      <div class="accordion open"><button class="acc-head" onclick="toggleAcc(this)">Taxonomía de andamiajes CLIL <span>+</span></button><div class="acc-body">
+        <div class="grid-3">
+          <div class="callout"><h3>Lingüístico</h3><p>Word banks, cognates, sentence frames, substitution tables, pronunciation rehearsal, recasts, model texts, discourse markers, functional language cards.</p></div>
+          <div class="callout"><h3>Conceptual</h3><p>Diagrams, timelines, worked examples, manipulatives, concept maps, Venn diagrams, models, analogies, chunked explanations, demonstrations.</p></div>
+          <div class="callout"><h3>Procedimental</h3><p>Checklists, step cards, lab protocols, writing planners, research guides, source-analysis grids, role instructions, workflow boards.</p></div>
+          <div class="callout"><h3>Interactivo</h3><p>Talk roles, jigsaw, pair rehearsal, accountable talk stems, information gap, debate protocols, peer coaching, group contracts.</p></div>
+          <div class="callout"><h3>Afectivo</h3><p>Low-risk rehearsal, choice, private wait time, confidence scales, error-positive routines, predictable structures, safe audience progression.</p></div>
+          <div class="callout"><h3>Metacognitivo</h3><p>Think-alouds, reflection logs, strategy menus, self-questioning cards, learning journals, progress trackers, exit tickets.</p></div>
+        </div>
+      </div></div>`),
+    panel(16,'Question bank · Preguntas','Banco de preguntas CLIL y metarreflexión','Preguntas listas para usar en planificación, seminarios, tutorías, observación de aula y defensa académica de la unidad.',
+      `<div class="grid-2">
+        <div class="callout"><h3>Content</h3><ul><li>¿Cuál es el concepto disciplinar sin el cual la unidad se vuelve decorativa?</li><li>¿Qué comprensión profunda debe quedar después de olvidar datos menores?</li><li>¿Qué destreza propia de la disciplina se practica de forma explícita?</li><li>¿Qué errores conceptuales previsibles se abordan antes de que se consoliden?</li><li>¿Qué evidencia mostrará que el alumnado puede transferir el contenido?</li><li>¿Qué parte del currículo se prioriza y qué parte se pospone justificadamente?</li><li>¿Qué materiales auténticos aportan densidad conceptual?</li><li>¿Qué conocimiento previo se activa y cómo se conecta con lo nuevo?</li></ul></div>
+        <div class="callout"><h3>Communication</h3><ul><li>¿Qué lengua es obligatoria para comprender el contenido?</li><li>¿Qué lengua funcional necesitan para cooperar y pensar juntos?</li><li>¿Qué géneros discursivos aparecen: informe, explicación, debate, descripción, argumentación?</li><li>¿Qué estructuras permiten causalidad, comparación, hipótesis y justificación?</li><li>¿Cómo se registrará la lengua emergente?</li><li>¿Qué oportunidades reales hay para output oral y escrito?</li><li>¿Cómo se recicla el léxico en varias sesiones?</li><li>¿Qué feedback lingüístico se dará sin interrumpir el pensamiento?</li></ul></div>
+        <div class="callout"><h3>Cognition</h3><ul><li>¿Qué tareas son LOTS y por qué son necesarias?</li><li>¿Dónde ocurre el salto HOTS?</li><li>¿Qué pregunta no puede responderse copiando una frase del material?</li><li>¿Qué decisiones debe tomar el alumnado?</li><li>¿Qué evidencia tendrá que seleccionar, comparar o defender?</li><li>¿Qué pasaría si retiramos una pista o cambiamos el contexto?</li><li>¿Cómo se hace visible el razonamiento?</li><li>¿Qué herramientas ayudan a pensar sin hacer el pensamiento por ellos?</li></ul></div>
+        <div class="callout"><h3>Culture / Community</h3><ul><li>¿Qué perspectiva cultural, social o histórica complica la mirada inicial?</li><li>¿Qué relación hay entre el contenido y la comunidad del alumnado?</li><li>¿Qué voces no suelen aparecer en este tema?</li><li>¿Qué comparación local-global es intelectualmente honesta?</li><li>¿Qué estereotipo podría reforzar la unidad si no se revisa?</li><li>¿Qué decisión ciudadana o ética surge del aprendizaje?</li><li>¿Cómo se conecta identidad propia y alteridad?</li><li>¿Qué producto puede dialogar con una audiencia real?</li></ul></div>
+        <div class="callout"><h3>Matriz CLIL</h3><ul><li>¿Qué tareas están en baja demanda y bajo apoyo?</li><li>¿Qué tarea exige demasiado lenguaje sin suficiente contexto?</li><li>¿Qué apoyo permite mantener alta demanda cognitiva?</li><li>¿Qué tarea puede moverse de etiquetar a justificar?</li><li>¿Qué materiales necesitan segmentación?</li><li>¿Qué parte de la unidad genera ansiedad y por qué?</li><li>¿Cómo se alternan tareas de entrada segura y reto?</li><li>¿Qué evidencia demuestra que el apoyo funciona?</li></ul></div>
+        <div class="callout"><h3>Andamiaje</h3><ul><li>¿Qué apoyo se da antes, durante y después del input?</li><li>¿Qué apoyo es lingüístico y cuál conceptual?</li><li>¿Qué apoyo permite interacción autónoma?</li><li>¿Qué apoyo será retirado progresivamente?</li><li>¿Qué alumnado necesita rutas alternativas?</li><li>¿Qué modelo de producto se ofrece?</li><li>¿Qué organizador gráfico transforma información en comprensión?</li><li>¿Qué frase desbloquea la participación?</li></ul></div>
+        <div class="callout"><h3>Evaluación</h3><ul><li>¿Qué intención de aprendizaje se comparte al inicio?</li><li>¿Qué criterios de éxito entiende el alumnado?</li><li>¿Qué feedback altera la siguiente acción?</li><li>¿Qué evidencia de contenido no depende solo de escritura extensa?</li><li>¿Qué evidencia de lengua se observa en interacción?</li><li>¿Qué momentos de autoevaluación y coevaluación existen?</li><li>¿Qué producto final integra 4Cs?</li><li>¿Cómo se evita que la nota lingüística oculte la comprensión?</li></ul></div>
+        <div class="callout"><h3>Metarreflexión docente</h3><ul><li>¿Qué suposición sobre el grupo cambió durante la unidad?</li><li>¿Qué tarea produjo más pensamiento del esperado?</li><li>¿Qué apoyo sobró y cuál faltó?</li><li>¿Qué lengua emergió de verdad?</li><li>¿Qué evidencia usarías para defender la calidad CLIL de la unidad?</li><li>¿Qué cambiarías si tuvieras una sesión más?</li><li>¿Qué incidente crítico merece análisis?</li><li>¿Qué pregunta de investigación nace de esta experiencia?</li></ul></div>
+      </div>
+      <div class="accordion"><button class="acc-head" onclick="toggleAcc(this)">Prompts de observación de aula <span>+</span></button><div class="acc-body"><div class="grid-3">
+        <div class="callout"><h3>Durante input</h3><p>¿Quién accede al significado? ¿Qué señales de comprensión hay? ¿Qué apoyo visual se usa realmente? ¿Dónde se pierde atención?</p></div>
+        <div class="callout"><h3>Durante interacción</h3><p>¿Qué lengua funcional aparece? ¿Quién pregunta? ¿Quién justifica? ¿Qué roles generan participación auténtica?</p></div>
+        <div class="callout"><h3>Durante producción</h3><p>¿El producto muestra comprensión, copia o decoración? ¿Qué decisiones toma el alumnado? ¿Qué criterios revisa?</p></div>
+        <div class="callout"><h3>Durante feedback</h3><p>¿El feedback llega a tiempo? ¿Es accionable? ¿Distingue contenido y lengua? ¿Produce revisión real?</p></div>
+        <div class="callout"><h3>Durante cierre</h3><p>¿Qué sabe el alumnado que ha aprendido? ¿Qué estrategia nombra? ¿Qué pregunta nueva formula?</p></div>
+        <div class="callout"><h3>Después</h3><p>¿Qué datos conservarás? ¿Qué evidencia compararás? ¿Qué decisión se justifica para la siguiente unidad?</p></div>
+      </div></div></div>
+      <div class="accordion open"><button class="acc-head" onclick="toggleAcc(this)">Apéndice: modelos de secuencias CLIL de alto rendimiento <span>+</span></button><div class="acc-body"><div class="station-board">
+        <div class="station" data-n="A1"><h3>Inquiry cycle</h3><small>Pregunta investigable → hipótesis → datos → explicación → transferencia.</small><p>Este modelo funciona especialmente bien en Ciencias, Geografía y Tecnología. La unidad empieza con una pregunta que no se puede responder de memoria, por ejemplo: por qué una zona de la ciudad se inunda más que otra. El alumnado formula hipótesis con lenguaje tentativo, recoge o interpreta datos, usa organizadores para comparar evidencias y produce una explicación final. La lengua clave incluye causalidad, probabilidad, contraste y justificación. La evaluación combina precisión conceptual, uso de evidencia y claridad de explicación. La cultura aparece al conectar el problema con decisiones comunitarias, sostenibilidad o desigualdad territorial.</p></div>
+        <div class="station" data-n="A2"><h3>Source detectives</h3><small>Fuentes primarias/secundarias → fiabilidad → interpretación → relato argumentado.</small><p>Este modelo es potente en Historia, Ciencias Sociales y Literatura. El alumnado no recibe la explicación cerrada, sino un archivo de fuentes con distintos niveles de dificultad. El andamiaje incluye una tabla de análisis: author, audience, purpose, context, evidence, reliability. La lengua de aprendizaje recoge términos como source, bias, evidence, claim, cause, consequence. La lengua para aprender incluye I agree with this source because..., this may be unreliable because... El producto final puede ser una exposición, juicio histórico, podcast o informe. La dimensión cultural se trabaja al preguntar qué voces faltan y qué valores sostienen cada fuente.</p></div>
+        <div class="station" data-n="A3"><h3>Design challenge</h3><small>Problema real → criterios → prototipo → prueba → mejora.</small><p>Ideal para STEM, Arts y aprendizaje basado en proyectos. El alumnado diseña una solución con restricciones explícitas: materiales, coste, impacto, seguridad, audiencia. La matriz CLIL ayuda a mantener alta demanda cognitiva con apoyo suficiente: plantillas de diseño, banco de conectores, roles de equipo y ejemplos de prototipos. El lenguaje se centra en función y evaluación: It must..., It works because..., We improved..., The limitation is... La evaluación observa proceso y producto: decisiones justificadas, revisión tras feedback, uso de vocabulario técnico y comunicación del diseño. Culture entra al considerar usuarios reales y consecuencias sociales.</p></div>
+        <div class="station" data-n="A4"><h3>Concept attainment</h3><small>Ejemplos y contraejemplos → rasgos → definición → aplicación.</small><p>Este patrón evita definiciones prematuras. El docente ofrece ejemplos positivos y negativos de un concepto: ecosistema/no ecosistema, democracia/no democracia, material magnético/no magnético. El alumnado infiere criterios, verbaliza rasgos, negocia una definición provisional y la prueba con nuevos casos. El andamiaje lingüístico incluye It has..., It does not have..., A key feature is..., This example belongs because... La cognición se desplaza desde clasificación LOTS hacia inferencia y justificación HOTS. La evaluación puede pedir una definición propia, un ejemplo nuevo y una explicación de frontera: un caso ambiguo que obliga a afinar el concepto.</p></div>
+        <div class="station" data-n="A5"><h3>Comparative cultures</h3><small>Contexto propio → contexto otro → comparación profunda → acción.</small><p>Este modelo evita la cultura superficial. Parte de una práctica local conocida y la compara con otra comunidad, época o sistema. No se queda en diferencias visibles; busca valores, necesidades, recursos, poder y consecuencias. La lengua clave incluye both, whereas, unlike, this suggests, from another perspective. El producto puede ser una guía crítica, un diálogo entre comunidades, una carta a una institución o una exposición. La evaluación observa la calidad de la comparación, la ausencia de estereotipos, el uso de evidencias y la capacidad de revisar la propia mirada. Funciona en cualquier área si la pregunta cultural es auténtica.</p></div>
+        <div class="station" data-n="A6"><h3>Data story</h3><small>Datos → patrón → interpretación → historia visual.</small><p>Muy útil para Matemáticas, Ciencias, Geografía, Economía y Educación Física. El alumnado interpreta tablas, gráficos o mediciones reales. Primero identifica patrones con apoyo visual; después formula afirmaciones basadas en datos; finalmente comunica una historia: qué muestran los datos, qué no muestran y qué decisión sugieren. La lengua de aprendizaje incluye increase, decrease, average, outlier, trend, correlation. La lengua para aprender incluye According to the graph..., The data suggest..., We cannot conclude... La evaluación distingue lectura correcta de datos, interpretación prudente y comunicación clara. Culture aparece cuando los datos representan personas, territorios o desigualdades.</p></div>
+        <div class="station" data-n="A7"><h3>Expert jigsaw</h3><small>Expertos → enseñanza entre iguales → síntesis común.</small><p>El aula se divide en grupos expertos que trabajan subtemas diferentes con materiales adaptados. Cada experto recibe apoyo lingüístico y conceptual, prepara una explicación breve y vuelve a un grupo mixto para enseñar su parte. La tarea final exige integrar todas las piezas, no simplemente pegarlas. La lengua funcional es central: My section explains..., Can you clarify..., This connects with..., The most important point is... La evaluación incluye una parte individual, una parte grupal y observación de interacción. Este modelo aumenta participación y hace visible si el alumnado puede usar la lengua para aprender de sus iguales.</p></div>
+        <div class="station" data-n="A8"><h3>Problem court</h3><small>Conflicto → roles → evidencias → deliberación → veredicto.</small><p>Especialmente atractivo en Historia, Ética, Ciencias Sociales, Literatura y cuestiones socio-científicas. El alumnado analiza un conflicto con roles: científicos, vecinos, gobierno, empresa, historiadores, personajes o comités. Cada rol tiene objetivos, evidencias y restricciones. La lengua incluye persuasion, concession, evidence and counterargument: Although..., I acknowledge..., The strongest evidence is... La cognición se centra en evaluar, priorizar y defender decisiones. La cultura se activa porque los roles representan valores e intereses distintos. La evaluación atiende a calidad argumentativa, uso de evidencia, escucha activa y capacidad para revisar la postura inicial.</p></div>
+        <div class="station" data-n="A9"><h3>Multimodal explanation</h3><small>Comprensión → representación visual → explicación oral/escrita.</small><p>Este modelo es excelente para reducir la dependencia de escritura extensa sin renunciar al rigor. El alumnado convierte un proceso en diagrama, línea temporal, mapa conceptual, infografía, maqueta o animación simple. Después explica su representación usando language frames. La evaluación separa precisión del modelo, calidad de la explicación y uso de vocabulario. Es útil para alumnado con nivel L2 bajo porque permite demostrar comprensión mientras desarrolla lengua. El docente puede retirar apoyo gradualmente: primero frames completos, luego conectores, después solo criterios. La metarreflexión pregunta qué parte del dibujo ayudó a pensar.</p></div>
+        <div class="station" data-n="A10"><h3>Reading to transform</h3><small>Texto → extracción → reorganización → nuevo género.</small><p>En lugar de leer para contestar preguntas literales, el alumnado transforma el input en otro género: de texto científico a póster, de fuente histórica a entrevista, de explicación a cómic, de noticia a debate. Esto obliga a seleccionar información, reorganizarla y adaptarla a audiencia. El andamiaje incluye glosario visual, párrafos segmentados, preguntas guía y modelo del género final. La lengua se trabaja como recurso retórico: headings, captions, cause-effect connectors, reporting verbs. La evaluación valora fidelidad conceptual, adaptación al género, claridad visual y uso de lengua para comunicar conocimiento.</p></div>
+        <div class="station" data-n="A11"><h3>Local fieldwork</h3><small>Entorno → observación → registro → explicación comunitaria.</small><p>El aprendizaje sale del aula: patio, barrio, museo, río, mercado, edificio histórico o archivo local. El alumnado observa, mide, entrevista o fotografía; después organiza datos y construye una explicación CLIL. La lengua se prepara antes con protocolos: We observed..., We measured..., The evidence shows... La dimensión cultural es natural porque el contenido se vincula a comunidad e identidad. La evaluación puede incluir cuaderno de campo, mapa anotado, presentación pública o propuesta de mejora. El andamiaje clave es procedimental: qué mirar, cómo registrar, cómo preguntar y cómo transformar observaciones en conocimiento.</p></div>
+        <div class="station" data-n="A12"><h3>Language wall cycle</h3><small>Lengua emergente → registro → reutilización → precisión creciente.</small><p>Este modelo convierte el lenguaje through learning en motor de aprendizaje. Durante cada sesión se capturan expresiones útiles, errores productivos, reformulaciones y palabras que el alumnado necesitó. Al inicio de la siguiente clase se revisan y se usan en una mini-tarea. El muro no es decoración: es corpus de aula. Puede organizarse por funciones: comparing, explaining cause, disagreeing, reporting results. La evaluación observa si el alumnado reutiliza esa lengua en tareas posteriores. Es especialmente valioso porque muestra que la lengua surge de la necesidad de pensar, no de una lista desconectada.</p></div>
+        <div class="station" data-n="A13"><h3>Portfolio spiral</h3><small>Borrador → feedback → revisión → reflexión → selección.</small><p>La unidad se organiza como portfolio de evidencias. Cada sesión produce una pieza pequeña: hipótesis, glosario, diagrama, explicación, comparación, reflexión. El alumnado revisa piezas con feedback y selecciona las que mejor muestran progreso. La lengua de metarreflexión incluye I used to think..., Now I can..., My evidence is..., My next step is... La evaluación se vuelve longitudinal: no solo producto final, sino mejora. Encaja con Assessment for Learning porque los criterios se revisitan. La plantilla final puede pedir una justificación de por qué cada evidencia demuestra Content, Communication, Cognition y Culture.</p></div>
+        <div class="station" data-n="A14"><h3>Controversy map</h3><small>Pregunta polémica → posiciones → evidencias → mapa de argumentos.</small><p>El alumnado analiza una cuestión con posiciones legítimas: energía nuclear, turismo, patrimonio, biotecnología, gestión del agua, uso de datos personales. Construye un mapa con claims, evidence, warrants and counterarguments. La tarea exige distinguir opinión de argumento. El andamiaje lingüístico incluye In favour of..., Against..., This evidence supports..., However... La cultura aparece porque toda controversia implica valores, actores e impactos. La evaluación observa equilibrio, evidencia, calidad de contraargumento y reflexión final. Es un modelo avanzado para desarrollar ciudadanía crítica sin abandonar el contenido curricular.</p></div>
+        <div class="station" data-n="A15"><h3>Experiment explainers</h3><small>Experimento → predicción → observación → explicación a novatos.</small><p>El alumnado realiza o analiza un experimento y después lo explica a una audiencia más joven o no experta. Esto obliga a transformar conocimiento técnico en comunicación clara. La lengua incluye prediction, observation, result, because, therefore, this means. El producto puede ser vídeo, demostración, ficha ilustrada o mini-clase. La evaluación combina exactitud científica, claridad didáctica y adaptación a audiencia. La cognición es alta porque explicar a otros exige reorganizar conocimiento. La cultura/comunidad puede aparecer al presentar la explicación a otra clase o a familias.</p></div>
+        <div class="station" data-n="A16"><h3>Critical vocabulary</h3><small>Palabra clave → usos → matices → poder discursivo.</small><p>Este modelo profundiza en vocabulario que no es solo técnico, sino conceptual y cultural: empire, migration, sustainable, fair, force, evidence, identity, democracy. El alumnado explora definiciones, ejemplos, colocaciones, traducciones problemáticas y usos en textos reales. Después analiza cómo una palabra cambia la interpretación de un fenómeno. La lengua se vuelve objeto de pensamiento, no lista. La evaluación puede pedir un mapa léxico, una explicación de matices y uso en argumento propio. Es especialmente útil para unir Communication, Cognition y Culture.</p></div>
+        <div class="station" data-n="A17"><h3>Gallery critique</h3><small>Producciones → paseo crítico → feedback → mejora.</small><p>Los productos intermedios se exponen y el alumnado circula con criterios de éxito. No se trata de votar lo bonito, sino de dar feedback específico: one strength, one question, one suggestion. El docente modela lenguaje de crítica respetuosa: The evidence is clear because..., I wonder if..., You could improve... Después cada grupo revisa. La evaluación observa si el feedback se usa realmente. Este modelo fortalece autonomía, lenguaje académico e interacción. También permite comparar soluciones diversas y detectar concepciones alternativas sin convertir el error en exposición negativa.</p></div>
+        <div class="station" data-n="A18"><h3>Transfer lab</h3><small>Caso aprendido → caso nuevo → adaptación → principio general.</small><p>Al final de la unidad, el alumnado aplica lo aprendido a un contexto nuevo. Si estudió el ciclo del agua local, analiza otra región; si estudió magnetismo, predice materiales desconocidos; si estudió Roma, compara otra civilización. La transferencia prueba comprensión profunda. La lengua incluye In the first case..., In the new case..., The same principle applies because..., A difference is... La evaluación observa si el alumnado identifica qué cambia y qué permanece. Este cierre evita que la unidad sea una colección de actividades y la convierte en aprendizaje reutilizable.</p></div>
+      </div><div class="callout"><h3>Referencias APA para los modelos de secuencia</h3><ul class="apa-list"><li>Coyle, D., Hood, P., &amp; Marsh, D. (2010). <i>CLIL: Content and language integrated learning</i>. Cambridge University Press.</li><li>Dale, L., &amp; Tanner, R. (2012). <i>CLIL activities: A resource for subject and language teachers</i>. Cambridge University Press.</li><li>Meyer, O. (2010). Towards quality CLIL: Successful planning and teaching strategies. <i>Pulso, 33</i>, 11-29.</li><li>Mehisto, P., Marsh, D., &amp; Frigols, M. J. (2008). <i>Uncovering CLIL: Content and language integrated learning in bilingual and multilingual education</i>. Macmillan.</li></ul></div></div></div>`),
+    panel(17,'Gamification · Escape room','Preguntas tipo escape room para dinamizar','No bloquean el avance: sirven para activar, repasar, evaluar informalmente o convertir estaciones en retos con pistas.',
+      `<div class="escape-room"><h3>Escape CLIL: The 4Cs Lab</h3><p>Propón al alumnado resolver candados conceptuales, lingüísticos, cognitivos y culturales. Cada candado genera una pista para construir el producto final.</p><div class="escape-grid">
+        <div class="escape-card" data-lock="C1"><h4>Candado Content</h4><p>Encuentra el concepto intruso y justifica por qué no pertenece al sistema.</p><input id="escape_c1" oninput="saveAll(false)" placeholder="Respuesta/pista adaptada a tu unidad"></div>
+        <div class="escape-card" data-lock="C2"><h4>Candado Communication</h4><p>Completa tres frases funcionales para comparar, justificar y pedir aclaración.</p><input id="escape_c2" oninput="saveAll(false)" placeholder="Language clue"></div>
+        <div class="escape-card" data-lock="C3"><h4>Candado Cognition</h4><p>Ordena evidencias de más débil a más fuerte y defiende la decisión.</p><input id="escape_c3" oninput="saveAll(false)" placeholder="Reasoning clue"></div>
+        <div class="escape-card" data-lock="C4"><h4>Candado Culture</h4><p>Detecta qué voz falta en el caso y escribe una pregunta para recuperarla.</p><input id="escape_c4" oninput="saveAll(false)" placeholder="Perspective clue"></div>
+        <div class="escape-card" data-lock="B"><h4>Candado Bloom</h4><p>Transforma una pregunta de recordar en una pregunta de evaluar o crear.</p><input id="escape_bloom" oninput="saveAll(false)" placeholder="HOTS clue"></div>
+        <div class="escape-card" data-lock="M"><h4>Candado Matrix</h4><p>Decide qué apoyo añadir para mover una tarea al cuadrante de alta demanda + alto apoyo.</p><input id="escape_matrix" oninput="saveAll(false)" placeholder="Scaffold clue"></div>
+      </div></div><div class="callout"><h3>Uso didáctico</h3><p>Puede funcionar como calentamiento, estación de repaso, tarea de cierre, evaluación informal o transición entre fases. No exige acertar para avanzar en la herramienta, pero sí genera conversación metacognitiva.</p></div>`),
+    panel(18,'Currículo español · LOMLOE','Conexión con currículo español','Añade una subsección curricular explícita para que la plantilla final pueda dialogar con LOMLOE, competencias y programación oficial.',
+      `<div class="grid-2">${input('lomloe_stage','Etapa, curso y materia','Ej.: 5º Primaria, Conocimiento del Medio; 2º ESO, Geografía e Historia.')}${input('lomloe_key_competences','Competencias clave','CCL, CP, STEM, CD, CPSAA, CC, CE, CCEC: cuáles se trabajan y cómo.')}${input('lomloe_specific_competences','Competencias específicas','Competencias específicas de la materia vinculadas a la unidad.')}${input('lomloe_descriptors','Descriptores operativos / perfil de salida','Descriptores que se activan de forma observable.')}${input('lomloe_assessment_criteria','Criterios de evaluación','Criterios curriculares que conectan con evidencias CLIL.')}${input('lomloe_basic_knowledge','Saberes básicos','Saberes/contenidos que se priorizan.')}${input('lomloe_learning_situations','Situación de aprendizaje','Contexto, reto, producto, destinatario, secuencia y transferencia.')}${input('lomloe_inclusion','Atención a la diversidad / DUA','Medidas de acceso, participación y expresión.')}${input('lomloe_interdisciplinary','Interdisciplinariedad y planes de centro','Lectura, digital, igualdad, sostenibilidad, plurilingüismo, convivencia, biblioteca, etc.')}</div><div class="callout"><h3>Puente CLIL-LOMLOE</h3><p>La conexión curricular no debe ser un anexo burocrático: los criterios de evaluación deben hablar con las evidencias, las competencias con las tareas y la situación de aprendizaje con el producto final.</p></div>`),
+    panel(19,'Coyle · Unit checklist','Checklist Coyle de autoauditoría de la unidad','Antes de exportar, revisa tu propia unidad con una checklist inspirada en el CLIL Teacher’s Tool Kit: integración, progresión, matriz, lenguaje, cultura, evaluación y revisión.',
+      `<div class="checklist">${[
+        'He formulado una visión clara de qué significa CLIL en esta unidad.',
+        'El contexto del grupo justifica decisiones de contenido, lengua, apoyo y evaluación.',
+        'El contenido curricular priorizado es claro, relevante y no meramente temático.',
+        'Los objetivos integran Content, Communication, Cognition y Culture.',
+        'He distinguido language OF, FOR y THROUGH learning.',
+        'Las tareas incluyen LOTS necesarios y HOTS explícitos.',
+        'He usado la CLIL Matrix para auditar demanda cognitiva y apoyo.',
+        'La cultura/comunidad transforma la mirada, no decora la unidad.',
+        'Los materiales/input están adaptados sin vaciar su autenticidad.',
+        'Hay andamiaje lingüístico, conceptual, interactivo, afectivo y metacognitivo.',
+        'He previsto cómo retirar parte del andamiaje.',
+        'La evaluación separa evidencias de contenido y lengua sin romper la integración.',
+        'Hay criterios de éxito visibles y feedback formativo incorporado.',
+        'El alumnado tiene momentos de autoevaluación y coevaluación.',
+        'La secuencia revisita el mapa mental o las ideas iniciales.',
+        'La unidad conecta con currículo español/LOMLOE y competencias.',
+        'He previsto una reflexión docente posterior y una mejora para la siguiente iteración.'
+      ].map(check).join('')}</div><div class="grid-3">${input('coyle_unit_strengths','Fortalezas de la unidad','¿Qué tres decisiones defenderías ante un tribunal o equipo docente?')}${input('coyle_unit_risks','Riesgos o puntos débiles','¿Dónde puede fallar: lengua, tiempo, materiales, evaluación, cultura, interacción?')}${input('coyle_unit_revision','Revisión antes de exportar','Cambios concretos que harás después de esta checklist.')}</div>`),
+    panel(20,'Final · Draft builder','Plantilla final: constructor de draft','No repitas todo. Esta pantalla recupera lo anterior, te deja insertar resúmenes automáticamente y construir una versión final defendible.',
+      `<div class="table-tools"><button class="small-btn" onclick="renderFinal()">Actualizar vista</button><button class="small-btn" onclick="fillDraftFromPrevious()">Rellenar draft con lo anterior</button><button class="small-btn" onclick="openSourceWindow()">Ver ventanas de secciones previas</button></div><div id="finalPreview" class="final-template"></div><div class="nav-row"><button class="nav-btn" onclick="prev()">← Atrás</button><div><button class="nav-btn" onclick="exportWord()">Exportar Word</button><button class="nav-btn primary" onclick="exportPdf()">PDF</button><button class="nav-btn primary" onclick="next()">Terminar →</button></div></div>`),
+    panel(21,'Finish · Export & review','Cierre del estudio','Tu unidad está lista para revisar, exportar y llevar al aula. Última comprobación: guarda, exporta y conserva tus notas del cuaderno.',
+      `<div class="finale"><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><div><div class="project-credit">Proyecto de Dr María Sanabria · UNICAN</div><h2>Unidad CLIL lista para despegar.</h2><p class="lead" style="margin:auto auto 18px">Revisa el draft final, exporta Word/PDF y descarga también el cuaderno flotante si has tomado notas, enlaces o bibliografía adicional.</p><div class="table-tools" style="justify-content:center"><button class="nav-btn" onclick="go(20)">Revisar plantilla</button><button class="nav-btn" onclick="exportAssistantNotes()">Exportar cuaderno</button><button class="nav-btn" onclick="exportWord()">Word</button><button class="nav-btn primary" onclick="exportPdf()">PDF final</button></div></div></div>`)
+  ];
+  el('panels').innerHTML = panels.join('');
+}
+function check(txt){return `<label class="check"><input type="checkbox" onchange="saveAll(false)"> <span>${txt}</span></label>`}
+function go(n){
+  if(n<1||n>steps.length)return;
+  current=n;
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el(`panel-${n}`).classList.add('active');
+  document.querySelectorAll('.step-chip').forEach((c,i)=>{c.classList.toggle('active',i+1===n);c.classList.toggle('done',i+1<n)});
+  el('progressBar').style.width = `${(n/steps.length)*100}%`;
+  el(`panel-${n}`).scrollIntoView({behavior:'smooth',block:'start'});
+  if(n===3) setTimeout(initCanvas,60);
+  if(n===10) renderStations();
+  if(n===13) renderLessonRows();
+  if(n===20) renderFinal();
+  if(n===21) playTone(620, .08);
+  saveAll(false);
+  applyLang();
+}
+function next(){go(current+1)}
+function prev(){go(current-1)}
+function toggleAcc(btn){btn.parentElement.classList.toggle('open')}
+function answerScenario(id,idx,btn){
+  const sc=scenarios[id]; const box=btn.parentElement;
+  box.querySelectorAll('.option').forEach((b,i)=>{b.classList.remove('correct','wrong'); if(i===sc.answer)b.classList.add('correct')});
+  if(idx!==sc.answer)btn.classList.add('wrong');
+  el(`fb-${id}`).classList.add('show');
+}
+function openTheory(key){el('modalTitle').textContent='Mapa académico de CLIL Studio Pro';el('modalBody').innerHTML=theoryTexts[key]||theoryTexts.mapa;el('modal').classList.add('show')}
+function closeModal(){el('modal').classList.remove('show')}
+function showToast(msg='Guardado'){const t=el('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._to);t._to=setTimeout(()=>t.classList.remove('show'),1400)}
+function playTone(freq=440,duration=.06){
+  try{const C=window.AudioContext||window.webkitAudioContext;const ctx=new C();const osc=ctx.createOscillator();const gain=ctx.createGain();osc.frequency.value=freq;osc.type='sine';gain.gain.setValueAtTime(.001,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.055,ctx.currentTime+.01);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+duration+.03)}catch(e){}
+}
+function toggleAssistant(){el('assistantWidget').classList.toggle('min');playTone(392,.04)}
+function assistantTab(name,btn){document.querySelectorAll('.assistant-pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.assistant-tabs button').forEach(b=>b.classList.remove('active'));el('pane-'+name).classList.add('active');btn.classList.add('active')}
+function insertApaRefs(){const n=el('assistant_biblio');n.value=(n.value?n.value+'\n\n':'')+apaRefs.join('\n');saveAll();showToast('APA añadido')}
+function formatApaReference(){
+  const type=value('apa_type')==='(sin completar)'?'book':value('apa_type');
+  const author=value('apa_author')==='(sin completar)'?'Autor, A. A.':value('apa_author');
+  const year=value('apa_year')==='(sin completar)'?'s. f.':value('apa_year').replace(/[()]/g,'');
+  const title=value('apa_title')==='(sin completar)'?'Título en cursiva o sentence case':value('apa_title');
+  const source=value('apa_source')==='(sin completar)'?'':value('apa_source');
+  const publisher=value('apa_publisher')==='(sin completar)'?'':value('apa_publisher');
+  const doi=value('apa_doi')==='(sin completar)'?'':value('apa_doi');
+  const tail = doi ? ` ${doi}` : '';
+  if(type==='article') return `${author} (${year}). ${title}. ${source || 'Revista, volumen(número), páginas.'}${tail}`;
+  if(type==='web') return `${author} (${year}). ${title}. ${source || publisher || 'Sitio web.'}${tail}`;
+  if(type==='chapter') return `${author} (${year}). ${title}. En ${source || 'E. Editor (Ed.), Título del libro'}${publisher ? `. ${publisher}` : ''}${tail}`;
+  return `${author} (${year}). ${title}. ${publisher || source || 'Editorial.'}${tail}`;
+}
+function appendApaTo(targetId){
+  const ref=formatApaReference();
+  const box=el(targetId);
+  if(box){box.value=(box.value.trim()?box.value.trim()+'\n\n':'')+ref; box.dispatchEvent(new Event('input',{bubbles:true}))}
+  else if(targetId){savedFieldValues[targetId]=((savedFieldValues[targetId]||'').trim()?(savedFieldValues[targetId].trim()+'\n\n'):'')+ref;saveAll(false)}
+  else {const n=el('assistant_biblio');n.value=(n.value?n.value+'\n\n':'')+ref;saveAll(false)}
+  showToast('Referencia APA 7 añadida');
+}
+function finishApaBuilder(targetId){
+  appendApaTo(targetId);
+  closeModal();
+  if(targetId==='export_apa_custom') openPreExport(pendingExportType||'word');
+}
+function openApaBuilder(targetId='assistant_biblio'){
+  el('modalTitle').textContent='Crear referencia APA 7';
+  el('modalBody').innerHTML=`<div class="grid-2">
+    <div class="field"><label>Tipo de fuente</label><select id="apa_type" onchange="saveAll(false)"><option value="book">Libro</option><option value="article">Artículo</option><option value="chapter">Capítulo</option><option value="web">Web / normativa</option></select></div>
+    <div class="field"><label>Autoría</label><input id="apa_author" placeholder="Coyle, D., Hood, P., & Marsh, D." oninput="saveAll(false)"></div>
+    <div class="field"><label>Año</label><input id="apa_year" placeholder="2010" oninput="saveAll(false)"></div>
+    <div class="field"><label>Título</label><input id="apa_title" placeholder="CLIL: Content and language integrated learning" oninput="saveAll(false)"></div>
+    <div class="field"><label>Revista, web, editor o contenedor</label><input id="apa_source" placeholder="Cambridge University Press / Journal / BOE..." oninput="saveAll(false)"></div>
+    <div class="field"><label>Editorial</label><input id="apa_publisher" placeholder="Cambridge University Press" oninput="saveAll(false)"></div>
+    <div class="field"><label>DOI / URL</label><input id="apa_doi" placeholder="https://doi.org/... o URL" oninput="saveAll(false)"></div>
+  </div><div class="evidence-note"><b>APA 7:</b> escribe los datos básicos y se insertará una referencia preformateada. Puedes editarla después para ajustar mayúsculas, páginas o normativa autonómica.</div><div class="table-tools"><button class="nav-btn" onclick="closeModal()">Cancelar</button><button class="nav-btn primary" onclick="finishApaBuilder('${targetId}')">Añadir referencia</button></div>`;
+  ['apa_type','apa_author','apa_year','apa_title','apa_source','apa_publisher','apa_doi'].forEach(id=>{const n=el(id); if(n && savedFieldValues[id]) n.value=savedFieldValues[id]});
+  el('modal').classList.add('show');
+  applyLang();
+}
+function exportAssistantNotes(){
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cuaderno CLIL</title><style>body{font-family:Calibri,Arial,sans-serif;line-height:1.45;color:#222}h1{border-bottom:3px solid #222;padding-bottom:8px}h2{margin-top:20pt}.box{white-space:pre-wrap;border:1px solid #ddd;padding:12px;margin:8px 0}</style></head><body><h1>Cuaderno CLIL Studio Pro</h1><p>Proyecto de Dr María Sanabria (UNICAN)</p><h2>Notas</h2><div class="box">${esc(value('assistant_notes'))}</div><h2>Enlaces</h2><div class="box">${esc(value('assistant_links'))}</div><h2>Bibliografía / APA</h2><div class="box">${esc(value('assistant_biblio'))}</div></body></html>`;
+  saveAs(new Blob(['\ufeff',html],{type:'application/msword'}),`cuaderno-clil-${new Date().toISOString().slice(0,10)}.doc`);
+}
+const enMap = {
+  'Proyecto de Dr María Sanabria · UNICAN':'Project by Dr María Sanabria · UNICAN',
+  'Proyecto de Dr María Sanabria (UNICAN) · Diseño académico de unidades AICLE':'Project by Dr María Sanabria (UNICAN) · Academic CLIL unit design',
+  'Progreso del taller':'Workshop progress','Cambiar idioma':'Change language','Mapa de la herramienta':'Tool map','Minimizar':'Minimize','Guardado':'Saved',
+  'Bienvenida a CLIL Studio Pro':'Welcome to CLIL Studio Pro',
+  'Inicia tu sesión de diseño: primero mapearás ideas, después construirás la unidad, revisarás con el checklist de Coyle y cerrarás exportando tu plantilla final.':'Start your design session: first map ideas, then build the unit, review it with Coyle’s checklist, and finish by exporting your final template.',
+  'Iniciar sesión de diseño':'Start design session',
+  'Guardar':'Save','Nuevo plan':'New plan',
+  'Diseña una unidad CLIL que piense, hable y deje huella.':'Design a CLIL unit that thinks, speaks, and leaves a trace.',
+  'Un estudio interactivo para convertir una idea inicial en una secuencia AICLE completa: visión, contexto, pizarra de brainstorming, 4Cs, tríptico lingüístico, matriz CLIL, estaciones, andamiaje, evaluación, metarreflexión y plantilla final.':'An interactive studio for turning an initial idea into a full CLIL sequence: vision, context, brainstorming board, 4Cs, Language Triptych, CLIL Matrix, stations, scaffolding, assessment, metareflection, and final template.',
+  'Entrar al estudio →':'Enter the studio →','Pizarra canvas':'Canvas board','Matriz CLIL':'CLIL Matrix','estaciones':'stations','Checklist docente':'Teacher checklist','Evaluación dual':'Dual assessment','Metarreflexión':'Metareflection',
+  'Cuaderno CLIL':'CLIL notebook','Notas, enlaces y APA siempre a mano':'Notes, links, and APA always at hand','Notas':'Notes','Enlaces':'Links','Añade referencias APA o DOI...':'Add APA references or DOI...','Exportar cuaderno':'Export notebook','Añadir APA base':'Add base APA',
+  'Crear APA 7':'Create APA 7','Crear referencia APA 7':'Create APA 7 reference','Tipo de fuente':'Source type','Libro':'Book','Artículo':'Article','Capítulo':'Chapter','Web / normativa':'Web / regulation','Autoría':'Authorship','Año':'Year','Título':'Title','Revista, web, editor o contenedor':'Journal, website, editor, or container','Editorial':'Publisher','DOI / URL':'DOI / URL','Añadir referencia':'Add reference',
+  'Atrás':'Back','Continuar':'Continue','Continuar →':'Continue →','← Atrás':'← Back','Terminar →':'Finish →',
+  'Visión compartida':'Shared vision','Contexto':'Context','Pizarra Coyle':'Coyle board','Arquitectura 4Cs':'4Cs architecture','Estaciones':'Stations','Andamiaje':'Scaffolding','Evaluación':'Assessment','Biblioteca teórica':'Theory library','Banco de preguntas':'Question bank','Currículo LOMLOE':'LOMLOE curriculum','Checklist Coyle':'Coyle checklist','Plantilla final':'Final template','Cierre':'Closure',
+  'Visión compartida antes de planificar':'Shared vision before planning','Analiza el contexto real de tu aula':'Analyse your real classroom context','Pizarra de brainstorming':'Brainstorming board','Diseña el contenido disciplinar':'Design disciplinary content','Planifica el Language Triptych':'Plan the Language Triptych','Eleva el pensamiento con apoyo':'Raise thinking with support','Diseña cultura como perspectiva':'Design culture as perspective','Audita tareas con la matriz CLIL':'Audit tasks with the CLIL Matrix','Diseña estaciones de aprendizaje':'Design learning stations','Andamiaje multinivel y retirada gradual':'Multi-level scaffolding and gradual fading','Evaluación formativa, sumativa y dual':'Formative, summative, and dual assessment','Secuencia de sesiones y checklist docente':'Session sequence and teacher checklist','Metarreflexión y mejora profesional':'Metareflection and professional improvement','Biblioteca teórica aplicada':'Applied theory library','Preguntas tipo escape room para dinamizar':'Escape-room questions for classroom energy','Conexión con currículo español':'Connection with the Spanish curriculum','Checklist Coyle de autoauditoría de la unidad':'Coyle checklist for unit self-audit','Plantilla final: constructor de draft':'Final template: draft builder',
+  'Área / asignatura':'Subject / area','Etapa / curso':'Stage / year','Edad del alumnado':'Learner age','Lengua vehicular':'Vehicular language','Nivel aproximado L2':'Approximate L2 level','Sesiones':'Sessions','Minutos por sesión':'Minutes per session','Título de la unidad':'Unit title','Referencia curricular':'Curricular reference',
+  'Añadir sesión':'+ Add session','+ Añadir 3':'+ Add 3','Renumerar':'Renumber','Borrar':'Delete','Añadir estación propia':'+ Add own station','Generar 4 estaciones extra':'Generate 4 extra stations',
+  'Constructor de draft final':'Final draft builder','Rellenar draft con lo anterior':'Fill draft from previous work','Ver ventanas de secciones previas':'View previous-section windows','Actualizar vista':'Refresh view','Exportar Word':'Export Word','PDF final':'Final PDF','Revisar plantilla':'Review template',
+  'Pre-export: elegir secciones':'Pre-export: choose sections','Estilo visual':'Visual style','Editorial académico':'Academic editorial','Formal limpio':'Clean formal','Color visual':'Visual colour','Pie automático':'Automatic footer','Qué incluir':'What to include','Portada':'Cover','Resumen 4Cs':'4Cs overview','Contexto y visión':'Context and vision','Draft de secuencia':'Sequence draft','Conexión LOMLOE':'LOMLOE connection','Evaluación y evidencias':'Assessment and evidence','Marco teórico':'Theoretical framework','Tabla de sesiones':'Session table','Pizarra de brainstorming':'Brainstorming board','Retos escape room':'Escape-room challenges','Bibliografía APA 7 editable':'Editable APA 7 references','Restaurar APA base':'Restore base APA','Traer APA del cuaderno':'Bring APA from notebook','Cancelar':'Cancel','Exportar ahora':'Export now',
+  'Unidad CLIL lista para despegar.':'CLIL unit ready for launch.','Revisa el draft final, exporta Word/PDF y descarga también el cuaderno flotante si has tomado notas, enlaces o bibliografía adicional.':'Review the final draft, export Word/PDF, and also download the floating notebook if you added notes, links, or extra bibliography.',
+  'Bibliografía APA 7':'APA 7 References','Referencias APA 7':'APA 7 References'
+};
+Object.assign(enMap,{
+  'Expectativas de CLIL':'CLIL expectations','Clase CLIL ideal':'Ideal CLIL class','Objetivos para el alumnado':'Learner goals','Objetivos docentes':'Teacher goals','No negociables metodológicos':'Methodological non-negotiables',
+  'Perfil del grupo':'Group profile','Conocimientos previos':'Prior knowledge','Barreras previsibles':'Foreseeable barriers','Recursos disponibles':'Available resources','Vínculo con comunidad o mundo real':'Community / real-world link',
+  'Herramientas':'Tools','Nota':'Note','Caja':'Box','Círculo':'Circle','Flecha':'Arrow','Añadir pregunta CLIL':'Add CLIL question','Sembrar mapa 4Cs':'Seed 4Cs map','Limpiar pizarra':'Clear board','Exportar imagen':'Export image','Preguntas de brainstorming':'Brainstorming questions',
+  'Conceptos clave':'Key concepts','Destrezas disciplinares':'Disciplinary skills','Resultados de aprendizaje':'Learning outcomes','Errores o concepciones alternativas':'Misconceptions / alternative conceptions','Progresión del contenido':'Content progression',
+  'Géneros y textos':'Genres and texts','Funciones comunicativas':'Communicative functions','Patrones de interacción':'Interaction patterns','Language wall / corpus':'Language wall / corpus',
+  'LOTS necesarios':'Required LOTS','HOTS de la unidad':'Unit HOTS','Preguntas poderosas':'Powerful questions','Verbos de Bloom revisado':'Revised Bloom verbs','Problema o reto central':'Core problem or challenge',
+  'Dimensión global':'Global dimension','Acción comunitaria':'Community action','Pregunta crítica':'Critical question','Producto cultural/intercultural':'Cultural/intercultural product',
+  'Propósito de las estaciones':'Purpose of the stations','Rotación y tiempos':'Rotation and timing','Agrupamientos y roles':'Grouping and roles','Evidencias por estación':'Evidence per station',
+  'Andamiaje lingüístico':'Linguistic scaffolding','Andamiaje conceptual':'Conceptual scaffolding','Andamiaje de interacción':'Interaction scaffolding','Andamiaje afectivo':'Affective scaffolding','Accesibilidad y diversidad':'Accessibility and diversity','Retirada del andamiaje':'Scaffolding fade-out',
+  'Learning intentions':'Learning intentions','Success criteria':'Success criteria','Evaluación formativa':'Formative assessment','Evaluación sumativa':'Summative assessment','Evidencia de Content':'Content evidence','Evidencia de Language':'Language evidence','Coevaluación':'Peer assessment','Autoevaluación':'Self-assessment','Triangulación de evidencias':'Evidence triangulation',
+  'Activating prior knowledge':'Activating prior knowledge','Building vocabulary':'Building vocabulary','Task-based activities':'Task-based activities','Assessment moments':'Assessment moments','Checklist del docente':'Teacher checklist','Checklist del alumnado':'Learner checklist',
+  'Cómo monitorizarás progreso':'How you will monitor progress','Feedback incorporado':'Built-in feedback','Progreso visible':'Visible progress','Revisita del mapa mental':'Mind-map revisit','Metarreflexión docente':'Teacher metareflection','Metarreflexión del alumnado':'Learner metareflection','Pregunta de indagación':'Inquiry question','Siguiente ciclo':'Next cycle',
+  'Etapa, curso y materia':'Stage, year and subject','Competencias clave':'Key competences','Competencias específicas':'Specific competences','Descriptores operativos / perfil de salida':'Operational descriptors / exit profile','Criterios de evaluación':'Assessment criteria','Saberes básicos':'Basic knowledge','Situación de aprendizaje':'Learning situation','Atención a la diversidad / DUA':'Diversity / UDL','Interdisciplinariedad y planes de centro':'Interdisciplinarity and school plans',
+  'Fortalezas de la unidad':'Unit strengths','Riesgos o puntos débiles':'Risks or weak points','Revisión antes de exportar':'Revision before export',
+  'Alto apoyo lingüístico/contextual':'High linguistic/contextual support',
+  'Bajo apoyo lingüístico/contextual':'Low linguistic/contextual support',
+  'Alta demanda cognitiva':'High cognitive demand',
+  'Baja demanda cognitiva':'Low cognitive demand',
+  'B · Zona CLIL fértil':'B · Fertile CLIL zone',
+  'C · Riesgo de sobrecarga':'C · Overload risk',
+  'A · Entrada segura':'A · Safe entry',
+  'D · Zona pobre':'D · Weak zone',
+  'Tareas aquí':'Tasks here',
+  'Decisiones tras la auditoría':'Decisions after the audit',
+  'Resolver problema con organizador, sentence frames y datos visuales.':'Solve a problem with an organiser, sentence frames, and visual data.',
+  'Texto abstracto sin apoyo, debate libre sin preparación.':'Abstract text without support, free debate without preparation.',
+  'Etiquetar, emparejar, ordenar con imágenes.':'Label, match, sequence with images.',
+  'Copiar, traducir mecánicamente, repetir listas.':'Copy, translate mechanically, repeat lists.',
+  '¿Qué tarea subirás de nivel? ¿Qué apoyo añadirás?':'Which task will you raise in level? Which support will you add?',
+  'He formulado una visión clara de qué significa CLIL en esta unidad.':'I have formulated a clear vision of what CLIL means in this unit.',
+  'El contexto del grupo justifica decisiones de contenido, lengua, apoyo y evaluación.':'The group context justifies content, language, support, and assessment decisions.',
+  'El contenido curricular priorizado es claro, relevante y no meramente temático.':'The prioritized curricular content is clear, relevant, and not merely thematic.',
+  'Los objetivos integran Content, Communication, Cognition y Culture.':'The objectives integrate Content, Communication, Cognition, and Culture.',
+  'He distinguido language OF, FOR y THROUGH learning.':'I have distinguished language OF, FOR, and THROUGH learning.',
+  'Las tareas incluyen LOTS necesarios y HOTS explícitos.':'The tasks include necessary LOTS and explicit HOTS.',
+  'He usado la CLIL Matrix para auditar demanda cognitiva y apoyo.':'I have used the CLIL Matrix to audit cognitive demand and support.',
+  'La cultura/comunidad transforma la mirada, no decora la unidad.':'Culture/community transforms perspective; it does not decorate the unit.',
+  'Los materiales/input están adaptados sin vaciar su autenticidad.':'Materials/input are adapted without emptying their authenticity.',
+  'Hay andamiaje lingüístico, conceptual, interactivo, afectivo y metacognitivo.':'There is linguistic, conceptual, interactive, affective, and metacognitive scaffolding.',
+  'He previsto cómo retirar parte del andamiaje.':'I have planned how to fade some scaffolding.',
+  'La evaluación separa evidencias de contenido y lengua sin romper la integración.':'Assessment separates content and language evidence without breaking integration.',
+  'Hay criterios de éxito visibles y feedback formativo incorporado.':'There are visible success criteria and built-in formative feedback.',
+  'El alumnado tiene momentos de autoevaluación y coevaluación.':'Learners have moments for self- and peer assessment.',
+  'La secuencia revisita el mapa mental o las ideas iniciales.':'The sequence revisits the mind map or initial ideas.',
+  'La unidad conecta con currículo español/LOMLOE y competencias.':'The unit connects with the Spanish/LOMLOE curriculum and competences.',
+  'He previsto una reflexión docente posterior y una mejora para la siguiente iteración.':'I have planned a later teacher reflection and one improvement for the next iteration.'
+});
+Object.assign(enMap,{
+  'Coyle insiste en empezar por una visión común: qué entendemos por CLIL, qué esperamos del alumnado y qué compromisos metodológicos asumimos.':'Coyle insists on starting from a shared vision: what we understand by CLIL, what we expect from learners, and which methodological commitments we assume.',
+  'La calidad CLIL depende del ajuste entre currículo, edad, nivel lingüístico, recursos, necesidades y comunidad.':'CLIL quality depends on the fit between curriculum, age, language level, resources, needs, and community.',
+  'Antes de cerrar objetivos, abre el pensamiento. Añade notas, formas y flechas para mapear contenidos, lengua, preguntas y productos.':'Before closing objectives, open up thinking. Add notes, shapes, and arrows to map content, language, questions, and products.',
+  'Una unidad CLIL sólida integra contenido, comunicación, cognición y cultura; no añade inglés a una ficha ni traduce una unidad existente.':'A strong CLIL unit integrates content, communication, cognition, and culture; it does not add English to a worksheet or translate an existing unit.',
+  'No basta con nombrar un tema. Hay que decidir conceptos nucleares, destrezas de la disciplina, progresión y evidencias.':'Naming a topic is not enough. You need to decide core concepts, disciplinary skills, progression, and evidence.',
+  'La lengua no se improvisa: se anticipa la lengua obligatoria, la lengua funcional y la lengua emergente.':'Language is not improvised: obligatory, functional, and emergent language are anticipated.',
+  'La clave no es hacer tareas difíciles sin más, sino sostener pensamiento complejo con andamiaje suficiente.':'The point is not simply to make tasks difficult, but to sustain complex thinking with enough scaffolding.',
+  'Culture no es “food, flags and festivals”. En CLIL abre comparación, identidad, voces, comunidad y ciudadanía.':'Culture is not “food, flags and festivals”. In CLIL it opens comparison, identity, voices, community, and citizenship.',
+  'Clasifica tareas por demanda cognitiva y apoyo. El objetivo es mover tareas hacia alta demanda con alto apoyo.':'Classify tasks by cognitive demand and support. The aim is to move tasks towards high demand with high support.',
+  'Una secuencia por estaciones permite alternar input, interacción, pensamiento, producción y feedback. Ahora puedes añadir tantas estaciones propias como quieras.':'A station sequence lets you alternate input, interaction, thinking, production, and feedback. You can now add as many custom stations as you want.',
+  'Planifica apoyo lingüístico, conceptual, interactivo, afectivo y de acceso. Luego decide cómo desaparecerá.':'Plan linguistic, conceptual, interactive, affective, and access support. Then decide how it will fade.',
+  'La evaluación CLIL debe hacer visible el progreso y distinguir contenido y lengua sin separarlos artificialmente.':'CLIL assessment must make progress visible and distinguish content and language without artificially separating them.',
+  'Convierte la unidad en sesiones: activar, construir vocabulario, tarea, feedback y evaluación. Puedes añadir o borrar filas según tu unidad real.':'Turn the unit into sessions: activation, vocabulary building, task, feedback, and assessment. You can add or delete rows according to your real unit.',
+  'Coyle conecta la planificación con observación, evaluación de la acción y comunidades de indagación docente.':'Coyle connects planning with observation, evaluation of action, and teacher inquiry communities.',
+  'Un repositorio de teoría accionable para justificar decisiones de diseño, formar docentes y enriquecer la discusión académica.':'A repository of actionable theory to justify design decisions, train teachers, and enrich academic discussion.',
+  'Preguntas listas para usar en planificación, seminarios, tutorías, observación de aula y defensa académica de la unidad.':'Questions ready to use in planning, seminars, tutorials, classroom observation, and academic defence of the unit.',
+  'No bloquean el avance: sirven para activar, repasar, evaluar informalmente o convertir estaciones en retos con pistas.':'They do not block progress: they activate, review, informally assess, or turn stations into clue-based challenges.',
+  'Añade una subsección curricular explícita para que la plantilla final pueda dialogar con LOMLOE, competencias y programación oficial.':'Add an explicit curricular subsection so the final template can dialogue with LOMLOE, competences, and official planning.',
+  'Antes de exportar, revisa tu propia unidad con una checklist inspirada en el CLIL Teacher’s Tool Kit: integración, progresión, matriz, lenguaje, cultura, evaluación y revisión.':'Before exporting, review your own unit with a checklist inspired by the CLIL Teacher’s Tool Kit: integration, progression, matrix, language, culture, assessment, and revision.',
+  'No repitas todo. Esta pantalla recupera lo anterior, te deja insertar resúmenes automáticamente y construir una versión final defendible.':'Do not repeat everything. This screen retrieves earlier work, lets you insert automatic summaries, and helps build a defensible final version.',
+  'Tu unidad está lista para revisar, exportar y llevar al aula. Última comprobación: guarda, exporta y conserva tus notas del cuaderno.':'Your unit is ready to review, export, and take to class. Final check: save, export, and keep your notebook notes.'
+});
+Object.assign(enMap,{
+  'Basado en los ejes del CLIL Teacher’s Tool Kit, las 4Cs, el Language Triptych, la CLIL Matrix y la lógica plan-do-review de Coyle, Hood & Marsh (2010).':'Based on the CLIL Teacher’s Tool Kit, the 4Cs, the Language Triptych, the CLIL Matrix, and Coyle, Hood & Marsh’s plan-do-review logic (2010).',
+  'Conceptos, progresión disciplinar y resultados observables.':'Concepts, disciplinary progression, and observable outcomes.',
+  'Identidad, comunidad, comparación y perspectiva crítica.':'Identity, community, comparison, and critical perspective.',
+  'Teoría CLIL':'CLIL theory','Teoría aplicada':'Applied theory','Síntesis basada en Coyle, Hood & Marsh (2010) y apuntes de clase.':'Synthesis based on Coyle, Hood & Marsh (2010) and class notes.',
+  'Caso de decisión':'Decision case','Criterios de una unidad CLIL potente':'Criteria for a powerful CLIL unit',
+  'La herramienta sigue una lectura práctica del Tool Kit de Coyle, Hood y Marsh: visión compartida, análisis del contexto, planificación de unidad, preparación, monitorización/evaluación y reflexión profesional.':'The tool follows a practical reading of Coyle, Hood and Marsh’s Tool Kit: shared vision, context analysis, unit planning, preparation, monitoring/assessment, and professional reflection.',
+  'La pizarra previa funciona como mapa mental de unidad.':'The preliminary board works as a unit mind map.',
+  'La matriz ayuda a auditar tareas por demanda cognitiva y apoyo lingüístico/contextual.':'The matrix helps audit tasks by cognitive demand and linguistic/contextual support.',
+  'La plantilla final reúne todos los componentes de una unidad CLIL académicamente defendible.':'The final template brings together all components of an academically defensible CLIL unit.',
+  'El Language Triptych distingue la lengua of learning (conceptos y léxico disciplinar), for learning (funciones para operar en el aula) y through learning (lengua emergente que aparece mientras se piensa y se interactúa).':'The Language Triptych distinguishes language of learning (disciplinary concepts and lexis), for learning (functions for classroom work), and through learning (emergent language that appears while thinking and interacting).',
+  'La CLIL Matrix adapta la tensión entre demanda cognitiva y apoyo contextual/lingüístico. El objetivo no es simplificar el pensamiento, sino sostenerlo: alta demanda cognitiva con alto apoyo es el cuadrante más fértil.':'The CLIL Matrix frames the tension between cognitive demand and contextual/linguistic support. The goal is not to simplify thinking, but to sustain it: high cognitive demand with high support is the most fertile quadrant.',
+  'El andamiaje CLIL debe sostener contenido, lengua, interacción, afecto y autonomía. Es temporal: se planifica también cómo se retira para que el alumnado gane control.':'CLIL scaffolding should support content, language, interaction, affect, and autonomy. It is temporary: its removal is also planned so learners gain control.',
+  'La evaluación CLIL separa evidencias de contenido y evidencias de lengua, pero las interpreta de forma integrada. Combina evaluación formativa frecuente, criterios de éxito visibles, auto/coevaluación y productos finales variados.':'CLIL assessment separates content evidence and language evidence, but interprets them in an integrated way. It combines frequent formative assessment, visible success criteria, self/peer assessment, and varied final products.',
+  'Activación visual':'Visual activation','Imagen, objeto, dato sorprendente o mini-demostración para activar conocimiento previo.':'Image, object, surprising datum, or mini-demonstration to activate prior knowledge.','El alumnado produce hipótesis iniciales y preguntas.':'Learners produce initial hypotheses and questions.',
+  'Léxico en contexto':'Lexis in context','Clasificar términos, emparejar imagen-concepto, crear glosario visual.':'Classify terms, match image-concept pairs, create a visual glossary.','Banco de language of learning.':'Bank of language of learning.',
+  'Vídeo corto, texto adaptado, infografía, experimento o fuente primaria.':'Short video, adapted text, infographic, experiment, or primary source.','Notas guiadas con evidencias.':'Guided notes with evidence.',
+  'Desafío HOTS':'HOTS challenge','Comparar, justificar, diseñar, evaluar, resolver problema.':'Compare, justify, design, evaluate, solve a problem.','Producto con pensamiento visible.':'Product with visible thinking.',
+  'Cultura crítica':'Critical culture','Comparación local-global, voces ausentes, valores, conflicto o ciudadanía.':'Local-global comparison, absent voices, values, conflict, or citizenship.','Reflexión intercultural.':'Intercultural reflection.',
+  'Taller de producción':'Production workshop','Póster, informe, maqueta, podcast, explicación oral, mapa o experimento.':'Poster, report, model, podcast, oral explanation, map, or experiment.','Registrar lengua emergente, errores útiles, conectores y reformulaciones.':'Record emergent language, useful errors, connectors, and reformulations.','Corpus vivo de aula.':'Living classroom corpus.',
+  'Feedback clínico':'Clinical feedback','Mini-conferencias, rúbrica rápida, semáforo, checklist o peer review.':'Mini-conferences, quick rubric, traffic light, checklist, or peer review.','Próximo paso concreto.':'Concrete next step.',
+  'Metacognición':'Metacognition','¿Qué cambió en mi comprensión? ¿Qué estrategia me ayudó?':'What changed in my understanding? Which strategy helped me?','Diario de aprendizaje.':'Learning diary.',
+  'Transferencia':'Transfer','Aplicar a contexto nuevo, comunidad, problema real o caso comparativo.':'Apply to a new context, community, real problem, or comparative case.','Aprendizaje con sentido.':'Meaningful learning.',
+  'Borrar estación':'Delete station','Estación propia':'Own station','Objetivo, dinámica, tiempo y producto.':'Objective, dynamics, timing, and product.','Describe aquí una estación ajustada a tu grupo y a tu unidad.':'Describe a station adapted to your group and unit here.',
+  'Laboratorio de pronunciación':'Pronunciation lab','Ensayo breve de términos difíciles y frases funcionales.':'Brief rehearsal of difficult terms and functional phrases.','Útil antes de una presentación oral o debate.':'Useful before an oral presentation or debate.',
+  'Mini-conferencia docente':'Teacher mini-conference','Feedback individual o grupal con una evidencia concreta.':'Individual or group feedback with concrete evidence.','El alumnado sale con un next step.':'Learners leave with a next step.',
+  'Reto de transferencia':'Transfer challenge','Aplicar el principio a un caso nuevo.':'Apply the principle to a new case.','Comprueba comprensión profunda.':'Checks deep understanding.',
+  'Curaduría de fuentes':'Source curation','Seleccionar una fuente fiable y justificarla.':'Select a reliable source and justify it.','Conecta contenido, lengua académica y ciudadanía digital.':'Connects content, academic language, and digital citizenship.'
+});
+const fragmentMap = [
+  ['¿Qué esperas que cambie respecto a una clase tradicional de lengua o contenido?','What do you expect to change compared with a traditional language or content lesson?'],
+  ['Describe una escena concreta de aula: qué hacen, dicen, piensan y producen los estudiantes.','Describe a concrete classroom scene: what students do, say, think, and produce.'],
+  ['Incluye contenido, lengua, autonomía, colaboración y ciudadanía.','Include content, language, autonomy, collaboration, and citizenship.'],
+  ['Qué comprobarás antes/durante/después.','What you will check before/during/after.'],
+  ['Qué podrán comprobar ellos mismos.','What learners will be able to check themselves.'],
+  ['Qué aprenderán al rotar.','What learners will learn as they rotate.'],
+  ['Duración, número de grupos, orden, señales.','Duration, number of groups, order, signals.'],
+  ['Roles lingüísticos/cognitivos','Linguistic/cognitive roles'],
+  ['Qué queda producido o registrado.','What is produced or recorded.'],
+  ['Adapta esta estación a tu unidad...','Adapt this station to your unit...'],
+  ['Objetivo integrado','Integrated objective'],
+  ['Input, recursos, materiales','Input, resources, materials'],
+  ['Parejas, grupos, roles, discurso','Pairs, groups, roles, discourse'],
+  ['Apoyo lingüístico/conceptual','Linguistic/conceptual support'],
+  ['Producto, interacción, explicación, revisión...','Product, interaction, explanation, revision...'],
+  ['Puedes escribir aquí o insertar el resumen automático...','You can write here or insert the automatic summary...'],
+  ['Selecciona','Select'],
+  ['sin completar','not completed'],
+  ['¿Borrar todo y empezar un nuevo plan?','Delete everything and start a new plan?'],
+  ['¿Limpiar la pizarra?','Clear the board?'],
+  ['Texto de la nota CLIL:','CLIL note text:'],
+  ['Pregunta / concepto / lengua / producto','Question / concept / language / product'],
+  ['Idea CLIL','CLIL idea'],
+  ['Reto / producto final','Challenge / final product'],
+  ['Sesión','Session'],
+  ['Objetivo CLIL','CLIL objective'],
+  ['Input / materiales','Input / materials'],
+  ['Interacción','Interaction'],
+  ['Evidencia','Evidence'],
+  ['Fortalezas','Strengths'],
+  ['Riesgos','Risks'],
+  ['Revisión','Revision'],
+  ['Notas rápidas, dudas, frases para clase...','Quick notes, doubts, classroom phrases...'],
+  ['Pega enlaces, recursos, vídeos, lecturas...','Paste links, resources, videos, readings...']
+  ,['Aparece por defecto al final y como pie del PDF.','It appears by default at the end and as the PDF footer.']
+  ,['Revisa, borra o añade referencias antes de exportar. El botón crea una referencia APA 7 preformateada y la inserta aquí.','Review, delete, or add references before exporting. The button creates a preformatted APA 7 reference and inserts it here.']
+  ,['APA 7:','APA 7:']
+  ,['escribe los datos básicos y se insertará una referencia preformateada. Puedes editarla después para ajustar mayúsculas, páginas o normativa autonómica.','enter the basic data and a preformatted reference will be inserted. You can edit it afterwards to adjust capitalization, pages, or regional regulations.']
+  ,['Pre-export:','Pre-export:']
+  ,['aquí decides qué partes del proceso entran en el documento final. Puedes incluir incluso la pizarra, las estaciones, el cuaderno y las pistas tipo escape room sin reescribir nada.','here you decide which parts of the process go into the final document. You can include the board, stations, notebook, and escape-room clues without rewriting anything.']
+  ,['Cambridge University Press / Journal / BOE...','Cambridge University Press / Journal / BOE...']
+  ,['https://doi.org/... o URL','https://doi.org/... or URL']
+  ,['Basado en los ejes del','Based on']
+  ,["CLIL Teacher's Tool Kit","CLIL Teacher's Tool Kit"]
+  ,['las 4Cs, el','the 4Cs, the']
+  ,['y la lógica plan-do-review de Coyle, Hood & Marsh (2010).','and Coyle, Hood & Marsh’s plan-do-review logic (2010).']
+  ,['Mapa académico de CLIL Studio Pro','Academic map of CLIL Studio Pro']
+  ,['Qué cuenta como evidencia aquí:','What counts as evidence here:']
+  ,['una producción, interacción, decisión, explicación, borrador, registro o revisión que permite inferir aprendizaje. No es solo “actividad hecha”: debe mostrar qué sabe, qué puede hacer o cómo está pensando el alumnado.','a production, interaction, decision, explanation, draft, record, or revision that allows learning to be inferred. It is not just “activity completed”: it must show what learners know, what they can do, or how they are thinking.']
+  ,['Arrastra elementos para moverlos. Con Flecha: arrastra desde origen hasta destino. Doble clic en una nota para editar texto.','Drag elements to move them. With Arrow: drag from the origin to the destination. Double-click a note to edit text.']
+  ,['¿Qué conceptos son irrenunciables? ¿Qué lengua bloquea o desbloquea el pensamiento? ¿Dónde aparecerá una voz cultural distinta? ¿Qué producto probará que han aprendido algo que antes no podían hacer?','Which concepts are non-negotiable? Which language blocks or unlocks thinking? Where will a different cultural voice appear? Which product will prove they have learned something they could not do before?']
+  ,['Área','Area']
+  ,['Nivel','Level']
+  ,['Tema','Topic']
+  ,['Currículo','Curriculum']
+  ,['Conceptos','Concepts']
+  ,['Destrezas','Skills']
+  ,['Resultados','Outcomes']
+  ,['Errores previsibles','Foreseeable misconceptions']
+  ,['Preguntas','Questions']
+  ,['Reto','Challenge']
+  ,['Auditoría','Audit']
+  ,['Propósito','Purpose']
+  ,['Rotación','Rotation']
+  ,['Agrupamientos','Groupings']
+  ,['Evidencias','Evidence']
+  ,['Lingüístico','Linguistic']
+  ,['Conceptual','Conceptual']
+  ,['Afectivo','Affective']
+  ,['Retirada','Fade-out']
+  ,['Intenciones','Intentions']
+  ,['Criterios éxito','Success criteria']
+  ,['Formativa','Formative']
+  ,['Sumativa','Summative']
+  ,['Contenido','Content']
+  ,['Lengua','Language']
+  ,['Vocabulario','Vocabulary']
+  ,['Tareas','Tasks']
+  ,['Momentos evaluación','Assessment moments']
+  ,['Progreso','Progress']
+  ,['Revisita mapa','Map revisit']
+  ,['Reflexión docente','Teacher reflection']
+  ,['Reflexión alumnado','Learner reflection']
+  ,['Indagación','Inquiry']
+  ,['Etapa/materia','Stage/subject']
+  ,['Descriptores','Descriptors']
+  ,['Criterios evaluación','Assessment criteria']
+  ,['Situación aprendizaje','Learning situation']
+  ,['Riesgos checklist Coyle','Coyle checklist risks']
+  ,['Fortalezas checklist Coyle','Coyle checklist strengths']
+  ,['Revisión checklist Coyle','Coyle checklist revision']
+  ,['Insertar resumen de pantallas anteriores','Insert summary from previous screens']
+  ,['Título final de la situación de aprendizaje / unidad','Final title of the learning situation / unit']
+  ,['Esta sección es distinta a las pantallas anteriores: aquí redactas la versión final. Usa los botones para traer síntesis automáticas de lo ya completado y editarlas, sin volver a empezar de cero.','This section is different from the previous screens: here you write the final version. Use the buttons to bring in automatic syntheses of what you have already completed and edit them, without starting again from zero.']
+  ,['Puedes añadir referencias específicas de tu asignatura o normativa autonómica.','You can add subject-specific references or regional regulations.']
+  ,['Ventanas a pantallas anteriores','Windows into previous screens']
+  ,['Sesiones','Sessions']
+  ,['Estaciones detalladas','Detailed stations']
+  ,['No se añadieron notas al cuaderno flotante.','No notes were added to the floating notebook.']
+  ,['No hay estaciones detalladas.','There are no detailed stations.']
+  ,['Pulsa insertar resumen o redacta una secuencia sintética.','Click insert summary or write a concise sequence.']
+];
+function switchLang(lang){currentLang=lang;localStorage.setItem('clil_lang',lang);applyLang()}
+function translateText(raw){
+  if(currentLang==='es') return raw;
+  const trimmed=raw.trim();
+  if(enMap[trimmed]) return raw.replace(trimmed,enMap[trimmed]);
+  let out=raw;
+  Object.keys(enMap).sort((a,b)=>b.length-a.length).forEach(k=>{ if(k.length>3) out=out.split(k).join(enMap[k]); });
+  fragmentMap.forEach(([es,en])=>{out=out.split(es).join(en)});
+  return out;
+}
+function applyLang(){
+  document.documentElement.lang=currentLang;
+  const es=el('langES'), en=el('langEN'); if(es&&en){es.classList.toggle('active',currentLang==='es');en.classList.toggle('active',currentLang==='en')}
+  document.querySelectorAll('body *').forEach(node=>{
+    if(['SCRIPT','STYLE','CANVAS'].includes(node.tagName))return;
+    if(!['TEXTAREA','INPUT'].includes(node.tagName)){
+      node.childNodes.forEach(ch=>{
+        if(ch.nodeType===3){
+          if(!ch._esText) ch._esText=ch.nodeValue;
+          const raw=ch._esText; const trimmed=raw.trim(); if(!trimmed)return;
+          ch.nodeValue=currentLang==='en' ? translateText(raw) : raw;
+        }
+      });
+    }
+    ['placeholder','title','aria-label'].forEach(attr=>{
+      if(node.hasAttribute&&node.hasAttribute(attr)){
+        const key='data-es-'+attr; if(!node.hasAttribute(key)) node.setAttribute(key,node.getAttribute(attr));
+        const base=node.getAttribute(key); node.setAttribute(attr,currentLang==='en'?translateText(base):base);
+      }
+    });
+  });
+}
+function renderStations(){
+  const board=el('stationBoard'); if(!board)return;
+  const base = stationSeed.map((s,i)=>({id:`seed_${i+1}`, n:String(i+1).padStart(2,'0'), title:s[0], small:s[1], desc:s[2], seed:true}));
+  const all=[...base,...customStations];
+  board.innerHTML = all.map((s,i)=>{
+    const stationValue = savedFieldValues['station_'+s.id] || s.value || '';
+    const deleteBtn = s.seed ? '' : `<button class="danger-btn" onclick="deleteCustomStation('${s.id}')">Borrar estación</button>`;
+    return `<div class="station" data-n="${s.n||String(i+1).padStart(2,'0')}"><h3>${s.title}</h3><small>${s.small||''}</small><p>${s.desc||''}</p><textarea id="station_${s.id}" oninput="saveAll(false)" placeholder="Adapta esta estación a tu unidad...">${escRaw(stationValue)}</textarea>${deleteBtn}</div>`;
+  }).join('');
+}
+function addCustomStation(title='Estación propia', small='Objetivo, dinámica, tiempo y producto.', desc='Describe aquí una estación ajustada a tu grupo y a tu unidad.'){
+  customStations.push({id:'custom_'+Date.now()+'_'+Math.floor(Math.random()*999), n:'+', title, small, desc, value:''});
+  renderStations(); saveAll();
+}
+function seedCustomStations(){
+  [['Laboratorio de pronunciación','Ensayo breve de términos difíciles y frases funcionales.','Útil antes de una presentación oral o debate.'],['Mini-conferencia docente','Feedback individual o grupal con una evidencia concreta.','El alumnado sale con un next step.'],['Reto de transferencia','Aplicar el principio a un caso nuevo.','Comprueba comprensión profunda.'],['Curaduría de fuentes','Seleccionar una fuente fiable y justificarla.','Conecta contenido, lengua académica y ciudadanía digital.']].forEach(s=>addCustomStation(...s));
+}
+function deleteCustomStation(id){customStations=customStations.filter(s=>s.id!==id);renderStations();saveAll()}
+function renderLessonRows(){
+  const body=el('lessonBody'); if(!body)return;
+  body.innerHTML = lessonRows.map((r,i)=>`<tr data-lesson-id="${r.id}"><th>${i+1}</th><td><textarea id="lesson_${r.id}_obj" oninput="saveLessonRow('${r.id}','obj',this.value)" placeholder="Objetivo integrado">${escRaw(r.obj||'')}</textarea></td><td><textarea id="lesson_${r.id}_input" oninput="saveLessonRow('${r.id}','input',this.value)" placeholder="Input, recursos, materiales">${escRaw(r.input||'')}</textarea></td><td><textarea id="lesson_${r.id}_talk" oninput="saveLessonRow('${r.id}','talk',this.value)" placeholder="Parejas, grupos, roles, discurso">${escRaw(r.talk||'')}</textarea></td><td><textarea id="lesson_${r.id}_scaff" oninput="saveLessonRow('${r.id}','scaff',this.value)" placeholder="Apoyo lingüístico/conceptual">${escRaw(r.scaff||'')}</textarea></td><td><textarea id="lesson_${r.id}_ev" oninput="saveLessonRow('${r.id}','ev',this.value)" placeholder="Producto, interacción, explicación, revisión...">${escRaw(r.ev||'')}</textarea></td><td><button class="danger-btn" onclick="deleteLessonRow('${r.id}')">Borrar</button></td></tr>`).join('');
+}
+function saveLessonRow(id,key,val){const row=lessonRows.find(r=>String(r.id)===String(id)); if(row){row[key]=val; saveAll(false)}}
+function addLessonRow(){lessonRows.push({id:Date.now()+Math.floor(Math.random()*999)});renderLessonRows();saveAll()}
+function addLessonRows(n){for(let i=0;i<n;i++)lessonRows.push({id:Date.now()+i+Math.floor(Math.random()*999)});renderLessonRows();saveAll()}
+function deleteLessonRow(id){lessonRows=lessonRows.filter(r=>String(r.id)!==String(id)); if(!lessonRows.length)lessonRows=[{id:Date.now()}]; renderLessonRows(); saveAll()}
+function renumberLessonRows(){renderLessonRows();showToast('Sesiones renumeradas')}
+function collect(){
+  const data={current,canvas:canvasState.items,fields:{...savedFieldValues}};
+  [...fieldDefs, ...stationSeed.map((_,i)=>`station_seed_${i+1}`), ...customStations.map(s=>`station_${s.id}`)].forEach(id=>{const node=el(id); if(node)data.fields[id]=node.value});
+  savedFieldValues=data.fields;
+  customStations.forEach(s=>{const node=el(`station_${s.id}`); if(node)s.value=node.value});
+  data.lessonRows=lessonRows;
+  data.customStations=customStations;
+  data.checks=[...document.querySelectorAll('.check input')].map(c=>c.checked);
+  return data;
+}
+let clilCloudTimer=null;
+function saveAll(notify=true){
+  localStorage.setItem('clil_studio_pro',JSON.stringify(collect()));
+  scheduleClilCloudSave();
+  if(notify)showToast()
+}
+function scheduleClilCloudSave(){
+  clearTimeout(clilCloudTimer);
+  clilCloudTimer=setTimeout(()=>saveClilProgress(),3800);
+}
+async function saveClilProgress(){
+  if(!window.VTLabFirebase?.saveToolProgress)return;
+  const session=window.VTLabFirebase.getLocalSession ? window.VTLabFirebase.getLocalSession() : {};
+  if(session.testMode)return;
+  const data=collect();
+  const filled=Object.values(data.fields||{}).filter(v=>String(v||'').trim()).length;
+  window.VTLabFirebase.saveToolProgress({
+    event:'clil-progress-saved',
+    roomId:'clil-planner',
+    roomName:'CLIL Studio Pro',
+    consent:true,
+    result:{
+      currentStep:data.current,
+      filledFields:filled,
+      lessonRows:(data.lessonRows||[]).length,
+      customStations:(data.customStations||[]).length,
+      progressPercent:Math.min(100,Math.round((filled/45)*100))
+    },
+    clilPlan:data
+  }).catch(err=>console.warn('VT Lab CLIL save failed',err));
+}
+function loadAll(){
+  const raw=localStorage.getItem('clil_studio_pro'); if(!raw)return;
+  try{const data=JSON.parse(raw); savedFieldValues=data.fields||{}; lessonRows=data.lessonRows||lessonRows; customStations=data.customStations||customStations; renderStations(); renderLessonRows(); Object.entries(savedFieldValues).forEach(([id,v])=>{const node=el(id); if(node)node.value=v});
+    document.querySelectorAll('.check input').forEach((c,i)=>c.checked=!!(data.checks||[])[i]);
+    canvasState.items=data.canvas||[]; current=data.current||0;
+  }catch(e){console.warn(e)}
+}
+function resetAll(){if(confirm('¿Borrar todo y empezar un nuevo plan?')){localStorage.removeItem('clil_studio_pro');location.reload()}}
+function setTool(t){canvasState.tool=t;document.querySelectorAll('.tool-grid button').forEach(b=>b.classList.remove('active'));el(`tool-${t}`).classList.add('active')}
+function initCanvas(){
+  const c=el('brainCanvas'); if(!c||c.dataset.ready)return; c.dataset.ready='1';
+  c.addEventListener('pointerdown',canvasDown); c.addEventListener('pointermove',canvasMove); c.addEventListener('pointerup',canvasUp); c.addEventListener('dblclick',canvasDbl);
+  redraw();
+}
+function pos(e){const r=el('brainCanvas').getBoundingClientRect();return{x:(e.clientX-r.left)*(el('brainCanvas').width/r.width),y:(e.clientY-r.top)*(el('brainCanvas').height/r.height)}}
+function canvasDown(e){
+  const p=pos(e); const hit=[...canvasState.items].reverse().find(it=>p.x>=it.x&&p.x<=it.x+(it.w||150)&&p.y>=it.y&&p.y<=it.y+(it.h||70));
+  if(canvasState.tool==='arrow'){canvasState.start=p;return}
+  if(hit){canvasState.drag={it:hit,dx:p.x-hit.x,dy:p.y-hit.y};return}
+  const type=canvasState.tool; const text= type==='note' ? prompt('Texto de la nota CLIL:','Pregunta / concepto / lengua / producto') : '';
+  canvasState.items.push({type,x:p.x,y:p.y,w:type==='circle'?110:170,h:type==='circle'?110:78,text:text||'Idea CLIL',color:type==='note'?'#fff3b0':type==='box'?'#e8f0ff':'#e6fbf5'});
+  redraw();saveAll(false);
+}
+function canvasMove(e){if(!canvasState.drag)return;const p=pos(e);canvasState.drag.it.x=p.x-canvasState.drag.dx;canvasState.drag.it.y=p.y-canvasState.drag.dy;redraw()}
+function canvasUp(e){
+  if(canvasState.tool==='arrow'&&canvasState.start){const p=pos(e);canvasState.items.push({type:'arrow',x:canvasState.start.x,y:canvasState.start.y,x2:p.x,y2:p.y,color:'#141823'});canvasState.start=null;redraw();saveAll(false)}
+  canvasState.drag=null;saveAll(false);
+}
+function canvasDbl(e){const p=pos(e);const hit=[...canvasState.items].reverse().find(it=>it.type!=='arrow'&&p.x>=it.x&&p.x<=it.x+(it.w||150)&&p.y>=it.y&&p.y<=it.y+(it.h||70));if(hit){hit.text=prompt('Editar texto:',hit.text)||hit.text;redraw();saveAll(false)}}
+function redraw(){
+  const c=el('brainCanvas'); if(!c)return; const ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.strokeStyle='#edf0f4';ctx.lineWidth=1;
+  for(let x=0;x<c.width;x+=28){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,c.height);ctx.stroke()} for(let y=0;y<c.height;y+=28){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(c.width,y);ctx.stroke()}
+  canvasState.items.forEach(it=>drawItem(ctx,it));
+}
+function drawItem(ctx,it){
+  ctx.save();ctx.lineWidth=2;ctx.strokeStyle='rgba(20,24,35,.35)';ctx.fillStyle=it.color||'#fff';
+  if(it.type==='arrow'){drawArrow(ctx,it.x,it.y,it.x2,it.y2);ctx.restore();return}
+  if(it.type==='circle'){ctx.beginPath();ctx.ellipse(it.x+it.w/2,it.y+it.h/2,it.w/2,it.h/2,0,0,Math.PI*2);ctx.fill();ctx.stroke()}
+  else{ctx.beginPath();roundRect(ctx,it.x,it.y,it.w,it.h,12);ctx.fill();ctx.stroke()}
+  ctx.fillStyle='#141823';ctx.font='600 16px Inter, sans-serif';wrap(ctx,it.text,it.x+14,it.y+24,it.w-28,19);ctx.restore();
+}
+function roundRect(ctx,x,y,w,h,r){ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function drawArrow(ctx,x1,y1,x2,y2){ctx.strokeStyle='#141823';ctx.fillStyle='#141823';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-14*Math.cos(a-.45),y2-14*Math.sin(a-.45));ctx.lineTo(x2-14*Math.cos(a+.45),y2-14*Math.sin(a+.45));ctx.closePath();ctx.fill()}
+function wrap(ctx,text,x,y,max,line){String(text).split('\n').forEach(par=>{let words=par.split(' '),row='';words.forEach(w=>{let test=row+w+' ';if(ctx.measureText(test).width>max){ctx.fillText(row,x,y);row=w+' ';y+=line}else row=test});ctx.fillText(row,x,y);y+=line})}
+function addPromptNote(){const prompts=['Content: concepto irrenunciable','Communication: frase que necesitarán','Cognition: pregunta HOTS','Culture: perspectiva ausente','Assessment: evidencia visible'];prompts.forEach((t,i)=>canvasState.items.push({type:'note',x:80+i*150,y:80+i*55,w:170,h:76,text:t,color:['#e8f0ff','#ffe8ef','#e6fbf5','#fff0d8','#f1ecff'][i]}));redraw();saveAll()}
+function autoMindMap(){clearCanvas(false);['CONTENT','COMMUNICATION','COGNITION','CULTURE'].forEach((t,i)=>canvasState.items.push({type:'circle',x:[130,650,140,650][i],y:[90,105,380,365][i],w:150,h:150,text:t,color:['#e8f0ff','#ffe8ef','#e6fbf5','#fff0d8'][i]}));canvasState.items.push({type:'box',x:405,y:255,w:190,h:90,text:'Reto / producto final',color:'#fff3b0'});[[280,165,405,295],[650,180,595,295],[290,455,405,315],[650,440,595,315]].forEach(a=>canvasState.items.push({type:'arrow',x:a[0],y:a[1],x2:a[2],y2:a[3]}));redraw();saveAll()}
+function clearCanvas(ask=true){if(!ask||confirm('¿Limpiar la pizarra?')){canvasState.items=[];redraw();saveAll(false)}}
+function downloadCanvas(){const a=document.createElement('a');a.download='clil-mind-map.png';a.href=el('brainCanvas').toDataURL();a.click()}
+function value(id){const n=el(id);if(n&&n.value.trim())return n.value.trim(); if(savedFieldValues[id]&&String(savedFieldValues[id]).trim())return String(savedFieldValues[id]).trim(); return '(sin completar)'}
+function esc(s){return String(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])).replace(/\n/g,'<br>')}
+function escRaw(s){return String(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
+const templateGroups = [
+  ['1. Visión compartida',[['Expectativas','vision_expectations'],['Clase CLIL ideal','vision_ideal'],['Objetivos alumnado','vision_student_goals'],['Objetivos docentes','vision_teacher_goals'],['No negociables','vision_nonnegotiables']]],
+  ['2. Contexto',[['Área','subject'],['Nivel','level'],['Edad','age'],['L2 / CEFR','l2'],['Tema','topic'],['Currículo','curriculum'],['Perfil grupo','group_profile'],['Conocimientos previos','prior_knowledge'],['Necesidades','needs']]],
+  ['3. Content',[['Big ideas','content_bigideas'],['Conceptos','content_concepts'],['Destrezas','content_skills'],['Resultados','content_outcomes'],['Errores previsibles','content_misconceptions'],['Progresión','content_progression']]],
+  ['4. Communication',[['Language OF','lang_of'],['Language FOR','lang_for'],['Language THROUGH','lang_through'],['Géneros','lang_genres'],['Funciones','lang_functions'],['Interacción','lang_interaction'],['Language wall','lang_wall']]],
+  ['5. Cognition',[['LOTS','cog_lots'],['HOTS','cog_hots'],['Preguntas','cog_questions'],['Bloom','cog_bloom'],['Metacognición','cog_metacog'],['Reto','cog_problem']]],
+  ['6. Culture / Community',[['Self','culture_self'],['Other','culture_other'],['Global','culture_global'],['Community','culture_community'],['Critical','culture_critical'],['Producto','culture_product']]],
+  ['7. CLIL Matrix',[['A','matrix_a'],['B','matrix_b'],['C','matrix_c'],['D','matrix_d'],['Auditoría','matrix_audit']]],
+  ['8. Estaciones',[['Propósito','stations_goal'],['Rotación','stations_rotation'],['Agrupamientos','stations_grouping'],['Evidencias','stations_outputs']]],
+  ['9. Andamiaje',[['Lingüístico','scaff_lang'],['Conceptual','scaff_content'],['Interacción','scaff_interaction'],['Afectivo','scaff_affective'],['Accesibilidad','scaff_access'],['Retirada','scaff_fade']]],
+  ['10. Evaluación',[['Intenciones','assess_intentions'],['Criterios éxito','assess_success'],['Formativa','assess_formative'],['Sumativa','assess_summative'],['Contenido','assess_content'],['Lengua','assess_language'],['Coevaluación','assess_peer'],['Autoevaluación','assess_self'],['Evidencias','assess_evidence']]],
+  ['11. Lesson plan',[['Activación','lesson_hook'],['Vocabulario','lesson_vocab'],['Tareas','lesson_tasks'],['Momentos evaluación','lesson_assess'],['Checklist docente','teacher_checklist'],['Checklist alumnado','learner_checklist']]],
+  ['12. Monitorización y reflexión',[['Progreso','monitor_progress'],['Feedback','monitor_feedback'],['Visible learning','monitor_visibility'],['Revisita mapa','monitor_mindmap'],['Reflexión docente','reflection_teacher'],['Reflexión alumnado','reflection_students'],['Indagación','reflection_inquiry'],['Siguiente ciclo','next_iteration']]]
+];
+const sourceGroups = [
+  ['Contexto y visión',['vision_expectations','vision_ideal','subject','level','age','l2','cefr','topic','group_profile','prior_knowledge','needs']],
+  ['4Cs',['content_bigideas','content_outcomes','lang_of','lang_for','cog_hots','cog_questions','culture_global','culture_critical']],
+  ['Tareas, estaciones y matriz',['matrix_b','matrix_audit','stations_goal','stations_rotation','stations_outputs','lesson_tasks']],
+  ['Andamiaje y evaluación',['scaff_lang','scaff_content','scaff_fade','assess_intentions','assess_success','assess_content','assess_language','assess_evidence']],
+  ['LOMLOE',['lomloe_stage','lomloe_key_competences','lomloe_specific_competences','lomloe_descriptors','lomloe_assessment_criteria','lomloe_basic_knowledge','lomloe_learning_situations','lomloe_inclusion']],
+  ['Checklist Coyle',['coyle_unit_strengths','coyle_unit_risks','coyle_unit_revision']],
+  ['Reflexión',['monitor_progress','monitor_visibility','reflection_teacher','reflection_students','reflection_inquiry','next_iteration']]
+];
+const labels = Object.fromEntries(templateGroups.flatMap(([,fs])=>fs).concat([
+  ['Etapa/materia','lomloe_stage'],['Competencias clave','lomloe_key_competences'],['Competencias específicas','lomloe_specific_competences'],['Descriptores','lomloe_descriptors'],['Criterios evaluación','lomloe_assessment_criteria'],['Saberes básicos','lomloe_basic_knowledge'],['Situación aprendizaje','lomloe_learning_situations'],['DUA/diversidad','lomloe_inclusion'],['Fortalezas checklist Coyle','coyle_unit_strengths'],['Riesgos checklist Coyle','coyle_unit_risks'],['Revisión checklist Coyle','coyle_unit_revision']
+]).map(([l,id])=>[id,l]));
+function compactSummary(ids){
+  return ids.map(id=>`${labels[id]||id}: ${value(id)}`).filter(x=>!x.includes('(sin completar)')).join('\n\n') || '(sin completar)';
+}
+function lessonSummary(){
+  return lessonRows.map((r,i)=>`Sesión ${i+1}: ${r.obj||''}\nInput: ${r.input||''}\nInteracción: ${r.talk||''}\nAndamiaje: ${r.scaff||''}\nEvidencia: ${r.ev||''}`).join('\n\n');
+}
+function stationsSummary(){
+  const seed = stationSeed.map((s,i)=>({title:s[0], value:(el(`station_seed_${i+1}`)?.value||'').trim()})).filter(s=>s.value);
+  const custom = customStations.map(s=>({title:s.title, value:(el(`station_${s.id}`)?.value||s.value||'').trim()})).filter(s=>s.value);
+  return [...seed,...custom].map((s,i)=>`${i+1}. ${s.title}: ${s.value}`).join('\n\n') || '(sin completar)';
+}
+function draftField(id,title,sourceIds){
+  return `<div class="draft-box"><h3>${title}</h3><div class="table-tools"><button class="small-btn" onclick="insertSummary('${id}','${sourceIds.join('|')}')">Insertar resumen de pantallas anteriores</button></div><textarea id="${id}" oninput="saveAll(false)" placeholder="Puedes escribir aquí o insertar el resumen automático...">${escRaw(value(id)==='(sin completar)'?'':value(id))}</textarea></div>`;
+}
+function renderFinal(){
+  el('finalPreview').innerHTML =
+    `<div class="template-block"><h3>Constructor de draft final</h3><p>Esta sección es distinta a las pantallas anteriores: aquí redactas la versión final. Usa los botones para traer síntesis automáticas de lo ya completado y editarlas, sin volver a empezar de cero.</p><div class="field"><label for="final_title">Título final de la situación de aprendizaje / unidad</label><input id="final_title" oninput="saveAll(false)" value="${escRaw(value('final_title')==='(sin completar)'?value('topic'):value('final_title'))}"></div>${draftField('final_context_synthesis','1. Contexto, justificación y visión CLIL',['vision_expectations','vision_ideal','subject','level','age','l2','cefr','topic','group_profile','prior_knowledge','needs'])}${draftField('final_4cs_synthesis','2. Diseño integrado 4Cs',['content_bigideas','content_outcomes','lang_of','lang_for','lang_through','cog_hots','cog_questions','culture_global','culture_critical'])}${draftField('final_lesson_synthesis','3. Secuencia de sesiones y estaciones',[])}${draftField('final_lomloe_synthesis','4. Conexión curricular española / LOMLOE',['lomloe_stage','lomloe_key_competences','lomloe_specific_competences','lomloe_descriptors','lomloe_assessment_criteria','lomloe_basic_knowledge','lomloe_learning_situations','lomloe_inclusion','lomloe_interdisciplinary'])}${draftField('final_assessment_synthesis','5. Evaluación, evidencias y feedback',['assess_intentions','assess_success','assess_formative','assess_summative','assess_content','assess_language','assess_peer','assess_self','assess_evidence'])}${draftField('final_reflection_synthesis','6. Monitorización y metarreflexión',['monitor_progress','monitor_feedback','monitor_visibility','monitor_mindmap','reflection_teacher','reflection_students','reflection_inquiry','next_iteration'])}<div class="field"><label for="final_bibliography_note">Nota bibliográfica / marco teórico</label><p class="help">Puedes añadir referencias específicas de tu asignatura o normativa autonómica.</p><textarea id="final_bibliography_note" oninput="saveAll(false)">${escRaw(value('final_bibliography_note')==='(sin completar)'?'':value('final_bibliography_note'))}</textarea></div></div>
+    <div class="template-block"><h3>Ventanas a pantallas anteriores</h3><div class="source-drawer">${sourceGroups.map(([title,ids])=>`<div class="source-card"><h4>${title}</h4>${ids.map(id=>`<div class="preview-field"><b>${labels[id]||id}</b><span class="${value(id)==='(sin completar)'?'empty':''}">${esc(value(id))}</span></div>`).join('')}</div>`).join('')}<div class="source-card"><h4>Sesiones</h4><pre>${esc(lessonSummary())}</pre></div><div class="source-card"><h4>Estaciones detalladas</h4><pre>${esc(stationsSummary())}</pre></div></div></div>
+    <div class="template-block"><h3>Bibliografía APA 7</h3><ul class="apa-list">${apaRefs.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>`;
+  ['final_lesson_synthesis'].forEach(id=>{const n=el(id); if(n&&!n.value.trim()) n.placeholder='Pulsa insertar resumen o redacta una secuencia sintética.'});
+}
+function insertSummary(targetId, packed){
+  const target=el(targetId); if(!target)return;
+  let txt='';
+  if(targetId==='final_lesson_synthesis') txt = `Secuencia de sesiones:\n${lessonSummary()}\n\nEstaciones:\n${stationsSummary()}`;
+  else txt = compactSummary((packed||'').split('|').filter(Boolean));
+  target.value = txt;
+  saveAll();
+}
+function fillDraftFromPrevious(){
+  insertSummary('final_context_synthesis','vision_expectations|vision_ideal|subject|level|age|l2|cefr|topic|group_profile|prior_knowledge|needs');
+  insertSummary('final_4cs_synthesis','content_bigideas|content_outcomes|lang_of|lang_for|lang_through|cog_hots|cog_questions|culture_global|culture_critical');
+  insertSummary('final_lesson_synthesis','');
+  insertSummary('final_lomloe_synthesis','lomloe_stage|lomloe_key_competences|lomloe_specific_competences|lomloe_descriptors|lomloe_assessment_criteria|lomloe_basic_knowledge|lomloe_learning_situations|lomloe_inclusion|lomloe_interdisciplinary');
+  insertSummary('final_assessment_synthesis','assess_intentions|assess_success|assess_formative|assess_summative|assess_content|assess_language|assess_peer|assess_self|assess_evidence');
+  insertSummary('final_reflection_synthesis','monitor_progress|monitor_feedback|monitor_visibility|monitor_mindmap|reflection_teacher|reflection_students|reflection_inquiry|next_iteration');
+  showToast('Draft reconstruido');
+}
+function openSourceWindow(){
+  el('modalTitle').textContent='Ventanas a pantallas anteriores';
+  el('modalBody').innerHTML=`<div class="source-drawer">${sourceGroups.map(([title,ids])=>`<div class="source-card"><h4>${title}</h4><pre>${esc(compactSummary(ids))}</pre></div>`).join('')}<div class="source-card"><h4>Sesiones</h4><pre>${esc(lessonSummary())}</pre></div><div class="source-card"><h4>Estaciones</h4><pre>${esc(stationsSummary())}</pre></div></div>`;
+  el('modal').classList.add('show');
+}
+function exportLessonTableHtml(){
+  return `<table class="lesson"><thead><tr><th>Sesión</th><th>Objetivo CLIL</th><th>Input/materiales</th><th>Interacción</th><th>Andamiaje</th><th>Evidencia</th></tr></thead><tbody>${lessonRows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.obj||'')}</td><td>${esc(r.input||'')}</td><td>${esc(r.talk||'')}</td><td>${esc(r.scaff||'')}</td><td>${esc(r.ev||'')}</td></tr>`).join('')}</tbody></table>`;
+}
+function exportStationCardsHtml(){
+  const seed = stationSeed.map((s,i)=>({title:s[0], desc:s[1], value:value(`station_seed_${i+1}`)})).filter(s=>s.value!=='(sin completar)');
+  const custom = customStations.map(s=>({title:s.title, desc:s.small, value:value(`station_${s.id}`)})).filter(s=>s.value!=='(sin completar)');
+  const all = [...seed,...custom];
+  return all.length ? `<div class="cards">${all.map((s,i)=>`<div class="card station-export"><b>${String(i+1).padStart(2,'0')} · ${esc(s.title)}</b><small>${esc(s.desc||'')}</small><p>${esc(s.value)}</p></div>`).join('')}</div>` : `<p class="empty-export">No hay estaciones detalladas.</p>`;
+}
+function exportNotebookHtml(){
+  const has = ['assistant_notes','assistant_links','assistant_biblio'].some(id=>value(id)!=='(sin completar)');
+  if(!has) return '<p class="empty-export">No se añadieron notas al cuaderno flotante.</p>';
+  return `<div class="note-grid"><div><h3>Notas</h3><p>${esc(value('assistant_notes'))}</p></div><div><h3>Enlaces</h3><p>${esc(value('assistant_links'))}</p></div><div><h3>APA adicional</h3><p>${esc(value('assistant_biblio'))}</p></div></div>`;
+}
+let pendingExportType = null;
+let bypassPreExport = false;
+function exportFooterText(){
+  if(value('export_footer') !== '(sin completar)') return value('export_footer');
+  const author = value('export_author') !== '(sin completar)' ? value('export_author') : 'Dr María Sanabria';
+  const institution = value('export_institution') !== '(sin completar)' ? value('export_institution') : 'UNICAN';
+  return `Template by ${author} (${institution}) · CLIL Studio Pro`;
+}
+function exportIncluded(id){return value(id)!=='no'}
+function exportSelect(id,label,help=''){
+  return `<label class="check"><input type="checkbox" id="${id}" ${exportIncluded(id)?'checked':''} onchange="this.value=this.checked?'yes':'no';saveAll(false)" value="${exportIncluded(id)?'yes':'no'}"><span>${label}${help?`<small>${help}</small>`:''}</span></label>`;
+}
+function exportApaText(){
+  const custom=value('export_apa_custom');
+  if(custom!=='(sin completar)') return custom;
+  const extra=value('assistant_biblio')==='(sin completar)'?'':value('assistant_biblio');
+  return [...apaRefs, extra].filter(Boolean).join('\n\n');
+}
+function canvasExportData(){
+  const c=el('brainCanvas');
+  try{return c?c.toDataURL('image/png'):''}catch(e){return ''}
+}
+function exportCanvasHtml(){
+  const img=canvasExportData();
+  if(!img) return '<p class="empty-export">No hay pizarra disponible para exportar.</p>';
+  return `<div class="canvas-export"><img src="${img}" alt="CLIL brainstorming board"></div>`;
+}
+function openPreExport(type){
+  pendingExportType = type;
+  el('modalTitle').textContent = 'Pre-export: elegir secciones';
+  const apaDraft = value('export_apa_custom')==='(sin completar)' ? exportApaText() : value('export_apa_custom');
+  el('modalBody').innerHTML = `<div class="grid-2">
+    <div class="field"><label>Estilo visual</label><select id="export_style" onchange="saveAll(false)"><option value="editorial">Editorial académico</option><option value="formal">Formal limpio</option><option value="colourful">Color visual</option></select></div>
+    <div class="field"><label>Pie automático</label><input id="export_footer" value="${escRaw(value('export_footer')==='(sin completar)'?'Template by Dr María Sanabria (UNICAN) · CLIL Studio Pro':value('export_footer'))}" oninput="saveAll(false)"><p class="help">Aparece por defecto al final y como pie del PDF.</p></div>
+  </div>
+  <div class="template-block"><h3>Qué incluir</h3><div class="grid-3">
+    ${exportSelect('export_include_cover','Portada')}
+    ${exportSelect('export_include_4cs','Resumen 4Cs')}
+    ${exportSelect('export_include_context','Contexto y visión')}
+    ${exportSelect('export_include_lesson','Draft de secuencia')}
+    ${exportSelect('export_include_lomloe','Conexión LOMLOE')}
+    ${exportSelect('export_include_assessment','Evaluación y evidencias')}
+    ${exportSelect('export_include_coyle','Checklist Coyle')}
+    ${exportSelect('export_include_reflection','Metarreflexión')}
+    ${exportSelect('export_include_theory','Marco teórico')}
+    ${exportSelect('export_include_session_table','Tabla de sesiones')}
+    ${exportSelect('export_include_stations','Estaciones detalladas')}
+    ${exportSelect('export_include_canvas','Pizarra de brainstorming')}
+    ${exportSelect('export_include_notebook','Cuaderno flotante')}
+    ${exportSelect('export_include_escape','Retos escape room')}
+    ${exportSelect('export_include_refs','Bibliografía APA 7')}
+  </div></div>
+  <div class="template-block"><h3>Bibliografía APA 7 editable</h3><p class="help">Revisa, borra o añade referencias antes de exportar. El botón crea una referencia APA 7 preformateada y la inserta aquí.</p><textarea id="export_apa_custom" oninput="saveAll(false)" style="min-height:180px">${escRaw(apaDraft)}</textarea><div class="table-tools"><button class="small-btn" onclick="openApaBuilder('export_apa_custom')">Crear APA 7</button><button class="small-btn" onclick="el('export_apa_custom').value=apaRefs.join('\\n\\n');saveAll(false)">Restaurar APA base</button><button class="small-btn" onclick="el('export_apa_custom').value=(el('export_apa_custom').value.trim()?el('export_apa_custom').value.trim()+'\\n\\n':'')+(value('assistant_biblio')==='(sin completar)'?'':value('assistant_biblio'));saveAll(false)">Traer APA del cuaderno</button></div></div>
+  <div class="evidence-note"><b>Pre-export:</b> aquí decides qué partes del proceso entran en el documento final. Puedes incluir incluso la pizarra, las estaciones, el cuaderno y las pistas tipo escape room sin reescribir nada.</div><div class="table-tools"><button class="nav-btn" onclick="closeModal()">Cancelar</button><button class="nav-btn primary" onclick="runConfiguredExport()">Exportar ahora</button></div>`;
+  ['export_style','export_include_cover','export_include_4cs','export_include_context','export_include_lesson','export_include_lomloe','export_include_assessment','export_include_coyle','export_include_reflection','export_include_theory','export_include_session_table','export_include_stations','export_include_canvas','export_include_notebook','export_include_escape','export_include_refs'].forEach(id=>{const n=el(id); if(n && savedFieldValues[id]){if(n.type==='checkbox'){n.checked=savedFieldValues[id]!=='no';n.value=n.checked?'yes':'no'}else n.value=savedFieldValues[id]}});
+  el('modal').classList.add('show');
+  applyLang();
+}
+function runConfiguredExport(){
+  saveAll(false);
+  closeModal();
+  bypassPreExport = true;
+  if(pendingExportType === 'pdf') exportPdf(); else exportWord();
+  bypassPreExport = false;
+}
+function exportTextHtml(){
+  renderFinal();
+  const style = value('export_style') === '(sin completar)' ? 'editorial' : value('export_style');
+  const accent = style === 'formal' ? '#111827' : style === 'colourful' ? '#db2777' : '#315fce';
+  const coverBg = style === 'formal' ? 'linear-gradient(135deg,#111827,#374151)' : style === 'colourful' ? 'linear-gradient(135deg,#315fce,#db2777 48%,#f59e0b 100%)' : 'linear-gradient(135deg,#111827,#315fce 45%,#db2777 100%)';
+  const sections=[
+    ['Contexto, justificación y visión CLIL','final_context_synthesis','export_include_context'],
+    ['Diseño integrado 4Cs','final_4cs_synthesis','export_include_4cs'],
+    ['Secuencia de sesiones y estaciones','final_lesson_synthesis','export_include_lesson'],
+    ['Conexión curricular española / LOMLOE','final_lomloe_synthesis','export_include_lomloe'],
+    ['Evaluación, evidencias y feedback','final_assessment_synthesis','export_include_assessment'],
+    ['Checklist Coyle: revisión de la unidad','coyle_unit_revision','export_include_coyle'],
+    ['Monitorización y metarreflexión','final_reflection_synthesis','export_include_reflection'],
+    ['Nota bibliográfica / marco teórico','final_bibliography_note','export_include_theory']
+  ].filter(([, ,flag])=>exportIncluded(flag));
+  const escapeText = compactSummary(['escape_c1','escape_c2','escape_c3','escape_c4','escape_bloom','escape_matrix']);
+  const refs = exportApaText().split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CLIL Unit Plan</title><style>
+  @page{margin:2cm 1.7cm 2.2cm}
+  body{font-family:Calibri,Arial,sans-serif;line-height:1.46;color:#182033;background:#fff}
+  .cover{padding:34pt 30pt;border-radius:18pt;background:${coverBg};color:#fff;margin-bottom:22pt}
+  .kicker{font-size:9pt;letter-spacing:1.8pt;text-transform:uppercase;color:#dbeafe;font-weight:bold}
+  h1{font-size:30pt;line-height:1.05;margin:12pt 0 10pt;font-weight:800}
+  .subtitle{font-size:12pt;color:#eef2ff;max-width:520pt}
+  .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8pt;margin-top:18pt}
+  .meta div{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:10pt;padding:8pt}
+  .meta b{display:block;font-size:7.5pt;text-transform:uppercase;letter-spacing:1pt;color:#bfdbfe}.meta span{font-size:10.5pt}
+  h2{font-size:17pt;margin:24pt 0 8pt;color:#111827;border-bottom:2pt solid ${accent};padding-bottom:4pt}
+  h3{font-size:12.5pt;margin:10pt 0 4pt;color:#1f3b82}
+  .section{page-break-inside:avoid;margin-bottom:12pt}
+  .field{white-space:pre-wrap;border:1pt solid #d9e2ef;border-left:5pt solid ${accent};border-radius:9pt;padding:10pt;background:#f8fbff}
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:9pt}.card{border:1pt solid #d9e2ef;border-radius:10pt;padding:10pt;background:#fff}.card b{display:block;color:#111827}.card small{display:block;color:#667085;margin:3pt 0}.card p{margin:4pt 0 0}
+  .fourcs{display:grid;grid-template-columns:repeat(4,1fr);gap:7pt;margin:12pt 0}.fourcs .card:nth-child(1){border-top:5pt solid #315fce}.fourcs .card:nth-child(2){border-top:5pt solid #c13e63}.fourcs .card:nth-child(3){border-top:5pt solid #16826f}.fourcs .card:nth-child(4){border-top:5pt solid #b46a1b}
+  table.lesson{width:100%;border-collapse:collapse;font-size:8.7pt;margin-top:8pt}table.lesson th{background:#111827;color:#fff;padding:6pt;text-align:left}table.lesson td{border:1pt solid #d9e2ef;padding:6pt;vertical-align:top}
+  .note-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8pt}.note-grid div{border:1pt solid #d9e2ef;border-radius:10pt;padding:9pt;background:#fffaf0}
+  .canvas-export{border:1pt solid #d9e2ef;border-radius:12pt;padding:8pt;background:#fff}.canvas-export img{width:100%;height:auto;display:block;border-radius:8pt}
+  .ref{font-size:9pt;text-indent:-18pt;padding-left:18pt;margin:5pt 0}.empty-export{color:#667085;font-style:italic}
+  .footer{margin-top:28pt;border-top:1pt solid #d9e2ef;padding-top:8pt;text-align:right;color:#667085;font-size:8.5pt}
+  </style></head><body>
+  ${exportIncluded('export_include_cover') ? `<div class="cover"><div class="kicker">CLIL / AICLE UNIT PLAN</div><h1>${esc(value('final_title'))}</h1><p class="subtitle">Final export from CLIL Studio Pro: 4Cs, Language Triptych, CLIL Matrix, scaffolding, assessment, LOMLOE connection and reflective teacher inquiry.</p><div class="meta"><div><b>Subject</b><span>${esc(value('subject'))}</span></div><div><b>Stage</b><span>${esc(value('level'))}</span></div><div><b>L2</b><span>${esc(value('l2'))}</span></div><div><b>Sessions</b><span>${esc(value('sessions'))}</span></div></div></div>` : ''}
+  ${exportIncluded('export_include_4cs') ? `<div class="fourcs"><div class="card"><b>Content</b><p>${esc(value('content_bigideas'))}</p></div><div class="card"><b>Communication</b><p>${esc(value('lang_of'))}</p></div><div class="card"><b>Cognition</b><p>${esc(value('cog_hots'))}</p></div><div class="card"><b>Culture</b><p>${esc(value('culture_global'))}</p></div></div>` : ''}
+  ${sections.map(([title,id])=>`<div class="section"><h2>${title}</h2><div class="field">${esc(value(id))}</div></div>`).join('')}
+  ${exportIncluded('export_include_session_table') ? `<h2>Session Sequence</h2>${exportLessonTableHtml()}` : ''}
+  ${exportIncluded('export_include_stations') ? `<h2>Detailed Stations</h2>${exportStationCardsHtml()}` : ''}
+  ${exportIncluded('export_include_canvas') ? `<h2>Brainstorming Board</h2>${exportCanvasHtml()}` : ''}
+  ${exportIncluded('export_include_escape') ? `<h2>Escape Room Prompts</h2><div class="field">${esc(escapeText)}</div>` : ''}
+  ${exportIncluded('export_include_notebook') ? `<h2>Floating Notebook</h2>${exportNotebookHtml()}` : ''}
+  ${exportIncluded('export_include_refs') ? `<h2>References APA 7</h2>${refs.map(r=>`<p class="ref">${esc(r)}</p>`).join('')}` : ''}
+  <div class="footer">${esc(exportFooterText())}</div>
+  </body></html>`;
+}
+function exportWord(){if(!bypassPreExport){openPreExport('word');return}const blob=new Blob(['\ufeff',exportTextHtml()],{type:'application/msword'});saveAs(blob,`clil-studio-plan-${new Date().toISOString().slice(0,10)}.doc`)}
+function exportPdf(){
+  if(!bypassPreExport){openPreExport('pdf');return}
+  const {jsPDF}=window.jspdf; const doc=new jsPDF({unit:'pt',format:'a4'}); let y=54; const m=46,w=503,h=792;
+  function footer(){
+    const pages = doc.internal.getNumberOfPages();
+    for(let i=1;i<=pages;i++){
+      doc.setPage(i);
+      doc.setDrawColor(220,226,235);doc.line(m, h-34, m+w, h-34);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(100,116,139);
+      doc.text(exportFooterText(), m, h-18);
+      doc.text(String(i), m+w-10, h-18);
+    }
+  }
+  function page(n=40){if(y+n>h-58){doc.addPage();y=54}}
+  function line(txt,size=10,bold=false){doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);const rows=doc.splitTextToSize(String(txt).replace(/<br>/g,'\n'),w);rows.forEach(r=>{page(14);doc.text(r,m,y);y+=size+4})}
+  function section(title, body){
+    page(48);doc.setFillColor(245,248,255);doc.roundedRect(m-4,y-18,w+8,26,6,6,'F');
+    doc.setTextColor(17,24,39);line(title,13,true);doc.setTextColor(20,24,35);line(body,10,false);y+=7;
+  }
+  if(exportIncluded('export_include_cover')){
+    doc.setFillColor(17,24,39);doc.rect(0,0,595,132,'F');
+    doc.setFillColor(49,95,206);doc.rect(0,118,595,14,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(24);
+    doc.text(value('final_title')==='(sin completar)'?'CLIL / AICLE Unit Plan':value('final_title'),m,52,{maxWidth:w});
+    doc.setFontSize(10);doc.setFont('helvetica','normal');
+    doc.text('Final export · 4Cs · Language Triptych · CLIL Matrix · LOMLOE · Assessment',m,82);
+    doc.text(`${value('subject')} · ${value('level')} · ${value('l2')} · ${value('sessions')} sessions`,m,102);
+    y=168;
+  }
+  doc.setTextColor(20,24,35);
+  if(exportIncluded('export_include_4cs')) section('At-a-glance 4Cs', `Content: ${value('content_bigideas')}\nCommunication: ${value('lang_of')}\nCognition: ${value('cog_hots')}\nCulture: ${value('culture_global')}`);
+  [['Contexto, justificación y visión CLIL','final_context_synthesis','export_include_context'],['Diseño integrado 4Cs','final_4cs_synthesis','export_include_4cs'],['Secuencia de sesiones y estaciones','final_lesson_synthesis','export_include_lesson'],['Conexión curricular española / LOMLOE','final_lomloe_synthesis','export_include_lomloe'],['Evaluación, evidencias y feedback','final_assessment_synthesis','export_include_assessment'],['Checklist Coyle: revisión de la unidad','coyle_unit_revision','export_include_coyle'],['Monitorización y metarreflexión','final_reflection_synthesis','export_include_reflection'],['Nota bibliográfica / marco teórico','final_bibliography_note','export_include_theory']].forEach(([title,id,flag])=>{if(!exportIncluded(flag))return;page(34);doc.setDrawColor(210);doc.line(m,y,w+m,y);y+=18;line(title,14,true);line(value(id),10,false);y+=5});
+  if(exportIncluded('export_include_session_table')) section('Session sequence', lessonSummary());
+  if(exportIncluded('export_include_stations')) section('Detailed stations', stationsSummary());
+  if(exportIncluded('export_include_canvas')){
+    const img=canvasExportData();
+    if(img){page(350);line('Brainstorming board',14,true);try{doc.addImage(img,'PNG',m,y,w,310);y+=326}catch(e){line('No se pudo incrustar la pizarra en este PDF.',9,false)}}
+  }
+  if(exportIncluded('export_include_escape')) section('Escape room prompts', compactSummary(['escape_c1','escape_c2','escape_c3','escape_c4','escape_bloom','escape_matrix']));
+  if(exportIncluded('export_include_notebook')) section('Floating notebook', `Notas:\n${value('assistant_notes')}\n\nEnlaces:\n${value('assistant_links')}\n\nAPA adicional:\n${value('assistant_biblio')}`);
+  if(exportIncluded('export_include_refs')){line('Referencias APA 7',14,true);exportApaText().split(/\n{2,}/).map(x=>x.trim()).filter(Boolean).forEach(r=>line(r,9));}
+  footer();
+  doc.save(`clil-studio-plan-${new Date().toISOString().slice(0,10)}.pdf`);
+}
+buildSteps();buildPanels();renderStations();renderLessonRows();loadAll();if(current){el('hero').style.display='none';el('stepRail').style.display='block';go(current)}applyLang();
+</script>
+</body>
+</html>

@@ -48,6 +48,36 @@ async function saveRoomSession(payload) {
   });
 }
 
+async function saveToolProgress(payload) {
+  const session = getLocalSession();
+  if (session.testMode) {
+    saveLocalTestSession({ ...payload, event: payload.event || "tool-progress-saved" });
+    return { id: "test-mode-local-only" };
+  }
+
+  const user = auth.currentUser || await authReady();
+  if (!user) throw new Error("Please sign in with Google first.");
+  const roomId = payload.roomId || "tool";
+  const cohortCode = session.cohortCode || "no-cohort";
+  const progressId = `${cohortCode}_${user.uid}_${roomId}`.replace(/[^a-zA-Z0-9_-]/g, "-");
+  const cleanPayload = JSON.parse(JSON.stringify(payload || {}));
+  await setDoc(doc(db, "toolProgress", progressId), {
+    ...cleanPayload,
+    cohortCode: session.cohortCode || null,
+    cohortName: session.cohortName || null,
+    studentUid: user.uid,
+    studentName: user.displayName || "",
+    studentEmail: user.email || "",
+    testMode: false,
+    site: "VT Lab",
+    source: "github-pages",
+    pageUrl: window.location.href,
+    userAgent: navigator.userAgent,
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+  return { id: progressId };
+}
+
 function getLocalSession() {
   try {
     return JSON.parse(localStorage.getItem("vtlab.session")) || {};
@@ -169,9 +199,16 @@ async function getCohortSessions(code) {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 }
 
+async function getCohortToolProgress(code) {
+  const snapshot = await getDocs(query(collection(db, "toolProgress"), where("cohortCode", "==", code)));
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+}
+
 async function deleteCohort(code) {
   const sessions = await getCohortSessions(code);
   await Promise.all(sessions.map((session) => deleteDoc(doc(db, "roomSessions", session.id))));
+  const progress = await getCohortToolProgress(code);
+  await Promise.all(progress.map((item) => deleteDoc(doc(db, "toolProgress", item.id))));
   const students = await getDocs(collection(db, "cohorts", code, "students"));
   await Promise.all(students.docs.map((student) => deleteDoc(doc(db, "cohorts", code, "students", student.id))));
   await deleteDoc(doc(db, "cohorts", code));
@@ -181,6 +218,9 @@ async function deleteCohortStudent(code, studentUid) {
   const sessions = await getCohortSessions(code);
   const studentSessions = sessions.filter((session) => session.studentUid === studentUid || session.studentEmail === studentUid);
   await Promise.all(studentSessions.map((session) => deleteDoc(doc(db, "roomSessions", session.id))));
+  const progress = await getCohortToolProgress(code);
+  const studentProgress = progress.filter((item) => item.studentUid === studentUid || item.studentEmail === studentUid);
+  await Promise.all(studentProgress.map((item) => deleteDoc(doc(db, "toolProgress", item.id))));
   await deleteDoc(doc(db, "cohorts", code, "students", studentUid));
 }
 
@@ -217,7 +257,9 @@ window.VTLabFirebase = {
   listTeacherCohorts,
   joinCohort,
   getCohortSessions,
+  getCohortToolProgress,
   deleteCohort,
   deleteCohortStudent,
   saveRoomSession,
+  saveToolProgress,
 };

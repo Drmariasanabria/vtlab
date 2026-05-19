@@ -9,6 +9,11 @@ const rooms = [
     description: "Bridge communication · mission stations · oral interaction · professional English",
     href: "./rooms/bridge-command/",
   },
+  {
+    title: "CLIL Studio Pro",
+    description: "Plan and preserve a CLIL/AICLE unit · 4Cs · Coyle checklist · exports",
+    href: "./rooms/clil-planner/",
+  },
 ];
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -83,6 +88,13 @@ function renderStudentApp() {
         <p>Use this for checking the rooms without a cohort code. Nothing will be saved to Firebase.</p>
         <button class="button button--ghost" type="button" data-student-test>Enter student test mode</button>
       </section>
+
+      <section class="access-panel">
+        <p class="kicker">Teacher preview</p>
+        <h2>Test as teacher</h2>
+        <p>Open the teacher dashboard with a fictional cohort and fictional student records. Nothing will be saved to Firebase.</p>
+        <button class="button button--ghost" type="button" data-teacher-test>Test as teacher with fictional students</button>
+      </section>
     </div>
   `;
 
@@ -103,6 +115,11 @@ function renderStudentApp() {
   app.querySelector("[data-student-test]").addEventListener("click", () => {
     window.VTLabFirebase.startTestMode("student");
     renderStudentApp();
+  });
+
+  app.querySelector("[data-teacher-test]").addEventListener("click", () => {
+    window.VTLabFirebase.startTestMode("teacher");
+    window.location.href = "./teacher/";
   });
 }
 
