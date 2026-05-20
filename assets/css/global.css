@@ -345,6 +345,153 @@ h3 {
   font-size: clamp(1.8rem, 4vw, 3rem);
 }
 
+.student-questionnaires {
+  display: grid;
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.resource-category__head p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.language-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.language-toggle button {
+  min-width: 46px;
+  min-height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.language-toggle button.active {
+  background: var(--ink);
+  color: #061018;
+}
+
+.questionnaire-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.questionnaire-card {
+  padding: clamp(20px, 4vw, 30px);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.questionnaire-card h3 {
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+}
+
+.questionnaire-card p,
+.questionnaire-card label {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.questionnaire-consent {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+  padding: 13px;
+  border: 1px solid rgba(185, 255, 114, 0.28);
+  border-radius: 14px;
+  background: rgba(185, 255, 114, 0.08);
+}
+
+.questionnaire-consent label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.questionnaire-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.questionnaire-fields label,
+.questionnaire-open {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  font-weight: 800;
+}
+
+.questionnaire-fields input,
+.questionnaire-open textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--ink);
+  padding: 10px 12px;
+}
+
+.questionnaire-open textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.questionnaire-likert {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+}
+
+.questionnaire-likert legend {
+  color: #e9f3ff;
+  font-weight: 800;
+}
+
+.questionnaire-likert div {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.questionnaire-likert label {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.questionnaire-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.questionnaire-status {
+  min-height: 22px;
+  color: var(--lime) !important;
+  font-weight: 800;
+}
+
 .access-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -652,6 +799,11 @@ h3 {
   .access-panel--active {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .questionnaire-grid,
+  .questionnaire-fields {
+    grid-template-columns: 1fr;
   }
 
   .teacher-grid {
