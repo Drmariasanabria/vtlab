@@ -25,6 +25,100 @@ const rooms = [
   },
 ];
 
+const questionnaireItems = {
+  pre: [
+    {
+      es: "Tengo experiencia previa usando escape rooms o experiencias interactivas con fines educativos.",
+      en: "I have previous experience using escape rooms or interactive experiences for educational purposes.",
+    },
+    {
+      es: "Me siento cómodo/a aprendiendo mediante recursos digitales interactivos.",
+      en: "I feel comfortable learning through interactive digital resources.",
+    },
+    {
+      es: "Creo que la gamificación puede mejorar la implicación del alumnado.",
+      en: "I think gamification can improve learner engagement.",
+    },
+    {
+      es: "Creo que este tipo de experiencias puede favorecer el aprendizaje activo.",
+      en: "I think this type of experience can support active learning.",
+    },
+    {
+      es: "Me veo capaz de diseñar en el futuro una experiencia educativa similar.",
+      en: "I can imagine myself designing a similar educational experience in the future.",
+    },
+    {
+      es: "Me interesa aprender cómo se crean recursos educativos digitales con apoyo de IA o vibe-coding.",
+      en: "I am interested in learning how digital educational resources are created with AI support or vibe-coding.",
+    },
+  ],
+  post: [
+    {
+      es: "La experiencia me ha parecido fácil de usar.",
+      en: "The experience was easy to use.",
+    },
+    {
+      es: "El formato interactivo ha aumentado mi motivación.",
+      en: "The interactive format increased my motivation.",
+    },
+    {
+      es: "La experiencia me ha hecho reflexionar sobre nuevas formas de enseñar.",
+      en: "The experience made me reflect on new ways of teaching.",
+    },
+    {
+      es: "Considero que este tipo de recurso puede ser útil en educación superior o formación docente.",
+      en: "I consider this type of resource useful in higher education or teacher education.",
+    },
+    {
+      es: "Después de usarlo, me veo más capaz de crear una experiencia educativa similar.",
+      en: "After using it, I feel more capable of creating a similar educational experience.",
+    },
+    {
+      es: "Me gustaría aprender más sobre diseño de recursos educativos con IA o vibe-coding.",
+      en: "I would like to learn more about designing educational resources with AI or vibe-coding.",
+    },
+  ],
+};
+
+const questionnaireText = {
+  es: {
+    preTitle: "Cuestionario pre-room",
+    postTitle: "Cuestionario post-room",
+    intro: "Cuestionarios generales sobre percepción de experiencias educativas interactivas. No están vinculados a una materia concreta.",
+    consentTitle: "Consentimiento informado",
+    consent: "Acepto que mis respuestas se utilicen con fines de docencia, mejora del recurso e investigación educativa en forma anonimizada o seudonimizada. Entiendo que puedo no responder preguntas abiertas y que mi participación no afecta a mi evaluación.",
+    realName: "Nombre real",
+    email: "Correo electrónico",
+    role: "Rol o grupo",
+    expectations: "Antes de usarlo: ¿qué esperas de este tipo de experiencia educativa?",
+    futureTeacher: "Como futuro/a docente, ¿te ves creando algo parecido? Explica por qué.",
+    liked: "Después de usarlo: ¿qué te ha resultado más útil o interesante?",
+    improve: "¿Qué mejorarías para que este tipo de experiencia funcione mejor en educación?",
+    scale: "Escala 1-5: 1 = totalmente en desacuerdo · 5 = totalmente de acuerdo",
+    saveEmail: "Enviar respuestas por email",
+    exportPdf: "Exportar PDF",
+    saved: "Respuestas preparadas. Se abrirá tu cliente de correo.",
+  },
+  en: {
+    preTitle: "Pre-room questionnaire",
+    postTitle: "Post-room questionnaire",
+    intro: "General questionnaires about perceptions of interactive educational experiences. They are not tied to a specific subject.",
+    consentTitle: "Informed consent",
+    consent: "I agree that my responses may be used for teaching, resource improvement, and educational research in anonymised or pseudonymised form. I understand that I may leave open questions unanswered and that participation does not affect assessment.",
+    realName: "Real name",
+    email: "Email",
+    role: "Role or group",
+    expectations: "Before using it: what do you expect from this type of educational experience?",
+    futureTeacher: "As a future teacher, can you see yourself creating something similar? Explain why.",
+    liked: "After using it: what did you find most useful or interesting?",
+    improve: "What would you improve so this type of experience works better in education?",
+    scale: "Scale 1-5: 1 = strongly disagree · 5 = strongly agree",
+    saveEmail: "Send responses by email",
+    exportPdf: "Export PDF",
+    saved: "Responses prepared. Your email client will open.",
+  },
+};
+
 window.addEventListener("DOMContentLoaded", async () => {
   const app = document.querySelector("#student-app");
   if (!app) return;
@@ -57,8 +151,10 @@ function renderStudentApp() {
         </div>
         <button class="button button--ghost" type="button" data-student-reset>Change mode</button>
       </div>
+      ${renderStudentQuestionnaires(session)}
       ${renderCategorisedRooms()}
     `;
+    wireQuestionnaires(app);
     app.querySelector("[data-student-reset]").addEventListener("click", async () => {
       window.VTLabFirebase.clearLocalSession();
       renderStudentApp();
@@ -118,6 +214,195 @@ function renderStudentApp() {
     window.VTLabFirebase.startTestMode("teacher");
     window.location.href = "./teacher/";
   });
+}
+
+function renderStudentQuestionnaires(session) {
+  const lang = localStorage.getItem("vtlab.questionnaire.lang") || "es";
+  const t = questionnaireText[lang];
+  return `
+    <section class="student-questionnaires" id="student-questionnaires" aria-label="Student questionnaires">
+      <div class="resource-category__head">
+        <div>
+          <p class="kicker">Research Questionnaires</p>
+          <h2>${lang === "es" ? "Antes y después de los recursos" : "Before and after the resources"}</h2>
+          <p>${t.intro}</p>
+        </div>
+        <div class="language-toggle" role="group" aria-label="Questionnaire language">
+          <button type="button" class="${lang === "es" ? "active" : ""}" data-q-lang="es">ES</button>
+          <button type="button" class="${lang === "en" ? "active" : ""}" data-q-lang="en">EN</button>
+        </div>
+      </div>
+      <div class="questionnaire-grid">
+        ${renderQuestionnaireCard("pre", lang, session)}
+        ${renderQuestionnaireCard("post", lang, session)}
+      </div>
+    </section>
+  `;
+}
+
+function renderQuestionnaireCard(type, lang, session) {
+  const t = questionnaireText[lang];
+  const title = type === "pre" ? t.preTitle : t.postTitle;
+  const openA = type === "pre" ? t.expectations : t.liked;
+  const openB = type === "pre" ? t.futureTeacher : t.improve;
+  return `
+    <article class="questionnaire-card">
+      <h3>${title}</h3>
+      <p>${t.scale}</p>
+      <form data-questionnaire="${type}" data-lang="${lang}">
+        <div class="questionnaire-consent">
+          <strong>${t.consentTitle}</strong>
+          <label><input type="checkbox" name="consent" required> ${t.consent}</label>
+        </div>
+        <div class="questionnaire-fields">
+          <label>${t.realName}<input name="realName" value="${escapeHtml(session.user?.displayName || "")}" required></label>
+          <label>${t.email}<input name="email" type="email" value="${escapeHtml(session.user?.email || "")}"></label>
+          <label>${t.role}<input name="roleGroup" value="${escapeHtml(session.cohortCode || "")}"></label>
+        </div>
+        ${questionnaireItems[type].map((item, index) => renderLikertRow(`q${index + 1}`, item[lang])).join("")}
+        <label class="questionnaire-open">${openA}<textarea name="open1"></textarea></label>
+        <label class="questionnaire-open">${openB}<textarea name="open2"></textarea></label>
+        <div class="questionnaire-actions">
+          <button class="button button--primary" type="submit">${t.saveEmail}</button>
+          <button class="button button--ghost" type="button" data-export-q="${type}">${t.exportPdf}</button>
+        </div>
+        <p class="questionnaire-status" role="status"></p>
+      </form>
+    </article>
+  `;
+}
+
+function renderLikertRow(name, label) {
+  return `
+    <fieldset class="questionnaire-likert">
+      <legend>${escapeHtml(label)}</legend>
+      <div>
+        ${[1, 2, 3, 4, 5].map((value) => `<label><input type="radio" name="${name}" value="${value}" required><span>${value}</span></label>`).join("")}
+      </div>
+    </fieldset>
+  `;
+}
+
+function wireQuestionnaires(app) {
+  app.querySelectorAll("[data-q-lang]").forEach((button) => {
+    button.addEventListener("click", () => {
+      localStorage.setItem("vtlab.questionnaire.lang", button.dataset.qLang);
+      renderStudentApp();
+    });
+  });
+
+  app.querySelectorAll("[data-questionnaire]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const payload = collectQuestionnaire(form);
+      await saveQuestionnairePayload(payload);
+      form.querySelector(".questionnaire-status").textContent = questionnaireText[payload.lang].saved;
+      sendQuestionnaireEmail(payload);
+    });
+  });
+
+  app.querySelectorAll("[data-export-q]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const form = button.closest("form");
+      exportQuestionnairePdf(collectQuestionnaire(form));
+    });
+  });
+}
+
+function collectQuestionnaire(form) {
+  const data = Object.fromEntries(new FormData(form).entries());
+  const type = form.dataset.questionnaire;
+  const lang = form.dataset.lang;
+  return {
+    type,
+    lang,
+    submittedAt: new Date().toISOString(),
+    realName: data.realName || "",
+    email: data.email || "",
+    roleGroup: data.roleGroup || "",
+    consent: data.consent === "on",
+    responses: Object.fromEntries(Object.entries(data).filter(([key]) => key.startsWith("q"))),
+    open1: data.open1 || "",
+    open2: data.open2 || "",
+  };
+}
+
+async function saveQuestionnairePayload(payload) {
+  const event = payload.type === "pre" ? "generic-pre-room-questionnaire" : "generic-post-room-questionnaire";
+  if (window.VTLabFirebase?.saveRoomSession) {
+    await window.VTLabFirebase.saveRoomSession({
+      event,
+      roomId: "student-portal",
+      roomName: "VT Lab Student Portal",
+      consent: payload.consent,
+      genericQuestionnaire: payload,
+      preQuestionnaire: payload.type === "pre" ? payload : null,
+      postQuestionnaire: payload.type === "post" ? payload : null,
+    });
+  }
+  localStorage.setItem(`vtlab.${payload.type}.questionnaire`, JSON.stringify(payload));
+}
+
+function sendQuestionnaireEmail(payload) {
+  const subject = encodeURIComponent(`VT Lab ${payload.type} questionnaire · ${payload.realName || "student"}`);
+  const body = encodeURIComponent(questionnairePlainText(payload));
+  window.location.href = `mailto:maria.sanabria@unican.es?subject=${subject}&body=${body}`;
+}
+
+async function exportQuestionnairePdf(payload) {
+  await ensureJsPdf();
+  if (!window.jspdf?.jsPDF) return;
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: "pt", format: "a4" });
+  const lines = pdf.splitTextToSize(questionnairePlainText(payload), 510);
+  let y = 44;
+  lines.forEach((line) => {
+    if (y > 790) {
+      pdf.addPage();
+      y = 44;
+    }
+    pdf.text(line, 42, y);
+    y += 15;
+  });
+  pdf.save(`vtlab_${payload.type}_questionnaire_${safeName(payload.realName)}_${new Date().toISOString().slice(0, 10)}.pdf`);
+}
+
+function questionnairePlainText(payload) {
+  const lang = payload.lang;
+  const t = questionnaireText[lang];
+  const items = questionnaireItems[payload.type];
+  const title = payload.type === "pre" ? t.preTitle : t.postTitle;
+  return [
+    "VT Lab",
+    title,
+    `Submitted: ${payload.submittedAt}`,
+    `Real name: ${payload.realName}`,
+    `Email: ${payload.email}`,
+    `Role/group: ${payload.roleGroup}`,
+    `Consent: ${payload.consent ? "yes" : "no"}`,
+    "",
+    ...items.flatMap((item, index) => [`${index + 1}. ${item[lang]}`, `Answer: ${payload.responses[`q${index + 1}`] || ""}`, ""]),
+    `${payload.type === "pre" ? t.expectations : t.liked}:`,
+    payload.open1,
+    "",
+    `${payload.type === "pre" ? t.futureTeacher : t.improve}:`,
+    payload.open2,
+  ].join("\n");
+}
+
+function ensureJsPdf() {
+  if (window.jspdf?.jsPDF) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.append(script);
+  });
+}
+
+function safeName(value) {
+  return String(value || "student").replace(/[^a-z0-9_-]+/gi, "-");
 }
 
 function renderCategorisedRooms() {
