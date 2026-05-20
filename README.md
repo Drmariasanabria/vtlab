@@ -16,6 +16,8 @@ It also includes **Bridge Command**, a maritime English escape room / tutor focu
 
 The platform also includes **CLIL Studio Pro**, an AICLE/CLIL unit planner. It saves work locally in the browser and, when a student is in a real cohort, updates their saved progress in Firebase so they can continue without losing the unit they are creating.
 
+It also includes **Scaffolding and Bloom Lab**, a practical education lab for Bloom taxonomy, ZDP, scaffolding, and visual organisers. It saves progress locally and updates Firebase cohort progress when students are working inside a real cohort.
+
 ## Teaching and research flow
 
 Each escape room is designed to support:
@@ -59,6 +61,10 @@ Room-specific files live in:
 `/rooms/phonetics-time-vault/`
 
 `/rooms/bridge-command/`
+
+`/rooms/clil-planner/`
+
+`/rooms/scaffolding-bloom-lab/`
 
 Firebase integration may be added later for cohort tracking, cross-device persistence, and structured research datasets.
 

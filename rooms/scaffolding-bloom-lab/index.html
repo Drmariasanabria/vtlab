@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bloom, Andamiaje y herramientas prácticas · CLIL Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,750;9..144,900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script type="module" src="../../assets/js/firebase.js"></script>
+<style>
+:root{
+  --uc:#007c78;
+  --uc-dark:#005451;
+  --ink:#101828;
+  --muted:#667085;
+  --paper:#fffdf7;
+  --surface:#ffffff;
+  --line:#d9e2df;
+  --line2:#ecf0ef;
+  --pink:#d9487f;
+  --yellow:#f2b544;
+  --blue:#3377ff;
+  --green:#20a66a;
+  --purple:#7657d6;
+  --orange:#e36b2c;
+  --red:#d64045;
+  --shadow:0 18px 60px rgba(16,24,40,.14);
+  --radius:22px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 12%, rgba(0,124,120,.28), transparent 28%),
+    radial-gradient(circle at 85% 18%, rgba(217,72,127,.22), transparent 32%),
+    radial-gradient(circle at 66% 88%, rgba(242,181,68,.24), transparent 30%),
+    linear-gradient(135deg, #eef9f8 0%, #fffdf7 36%, #f7f1ff 74%, #eaf7f4 100%);
+  background-size:130% 130%;
+  animation:bgMove 16s ease-in-out infinite alternate;
+  min-height:100vh;
+  padding-bottom:72px;
+  line-height:1.55;
+}
+@keyframes bgMove{from{background-position:0 0, 100% 0, 20% 100%,0 0}to{background-position:9% 8%, 84% 14%, 28% 84%,0 0}}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.hero-bg{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
+}
+.blob{position:absolute;border-radius:999px;filter:blur(5px);opacity:.42;animation:float 10s ease-in-out infinite alternate}
+.blob.b1{width:270px;height:270px;background:var(--uc);left:-70px;top:110px}.blob.b2{width:220px;height:220px;background:var(--pink);right:3%;top:18%;animation-delay:-3s}.blob.b3{width:330px;height:330px;background:var(--yellow);left:50%;bottom:-150px;animation-delay:-5s}
+@keyframes float{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(34px,-28px,0) scale(1.08)}}
+.topbar{
+  position:sticky;top:0;z-index:80;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:12px 22px;
+  background:rgba(255,255,255,.88);
+  border-bottom:1px solid rgba(0,124,120,.18);
+  backdrop-filter: blur(16px);
+}
+.logo{
+  width:52px;height:52px;border-radius:16px;display:grid;place-items:center;
+  background:conic-gradient(from 230deg,var(--uc),var(--green),var(--yellow),var(--pink),var(--purple),var(--uc));
+  color:#fff;font-weight:900;letter-spacing:-.04em;box-shadow:0 12px 28px rgba(0,84,81,.22);
+}
+.brand h1{font-family:Fraunces,serif;font-size:1.42rem;margin:0;line-height:1.05;letter-spacing:-.02em}.brand p{margin:1px 0 0;color:var(--muted);font-size:.86rem;font-weight:600}
+.top-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:10px 14px;font-weight:850;box-shadow:0 8px 18px rgba(16,24,40,.05);transition:.18s}.btn:hover{transform:translateY(-1px);box-shadow:0 12px 24px rgba(16,24,40,.1)}.btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}.btn.uc{background:var(--uc);color:#fff;border-color:var(--uc)}.btn.small{padding:8px 11px;font-size:.9rem}.btn.ghost{background:rgba(255,255,255,.65)}
+.progress{width:170px;height:9px;background:#eef4f3;border-radius:999px;overflow:hidden;border:1px solid var(--line)}.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--uc),var(--pink),var(--yellow));transition:.3s}
+.wrap{max-width:1260px;margin:0 auto;padding:24px}.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(330px,.9fr);gap:24px;align-items:center;min-height:calc(100vh - 94px);padding:28px 0}.hero h2{font-family:Fraunces,serif;font-size:clamp(3rem,7vw,7rem);line-height:.88;letter-spacing:-.055em;margin:0 0 18px}.hero p{font-size:1.18rem;color:#475467;max-width:760px}.credit{display:inline-flex;gap:8px;align-items:center;background:#fff;border:1px solid rgba(0,124,120,.22);color:var(--uc-dark);font-weight:900;border-radius:999px;padding:9px 13px;box-shadow:0 12px 30px rgba(0,124,120,.08)}.tag-row{display:flex;gap:9px;flex-wrap:wrap;margin:20px 0}.tag{background:rgba(255,255,255,.72);border:1px solid var(--line);border-radius:999px;padding:7px 11px;font-weight:800;color:#475467}
+.hero-card{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:28px;padding:22px;box-shadow:var(--shadow);position:relative;overflow:hidden;min-height:500px}.orbit{position:absolute;border:2px dashed rgba(0,124,120,.22);border-radius:999px;animation:spin 18s linear infinite}.o1{width:420px;height:420px;left:50%;top:50%;transform-origin:center}.o2{width:300px;height:300px;left:20%;top:18%;animation-duration:24s;animation-direction:reverse}@keyframes spin{to{transform:rotate(360deg)}}.mini-card{position:absolute;width:210px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:0 18px 40px rgba(16,24,40,.12);animation:drift 6.5s ease-in-out infinite}.mini-card b{display:block;font-family:Fraunces,serif;font-size:1.25rem;margin-bottom:4px}.mini-card small{color:var(--muted);font-weight:700}.m1{left:28px;top:42px;border-top:6px solid var(--uc)}.m2{right:26px;top:150px;border-top:6px solid var(--pink);animation-delay:-1.3s}.m3{left:82px;bottom:132px;border-top:6px solid var(--yellow);animation-delay:-2.6s}.m4{right:62px;bottom:36px;border-top:6px solid var(--purple);animation-delay:-3.4s}@keyframes drift{50%{transform:translateY(-14px) rotate(.8deg)}}
+.tabs{position:sticky;top:78px;z-index:60;margin:0 -24px 22px;padding:10px 24px;background:rgba(255,255,255,.76);border-top:1px solid rgba(255,255,255,.4);border-bottom:1px solid var(--line);backdrop-filter:blur(14px);display:none}.tabs-inner{display:flex;gap:8px;overflow:auto;padding-bottom:4px}.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 13px;font-weight:900;white-space:nowrap;color:#475467}.tab.active{background:var(--ink);border-color:var(--ink);color:#fff}.tab.done{border-color:rgba(32,166,106,.45);color:var(--uc-dark)}
+.panel{display:none;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:28px;padding:28px;box-shadow:var(--shadow);margin-bottom:26px;overflow:hidden;position:relative}.panel:before{content:"";position:absolute;left:0;right:0;top:0;height:7px;background:linear-gradient(90deg,var(--uc),var(--blue),var(--pink),var(--yellow))}.panel.active{display:block;animation:enter .25s ease-out}@keyframes enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}.eyebrow{font-size:.79rem;text-transform:uppercase;letter-spacing:.14em;color:var(--uc);font-weight:900;margin-bottom:8px}.panel h2{font-family:Fraunces,serif;font-size:2.8rem;line-height:1.02;letter-spacing:-.035em;margin:0 0 10px}.lead{font-size:1.08rem;color:#475467;max-width:920px}.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 12px 30px rgba(16,24,40,.06)}.card h3{font-family:Fraunces,serif;font-size:1.45rem;margin:0 0 8px}.callout{border:1px solid rgba(0,124,120,.22);border-left:7px solid var(--uc);background:linear-gradient(135deg,#fff,#f0fbfa);border-radius:18px;padding:16px;margin:16px 0}.callout.pink{border-color:rgba(217,72,127,.25);border-left-color:var(--pink);background:linear-gradient(135deg,#fff,#fff0f6)}.callout.yellow{border-color:rgba(242,181,68,.28);border-left-color:var(--yellow);background:linear-gradient(135deg,#fff,#fff8e6)}.pill{display:inline-flex;align-items:center;gap:6px;background:#f1f5f4;color:#344054;border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:.82rem;font-weight:900}.field{margin:0 0 14px}.field label{display:block;font-weight:900;margin-bottom:6px}.help{color:var(--muted);font-size:.9rem;margin:-2px 0 7px}textarea,input[type=text],select{width:100%;border:1px solid var(--line);border-radius:15px;background:#fffdf8;padding:12px 13px;color:var(--ink)}textarea{min-height:105px;resize:vertical}input:focus,textarea:focus,select:focus{outline:0;border-color:var(--uc);box-shadow:0 0 0 4px rgba(0,124,120,.09);background:#fff}.mini-input{min-height:70px}.bloom-wheel{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:18px 0}.bloom-level{border:1px solid var(--line);background:#fff;border-radius:18px;padding:12px;min-height:170px}.bloom-level:nth-child(1){border-top:7px solid #7cc4ff}.bloom-level:nth-child(2){border-top:7px solid #51c2a8}.bloom-level:nth-child(3){border-top:7px solid #7ec45a}.bloom-level:nth-child(4){border-top:7px solid #f2b544}.bloom-level:nth-child(5){border-top:7px solid #e36b2c}.bloom-level:nth-child(6){border-top:7px solid #d9487f}.bloom-level h3{font-size:1.14rem}.verb-bank{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.verb-chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 10px;font-weight:900}.verb-chip[data-level="Recordar"]{border-color:#7cc4ff}.verb-chip[data-level="Comprender"]{border-color:#51c2a8}.verb-chip[data-level="Aplicar"]{border-color:#7ec45a}.verb-chip[data-level="Analizar"]{border-color:#f2b544}.verb-chip[data-level="Evaluar"]{border-color:#e36b2c}.verb-chip[data-level="Crear"]{border-color:#d9487f}.quiz-row{display:grid;grid-template-columns:170px 1fr 210px 34px;gap:8px;align-items:center;border-bottom:1px solid var(--line2);padding:8px 0}.quiz-row b{font-size:1.05rem}.mark-ok{color:var(--green);font-weight:900}.mark-no{color:var(--red);font-weight:900}.toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.toolbar .btn{border-radius:12px}.canvas-shell{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px}.side-tools{background:#fff;border:1px solid var(--line);border-radius:20px;padding:15px;align-self:start}.side-tools h3{margin-top:0}.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.tool-grid button{border:1px solid var(--line);background:#fffdf7;border-radius:12px;padding:9px;font-weight:900}.tool-grid button.active{background:var(--ink);color:#fff;border-color:var(--ink)}canvas.org-canvas{width:100%;height:620px;background:#fff;border:1px solid var(--line);border-radius:20px;touch-action:none;box-shadow:inset 0 0 0 6px #fbfcfb}.canvas-note{font-size:.88rem;color:var(--muted)}.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0}.diagram-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px}.diagram-item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px}.diagram-item b{display:block}.diagram-item small{color:var(--muted)}.question-card{border:1px solid var(--line);border-radius:18px;background:#fff;padding:16px;margin:10px 0}.question-card h3{font-family:Fraunces,serif;margin:0 0 8px}.zdp-map{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}.zdp-col{border:1px solid var(--line);border-radius:20px;background:#fff;padding:15px;min-height:210px}.zdp-col:nth-child(1){border-top:7px solid var(--green)}.zdp-col:nth-child(2){border-top:7px solid var(--yellow)}.zdp-col:nth-child(3){border-top:7px solid var(--red)}.reuse-preview{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px}.reuse-preview img{width:100%;border:1px solid var(--line);border-radius:16px;background:#fff}.scaffold-card{position:relative;overflow:hidden}.scaffold-card:after{content:attr(data-n);position:absolute;right:14px;top:4px;font-family:Fraunces,serif;font-weight:900;font-size:5rem;color:rgba(0,124,120,.08)}.export-box{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}.check{display:flex;gap:9px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}.check input{margin-top:5px}.preview{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;max-height:560px;overflow:auto;margin-top:14px}.footer-credit{text-align:center;color:#475467;font-weight:900;margin:30px 0 0}.toast{position:fixed;right:20px;bottom:20px;z-index:220;background:var(--ink);color:#fff;border-radius:999px;padding:11px 15px;font-weight:800;box-shadow:0 16px 44px rgba(16,24,40,.24);opacity:0;transform:translateY(10px);transition:.2s}.toast.show{opacity:1;transform:none}.hidden-file{display:none}.saved-stamp{font-size:.86rem;color:var(--muted);font-weight:700}@media(max-width:980px){.hero,.grid-2,.grid-3,.grid-4,.scenario-grid,.canvas-shell,.zdp-map{grid-template-columns:1fr}.bloom-wheel{grid-template-columns:1fr 1fr}.quiz-row{grid-template-columns:1fr}.panel h2{font-size:2.2rem}.wrap{padding:16px}.tabs{top:88px;margin:0 -16px 18px;padding:10px 16px}.hero-card{min-height:440px}.mini-card{position:relative;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:auto;margin:10px 0}.orbit{display:none}}@media(max-width:620px){.bloom-wheel{grid-template-columns:1fr}.hero h2{font-size:3rem}.top-actions{width:100%;margin-left:0}.progress{width:100%}}
+</style>
+</head>
+<body>
+<div class="hero-bg"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
+<header class="topbar">
+  <div class="logo">CLIL</div>
+  <div class="brand"><h1>Bloom, Andamiaje y herramientas prácticas</h1><p>Trabajo de clase · Diseño AICLE con organizadores gráficos</p></div>
+  <div class="progress" title="Progreso"><span id="progressBar"></span></div>
+  <div class="top-actions">
+    <button class="btn ghost" onclick="saveAll()">Guardar</button>
+    <button class="btn" onclick="goTo('export')">Exportar</button>
+    <button class="btn primary" onclick="downloadWord()">Word</button>
+    <button class="btn" onclick="resetAll()">Reiniciar</button>
+  </div>
+</header>
+<main class="wrap">
+  <section id="hero" class="hero">
+    <div>
+      <span class="credit">Proyecto de Dra. María Sanabria · UNICAN</span>
+      <h2>Bloom, andamiaje y herramientas visuales</h2>
+      <p>Plantilla interactiva para recuperar el trabajo de clase: verbos de Bloom, diseño de organizadores gráficos, Zona de Desarrollo Próximo y andamiaje verbal, procedimental y conceptual.</p>
+      <div class="tag-row">
+        <span class="tag">Taxonomía de Bloom</span><span class="tag">ZDP</span><span class="tag">Scaffolding</span><span class="tag">Canvas visual</span><span class="tag">Exportable a Word</span>
+      </div>
+      <button class="btn uc" onclick="startWorkshop()">Empezar trabajo de clase</button>
+    </div>
+    <div class="hero-card" aria-hidden="true">
+      <span class="orbit o1"></span><span class="orbit o2"></span>
+      <div class="mini-card m1"><b>Bloom</b><small>Del verbo al reto cognitivo: recordar, comprender, aplicar, analizar, evaluar y crear.</small></div>
+      <div class="mini-card m2"><b>Organizadores</b><small>Dos canvas reutilizables para diseñar diagramas, mapas, tablas, ciclos y fotos.</small></div>
+      <div class="mini-card m3"><b>ZDP</b><small>Qué puede hacer el alumnado solo, con ayuda o todavía no.</small></div>
+      <div class="mini-card m4"><b>Andamiaje</b><small>Apoyo verbal, procedimental y conceptual con retirada gradual.</small></div>
+    </div>
+  </section>
+  <nav class="tabs" id="tabs"><div class="tabs-inner">
+    <button class="tab active" data-tab="bloom" onclick="goTo('bloom')">1 · Bloom</button>
+    <button class="tab" data-tab="organizers" onclick="goTo('organizers')">2 · Organizadores gráficos</button>
+    <button class="tab" data-tab="zdp" onclick="goTo('zdp')">3 · ZDP y andamiaje</button>
+    <button class="tab" data-tab="scaffolding" onclick="goTo('scaffolding')">4 · Actividades con andamiaje</button>
+    <button class="tab" data-tab="export" onclick="goTo('export')">Exportar Word</button>
+  </div></nav>
+
+  <section id="bloom" class="panel active" data-title="Actividad 1 · Verbos de Bloom">
+    <div class="eyebrow">Actividad 1</div>
+    <h2>Verbos de Bloom: del verbo a la demanda cognitiva</h2>
+    <p class="lead">Objetivo: formular tareas AICLE que no se queden en “hacer una actividad bonita”, sino que indiquen con precisión qué tipo de pensamiento activa el alumnado.</p>
+    <div class="callout">
+      <b>Marco rápido.</b> En la Taxonomía revisada de Bloom se distinguen habilidades de pensamiento de orden inferior —recordar, comprender, aplicar— y de orden superior —analizar, evaluar, crear—. La elección del verbo condiciona el tipo de tarea, pregunta y evidencia que se pide al alumnado.
+    </div>
+    <div class="bloom-wheel">
+      <div class="bloom-level"><h3>Recordar</h3><p class="help">Recuperar información.</p><div class="verb-bank"><span class="verb-chip" data-level="Recordar">nombra</span><span class="verb-chip" data-level="Recordar">enumera</span><span class="verb-chip" data-level="Recordar">identifica</span><span class="verb-chip" data-level="Recordar">define</span></div></div>
+      <div class="bloom-level"><h3>Comprender</h3><p class="help">Explicar sentido.</p><div class="verb-bank"><span class="verb-chip" data-level="Comprender">resume</span><span class="verb-chip" data-level="Comprender">explica</span><span class="verb-chip" data-level="Comprender">interpreta</span><span class="verb-chip" data-level="Comprender">parafrasea</span></div></div>
+      <div class="bloom-level"><h3>Aplicar</h3><p class="help">Usar en contexto.</p><div class="verb-bank"><span class="verb-chip" data-level="Aplicar">usa</span><span class="verb-chip" data-level="Aplicar">resuelve</span><span class="verb-chip" data-level="Aplicar">demuestra</span><span class="verb-chip" data-level="Aplicar">clasifica</span></div></div>
+      <div class="bloom-level"><h3>Analizar</h3><p class="help">Dividir, relacionar, contrastar.</p><div class="verb-bank"><span class="verb-chip" data-level="Analizar">compara</span><span class="verb-chip" data-level="Analizar">contrasta</span><span class="verb-chip" data-level="Analizar">categoriza</span><span class="verb-chip" data-level="Analizar">distingue</span></div></div>
+      <div class="bloom-level"><h3>Evaluar</h3><p class="help">Justificar con criterios.</p><div class="verb-bank"><span class="verb-chip" data-level="Evaluar">valora</span><span class="verb-chip" data-level="Evaluar">defiende</span><span class="verb-chip" data-level="Evaluar">prioriza</span><span class="verb-chip" data-level="Evaluar">revisa</span></div></div>
+      <div class="bloom-level"><h3>Crear</h3><p class="help">Diseñar algo nuevo.</p><div class="verb-bank"><span class="verb-chip" data-level="Crear">diseña</span><span class="verb-chip" data-level="Crear">construye</span><span class="verb-chip" data-level="Crear">propón</span><span class="verb-chip" data-level="Crear">produce</span></div></div>
+    </div>
+    <div class="card">
+      <h3>Reto 1 · Clasifica los verbos</h3>
+      <p class="help">Selecciona el nivel de Bloom más adecuado para cada verbo. Después pulsa “Comprobar”.</p>
+      <div id="bloomQuiz"></div>
+      <div class="toolbar"><button class="btn uc" onclick="checkBloomQuiz()">Comprobar</button><button class="btn" onclick="resetBloomQuiz()">Limpiar respuestas</button><span id="bloomScore" class="saved-stamp"></span></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Reto 2 · Mejora una consigna pobre</h3>
+        <p class="help">Transforma una consigna vaga en una tarea con verbo de Bloom, producto visible, apoyo lingüístico y evidencia.</p>
+        <div class="field"><label>Consigna inicial</label><textarea id="bloom_bad_task" class="saveable">Haz un póster sobre el ciclo del agua.</textarea></div>
+        <div class="field"><label>Versión LOTS bien formulada</label><textarea id="bloom_lots" class="saveable" placeholder="Ej.: Identifica y ordena las fases del ciclo del agua usando una línea temporal con iconos y palabras clave."></textarea></div>
+        <div class="field"><label>Versión HOTS bien formulada</label><textarea id="bloom_hots" class="saveable" placeholder="Ej.: Compara dos modelos del ciclo del agua y justifica cuál ayuda mejor a explicar una sequía local."></textarea></div>
+      </div>
+      <div class="card">
+        <h3>Reto 3 · Diseña tu pregunta AICLE</h3>
+        <div class="field"><label>Materia / contenido</label><input id="bloom_subject" class="saveable" type="text" placeholder="Natural Science, History, English, Geography..." /></div>
+        <div class="field"><label>Verbo de Bloom elegido</label><input id="bloom_verb" class="saveable" type="text" placeholder="contrasta, evalúa, diseña..." /></div>
+        <div class="field"><label>Pregunta o tarea final</label><textarea id="bloom_final_question" class="saveable" placeholder="Formula la tarea con verbo, contenido, apoyo y producto final."></textarea></div>
+        <div class="field"><label>¿Qué evidencia demuestra aprendizaje?</label><textarea id="bloom_evidence" class="saveable" placeholder="Producto, explicación, decisión, justificación, clasificación, comparación..."></textarea></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="organizers" class="panel" data-title="Actividad 2 · Organizadores gráficos">
+    <div class="eyebrow">Actividad 2</div>
+    <h2>Creamos al menos dos organizadores gráficos</h2>
+    <p class="lead">Elige dos escenarios, selecciona el tipo de organizador más útil y constrúyelo en los canvas. También puedes adjuntar una foto o captura para que quede integrada en la pizarra.</p>
+    <div class="callout yellow"><b>Uso didáctico.</b> Un organizador no es decoración: debe hacer visible una relación cognitiva —frecuencia, secuencia, jerarquía, proporción, comparación, causa-efecto, clasificación sí/no o proceso— y ayudar a comunicar contenido en L2.</div>
+    <div class="diagram-list">
+      <div class="diagram-item"><b>Diagrama de barras</b><small>Muestra frecuencia o cantidad.</small></div><div class="diagram-item"><b>Diagrama de ciclo</b><small>Muestra secuencia de eventos.</small></div><div class="diagram-item"><b>Mapa conceptual</b><small>Muestra cómo se relacionan las cosas.</small></div><div class="diagram-item"><b>Diagrama de líneas</b><small>Muestra cómo se desarrollan.</small></div><div class="diagram-item"><b>Gráfico circular</b><small>Muestra proporciones relativas.</small></div><div class="diagram-item"><b>Diagrama de Venn</b><small>Muestra semejanzas y diferencias.</small></div><div class="diagram-item"><b>Diagrama de árbol</b><small>Muestra relaciones jerárquicas.</small></div><div class="diagram-item"><b>Cuadrante</b><small>Identifica cosas de dos maneras.</small></div><div class="diagram-item"><b>Diagrama en T</b><small>Divide en dos categorías.</small></div><div class="diagram-item"><b>Diagrama de Carroll</b><small>Agrupa en modo sí/no.</small></div><div class="diagram-item"><b>Tabla</b><small>Categoriza y resume información.</small></div><div class="diagram-item"><b>Espina de pescado</b><small>Organiza causa y efecto.</small></div><div class="diagram-item"><b>Diagrama de flujo</b><small>Ordena procesos.</small></div><div class="diagram-item"><b>Tabla binaria</b><small>Divide información en preguntas sí/no.</small></div>
+    </div>
+
+    <div class="scenario-grid">
+      <div class="card">
+        <h3>Escenario A · Natural Science / Geography</h3>
+        <p><b>Situación:</b> 2.º ESO analiza por qué aumenta la temperatura en distintas zonas del centro escolar. El grupo tiene mediciones de patio, aula, pasillo y zona ajardinada, además de fotos y notas de observación.</p>
+        <p><b>Reto:</b> elegir un organizador que permita explicar patrones, causas o proporciones y preparar una explicación breve en inglés.</p>
+        <div class="field"><label>Tipo de organizador elegido para el escenario A</label><select id="orgA_type" class="saveable" onchange="drawTemplate('canvasA',this.value)"></select></div>
+        <div class="field"><label>Justifica tu elección</label><textarea id="orgA_reason" class="saveable" placeholder="¿Por qué este diagrama ayuda a entender mejor el contenido y a expresarlo en inglés?"></textarea></div>
+      </div>
+      <div class="card">
+        <h3>Escenario B · English / Citizenship / CLIL</h3>
+        <p><b>Situación:</b> el alumnado trabaja “fake news and online responsibility” en inglés. Debe distinguir hechos, opiniones, evidencias, consecuencias y estrategias de verificación.</p>
+        <p><b>Reto:</b> elegir un organizador que permita comparar fuentes, secuenciar pasos de verificación o mapear causas y efectos.</p>
+        <div class="field"><label>Tipo de organizador elegido para el escenario B</label><select id="orgB_type" class="saveable" onchange="drawTemplate('canvasB',this.value)"></select></div>
+        <div class="field"><label>Justifica tu elección</label><textarea id="orgB_reason" class="saveable" placeholder="¿Qué relación cognitiva hace visible: comparación, proceso, causa, categorías, proporciones...?"></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Canvas A</h3>
+      <div class="canvas-shell">
+        <div class="side-tools">
+          <h3>Herramientas</h3>
+          <div class="tool-grid">
+            <button type="button" onclick="setTool('canvasA','draw',this)">Dibujar</button><button type="button" onclick="setTool('canvasA','text',this)">Texto</button><button type="button" onclick="setTool('canvasA','note',this)">Nota</button><button type="button" onclick="setTool('canvasA','box',this)">Caja</button><button type="button" onclick="setTool('canvasA','circle',this)">Círculo</button><button type="button" onclick="setTool('canvasA','arrow',this)">Flecha</button>
+          </div>
+          <div class="field"><label>Plantilla</label><select onchange="drawTemplate('canvasA',this.value);document.getElementById('orgA_type').value=this.value" id="canvasA_template"></select></div>
+          <button class="btn small" onclick="triggerUpload('canvasA')">Adjuntar foto/captura</button>
+          <button class="btn small" onclick="downloadCanvas('canvasA')">Descargar imagen</button>
+          <button class="btn small" onclick="clearCanvas('canvasA')">Limpiar canvas</button>
+          <input type="file" id="canvasA_upload" class="hidden-file" accept="image/*" onchange="uploadToCanvas(event,'canvasA')" />
+          <p class="canvas-note">Consejo: usa “Texto” para insertar labels, “Nota” para flashcards y “Adjuntar foto” para mostrar una captura o imagen de apoyo.</p>
+        </div>
+        <canvas id="canvasA" class="org-canvas" width="1100" height="620"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Canvas B</h3>
+      <div class="canvas-shell">
+        <div class="side-tools">
+          <h3>Herramientas</h3>
+          <div class="tool-grid">
+            <button type="button" onclick="setTool('canvasB','draw',this)">Dibujar</button><button type="button" onclick="setTool('canvasB','text',this)">Texto</button><button type="button" onclick="setTool('canvasB','note',this)">Nota</button><button type="button" onclick="setTool('canvasB','box',this)">Caja</button><button type="button" onclick="setTool('canvasB','circle',this)">Círculo</button><button type="button" onclick="setTool('canvasB','arrow',this)">Flecha</button>
+          </div>
+          <div class="field"><label>Plantilla</label><select onchange="drawTemplate('canvasB',this.value);document.getElementById('orgB_type').value=this.value" id="canvasB_template"></select></div>
+          <button class="btn small" onclick="triggerUpload('canvasB')">Adjuntar foto/captura</button>
+          <button class="btn small" onclick="downloadCanvas('canvasB')">Descargar imagen</button>
+          <button class="btn small" onclick="clearCanvas('canvasB')">Limpiar canvas</button>
+          <input type="file" id="canvasB_upload" class="hidden-file" accept="image/*" onchange="uploadToCanvas(event,'canvasB')" />
+          <p class="canvas-note">Este segundo canvas puede ser un tipo de diagrama distinto. En la actividad 4 podrás reinsertarlo.</p>
+        </div>
+        <canvas id="canvasB" class="org-canvas" width="1100" height="620"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section id="zdp" class="panel" data-title="Actividad 3 · ZDP y andamiaje">
+    <div class="eyebrow">Actividad 3</div>
+    <h2>Preguntas sobre ZDP y su relación con el andamiaje</h2>
+    <p class="lead">Analiza la diferencia entre lo que el alumnado puede hacer de forma independiente, lo que puede hacer con ayuda y lo que todavía queda fuera de su alcance.</p>
+    <div class="callout">
+      <b>Idea clave.</b> La Zona de Desarrollo Próximo es el espacio entre el nivel real de desarrollo y el nivel potencial con ayuda. En AICLE, el andamiaje debe sostener tanto el contenido como la lengua, y debe retirarse gradualmente.
+    </div>
+    <div class="zdp-map">
+      <div class="zdp-col"><h3>Puede hacer solo</h3><p>Identificar palabras conocidas, copiar labels, reconocer imágenes, elegir entre opciones simples.</p><div class="field"><label>Ejemplos en tu escenario</label><textarea id="zdp_alone" class="saveable mini-input"></textarea></div></div>
+      <div class="zdp-col"><h3>Puede hacer con ayuda</h3><p>Explicar relaciones, justificar una elección, usar conectores, interpretar un gráfico, escribir una explicación breve.</p><div class="field"><label>Esto es la ZDP</label><textarea id="zdp_with_help" class="saveable mini-input"></textarea></div></div>
+      <div class="zdp-col"><h3>Todavía no puede</h3><p>Argumentar sin modelo, debatir sin vocabulario, sintetizar sin organizador, producir textos largos sin estructura.</p><div class="field"><label>Fuera de alcance ahora</label><textarea id="zdp_beyond" class="saveable mini-input"></textarea></div></div>
+    </div>
+    <div class="grid-2">
+      <div class="question-card"><h3>Pregunta 1</h3><p>¿Qué diferencia hay entre “ayudar” y “andamiar”? Responde con un ejemplo concreto de aula AICLE.</p><textarea id="zdp_q1" class="saveable"></textarea></div>
+      <div class="question-card"><h3>Pregunta 2</h3><p>¿Qué apoyo sería lingüístico y cuál sería conceptual en una tarea con organizador gráfico?</p><textarea id="zdp_q2" class="saveable"></textarea></div>
+      <div class="question-card"><h3>Pregunta 3</h3><p>¿Cómo sabrías que el andamiaje debe retirarse? Indica una evidencia observable.</p><textarea id="zdp_q3" class="saveable"></textarea></div>
+      <div class="question-card"><h3>Pregunta 4</h3><p>¿Qué riesgo aparece si el apoyo es excesivo? ¿Y si el apoyo es insuficiente?</p><textarea id="zdp_q4" class="saveable"></textarea></div>
+      <div class="question-card"><h3>Pregunta 5</h3><p>Relaciona ZDP, Bloom y organizadores gráficos: ¿cómo puede un organizador permitir pasar de comprender a analizar/evaluar?</p><textarea id="zdp_q5" class="saveable"></textarea></div>
+      <div class="question-card"><h3>Mini-caso</h3><p>Un grupo puede nombrar fases del ciclo del agua, pero no puede explicar por qué aumenta la evaporación cuando cambia la temperatura. ¿Qué diseñarías dentro de su ZDP?</p><textarea id="zdp_case" class="saveable"></textarea></div>
+    </div>
+  </section>
+
+  <section id="scaffolding" class="panel" data-title="Actividad 4 · Actividades con andamiaje">
+    <div class="eyebrow">Actividad 4</div>
+    <h2>Una actividad para cada tipo de andamiaje</h2>
+    <p class="lead">Reutiliza uno de los organizadores de la actividad 2 y convierte el apoyo en una actividad didáctica concreta. La clave es que el andamiaje permita pensar más alto sin bajar el rigor.</p>
+    <div class="toolbar"><button class="btn uc" onclick="reuseCanvas('canvasA')">Reinsertar Canvas A</button><button class="btn uc" onclick="reuseCanvas('canvasB')">Reinsertar Canvas B</button><button class="btn" onclick="clearReuse()">Quitar previsualizaciones</button></div>
+    <div id="reuseArea" class="reuse-preview"></div>
+    <div class="grid-3">
+      <div class="card scaffold-card" data-n="V">
+        <h3>Andamiaje verbal / lingüístico</h3>
+        <p class="help">Sentence frames, word bank, reformulación, preguntas guía, conectores y modelos de discurso.</p>
+        <div class="field"><label>Actividad concreta</label><textarea id="scaff_verbal_activity" class="saveable" placeholder="Ej.: El alumnado explica el organizador usando frames: The graph shows..., This suggests..., However..."></textarea></div>
+        <div class="field"><label>Apoyo verbal incluido</label><textarea id="scaff_verbal_support" class="saveable" placeholder="Vocabulario, estructuras, frames, preguntas del profesor, recasts..."></textarea></div>
+        <div class="field"><label>Cómo se retira el apoyo</label><textarea id="scaff_verbal_fade" class="saveable" placeholder="Primero frames completos; después inicios; finalmente solo conectores clave."></textarea></div>
+      </div>
+      <div class="card scaffold-card" data-n="P">
+        <h3>Andamiaje procedimental</h3>
+        <p class="help">Pasos, roles, tiempos, checklist, flujo de trabajo, turnos y señales de avance.</p>
+        <div class="field"><label>Actividad concreta</label><textarea id="scaff_proc_activity" class="saveable" placeholder="Ej.: En parejas, siguen una secuencia: observe → label → compare → justify → present."></textarea></div>
+        <div class="field"><label>Apoyo procedimental incluido</label><textarea id="scaff_proc_support" class="saveable" placeholder="Roles, tarjetas de pasos, temporizador, checklist, ejemplo resuelto..."></textarea></div>
+        <div class="field"><label>Cómo se retira el apoyo</label><textarea id="scaff_proc_fade" class="saveable" placeholder="Se elimina el checklist detallado y queda solo una rúbrica breve."></textarea></div>
+      </div>
+      <div class="card scaffold-card" data-n="G">
+        <h3>Andamiaje con organizador gráfico</h3>
+        <p class="help">Organizador parcialmente completado, mapa conceptual, tabla, Venn, ciclo, espina de pescado o flujo.</p>
+        <div class="field"><label>Actividad concreta</label><textarea id="scaff_graphic_activity" class="saveable" placeholder="Ej.: Completar un fishbone con causas y evidencias antes de escribir la explicación."></textarea></div>
+        <div class="field"><label>Organizador reutilizado</label><textarea id="scaff_graphic_support" class="saveable" placeholder="Canvas A/B, tipo de diagrama y función cognitiva."></textarea></div>
+        <div class="field"><label>Cómo se retira el apoyo</label><textarea id="scaff_graphic_fade" class="saveable" placeholder="Primero con categorías dadas; luego categorías vacías; finalmente elección libre de organizador."></textarea></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Checklist final de calidad</h3>
+      <div class="grid-2">
+        <label class="check"><input class="saveable" id="chk_content" type="checkbox" /> <span>La actividad trabaja contenido, no solo vocabulario aislado.</span></label>
+        <label class="check"><input class="saveable" id="chk_language" type="checkbox" /> <span>La lengua necesaria está anticipada: language of/for/through learning.</span></label>
+        <label class="check"><input class="saveable" id="chk_cognition" type="checkbox" /> <span>El verbo de Bloom coincide con lo que realmente hace el alumnado.</span></label>
+        <label class="check"><input class="saveable" id="chk_scaffolding" type="checkbox" /> <span>El apoyo permite avanzar dentro de la ZDP y no sustituye el pensamiento del alumnado.</span></label>
+        <label class="check"><input class="saveable" id="chk_fade" type="checkbox" /> <span>Hay retirada gradual del andamiaje.</span></label>
+        <label class="check"><input class="saveable" id="chk_evidence" type="checkbox" /> <span>Queda una evidencia observable de aprendizaje.</span></label>
+      </div>
+    </div>
+  </section>
+
+  <section id="export" class="panel" data-title="Exportación configurable a Word">
+    <div class="eyebrow">Exportación</div>
+    <h2>Exportar a Word con selector de configuración</h2>
+    <p class="lead">Elige qué entra en el documento final. Las pizarras se exportan como imágenes y los campos escritos se organizan por actividad.</p>
+    <div class="export-box">
+      <label class="check"><input type="checkbox" class="export-opt" id="ex_cover" checked /> <span><b>Portada</b><br>Incluye título, fecha y crédito del proyecto.</span></label>
+      <label class="check"><input type="checkbox" class="export-opt" id="ex_bloom" checked /> <span><b>Actividad 1</b><br>Verbos de Bloom y respuestas.</span></label>
+      <label class="check"><input type="checkbox" class="export-opt" id="ex_org" checked /> <span><b>Actividad 2</b><br>Escenarios y justificación de organizadores.</span></label>
+      <label class="check"><input type="checkbox" class="export-opt" id="ex_canvasA" checked /> <span><b>Canvas A</b><br>Incluye imagen del organizador A.</span></label>
+      <label class="check"><input type="checkbox" class="export-opt" id="ex_canvasB" checked /> <span><b>Canvas B</b><br>Incluye imagen del organizador B.</span></label>
+      <label class="check"><input type="checkbox" class="export-opt" id="ex_zdp" checked /> <span><b>Actividad 3</b><br>ZDP, preguntas y mini-caso.</span></label>
+      <label class="check"><input type="checkbox" class="export-opt" id="ex_scaff" checked /> <span><b>Actividad 4</b><br>Andamiaje verbal, procedimental y gráfico.</span></label>
+      <label class="check"><input type="checkbox" class="export-opt" id="ex_footer" checked /> <span><b>Pie del proyecto</b><br>Proyecto de Dra. María Sanabria (UNICAN).</span></label>
+    </div>
+    <div class="toolbar"><button class="btn uc" onclick="renderPreview()">Actualizar vista previa</button><button class="btn primary" onclick="downloadWord()">Descargar Word</button><button class="btn" onclick="saveAll()">Guardar antes de exportar</button></div>
+    <div id="exportPreview" class="preview"></div>
+  </section>
+  <div class="footer-credit">Proyecto de Dra. María Sanabria (UNICAN)</div>
+</main>
+<div id="toast" class="toast">Guardado</div>
+<script>
+const tabs = ['bloom','organizers','zdp','scaffolding','export'];
+const diagramTypes = [
+  ['bar','Diagrama de barras'],['cycle','Diagrama de ciclo'],['concept','Mapa conceptual'],['line','Diagrama de líneas'],['pie','Gráfico circular'],['venn','Diagrama de Venn'],['tree','Diagrama de árbol'],['quadrant','Cuadrante'],['tchart','Diagrama en T'],['carroll','Diagrama de Carroll'],['table','Tabla'],['fishbone','Causa-efecto / espina de pescado'],['flow','Diagrama de flujo'],['binary','Tabla binaria']
+];
+const bloomAnswers = [
+  ['enumera','Recordar'],['resume','Comprender'],['usa','Aplicar'],['contrasta','Analizar'],['defiende','Evaluar'],['diseña','Crear'],['interpreta','Comprender'],['categoriza','Analizar'],['prioriza','Evaluar'],['produce','Crear'],['resuelve','Aplicar'],['define','Recordar']
+];
+const canvasState = {};
+let activeTab = 'bloom';
+function $(id){return document.getElementById(id)}
+function startWorkshop(){ $('hero').style.display='none'; $('tabs').style.display='block'; goTo('bloom'); }
+function goTo(id){
+  activeTab = id;
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  $(id).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
+  $('tabs').style.display='block';
+  $('hero').style.display='none';
+  updateProgress();
+  setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),20);
+}
+function updateProgress(){
+  const idx = Math.max(0,tabs.indexOf(activeTab));
+  $('progressBar').style.width = ((idx+1)/tabs.length*100)+'%';
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('done',i<idx));
+}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._to);t._to=setTimeout(()=>t.classList.remove('show'),1500)}
+function fillSelects(){
+  ['orgA_type','orgB_type','canvasA_template','canvasB_template'].forEach(id=>{
+    const s=$(id); if(!s || s.options.length) return;
+    diagramTypes.forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;s.appendChild(o)});
+  });
+  $('orgA_type').value='line'; $('orgB_type').value='flow'; $('canvasA_template').value='line'; $('canvasB_template').value='flow';
+}
+function buildBloomQuiz(){
+  const levels = ['','Recordar','Comprender','Aplicar','Analizar','Evaluar','Crear'];
+  const box=$('bloomQuiz'); box.innerHTML='';
+  bloomAnswers.forEach(([verb,level],i)=>{
+    const row=document.createElement('div'); row.className='quiz-row'; row.dataset.answer=level;
+    const opts=levels.map(l=>'<option value="'+l+'">'+(l||'Selecciona nivel')+'</option>').join('');
+    row.innerHTML='<b>'+verb+'</b><span class="help">Clasifica el verbo según la demanda cognitiva.</span><select class="saveable bloom-select" id="bloom_q_'+i+'">'+opts+'</select><span id="mark_'+i+'"></span>';
+    box.appendChild(row);
+  });
+}
+function checkBloomQuiz(){
+  let ok=0;
+  bloomAnswers.forEach(([verb,level],i)=>{
+    const val=$('bloom_q_'+i).value; const mark=$('mark_'+i);
+    if(val===level){mark.textContent='✓';mark.className='mark-ok';ok++}else{mark.textContent='✗';mark.className='mark-no'}
+  });
+  $('bloomScore').textContent='Resultado: '+ok+'/'+bloomAnswers.length;
+  saveAll(false);
+}
+function resetBloomQuiz(){bloomAnswers.forEach((_,i)=>{$('bloom_q_'+i).value='';$('mark_'+i).textContent=''});$('bloomScore').textContent='';saveAll(false)}
+function initCanvas(id){
+  const c=$(id); const ctx=c.getContext('2d'); canvasState[id]={tool:'draw',drawing:false,start:null,last:null};
+  drawTemplate(id, id==='canvasA'?'line':'flow');
+  const getPos=(e)=>{const r=c.getBoundingClientRect();const touch=e.touches&&e.touches[0];const x=(touch?touch.clientX:e.clientX)-r.left;const y=(touch?touch.clientY:e.clientY)-r.top;return {x:x*c.width/r.width,y:y*c.height/r.height}};
+  const down=(e)=>{e.preventDefault();const st=canvasState[id];const p=getPos(e);st.drawing=true;st.start=p;st.last=p;if(st.tool==='text'||st.tool==='note'){const txt=prompt('Texto para insertar:');if(txt){if(st.tool==='note')drawNote(ctx,p.x,p.y,txt);else drawTextBlock(ctx,p.x,p.y,txt);saveCanvas(id)}st.drawing=false}};
+  const move=(e)=>{const st=canvasState[id];if(!st.drawing || st.tool!=='draw')return;e.preventDefault();const p=getPos(e);ctx.strokeStyle='#101828';ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(st.last.x,st.last.y);ctx.lineTo(p.x,p.y);ctx.stroke();st.last=p;saveCanvas(id)};
+  const up=(e)=>{const st=canvasState[id];if(!st.drawing)return;const p=getPos(e.changedTouches?e.changedTouches[0]:e);if(st.tool==='box')drawBox(ctx,st.start.x,st.start.y,p.x-st.start.x,p.y-st.start.y);if(st.tool==='circle')drawCircle(ctx,st.start.x,st.start.y,p.x,p.y);if(st.tool==='arrow')drawArrow(ctx,st.start.x,st.start.y,p.x,p.y);st.drawing=false;saveCanvas(id)};
+  c.addEventListener('mousedown',down);c.addEventListener('mousemove',move);window.addEventListener('mouseup',up);
+  c.addEventListener('touchstart',down,{passive:false});c.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',up,{passive:false});
+}
+function setTool(id,tool,btn){canvasState[id].tool=tool;const group=btn.parentElement;group.querySelectorAll('button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');toast('Herramienta: '+btn.textContent)}
+function clearCanvas(id){if(!confirm('¿Limpiar este canvas?'))return;const c=$(id),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);drawGrid(ctx,c);saveCanvas(id)}
+function drawGrid(ctx,c){ctx.fillStyle='#ffffff';ctx.fillRect(0,0,c.width,c.height);ctx.strokeStyle='#edf2f1';ctx.lineWidth=1;for(let x=40;x<c.width;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,c.height);ctx.stroke()}for(let y=40;y<c.height;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(c.width,y);ctx.stroke()}}
+function drawTitle(ctx,title){ctx.fillStyle='#101828';ctx.font='bold 34px Inter';ctx.fillText(title,36,54);ctx.fillStyle='#667085';ctx.font='18px Inter';ctx.fillText('Completa, modifica o añade fotos/notas según tu diseño didáctico.',36,84)}
+function drawTemplate(id,type){
+  const c=$(id),ctx=c.getContext('2d'); drawGrid(ctx,c); ctx.lineWidth=4; ctx.strokeStyle='#007c78'; ctx.fillStyle='#101828'; ctx.font='22px Inter';
+  const W=c.width,H=c.height;
+  const label=(t,x,y)=>{ctx.fillStyle='#344054';ctx.font='bold 18px Inter';ctx.fillText(t,x,y)};
+  const pale=(color)=>{ctx.fillStyle=color;ctx.strokeStyle='#007c78'};
+  const rrect=(x,y,w,h,r)=>{ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();ctx.stroke()};
+  drawTitle(ctx,diagramTypes.find(d=>d[0]===type)?.[1]||'Organizador');
+  if(type==='bar'){
+    ctx.strokeStyle='#101828';ctx.beginPath();ctx.moveTo(110,520);ctx.lineTo(1020,520);ctx.moveTo(110,140);ctx.lineTo(110,520);ctx.stroke();
+    ['A','B','C','D','E'].forEach((l,i)=>{let h=[170,260,110,310,220][i];pale(['#b3e4e2','#d8edff','#ffe2ef','#fff0bd','#dacfff'][i]);ctx.fillRect(190+i*150,520-h,82,h);ctx.strokeRect(190+i*150,520-h,82,h);label(l,212+i*150,550)}); label('frecuencia / cantidad',120,128);
+  } else if(type==='cycle'){
+    const pts=[[550,140],[820,310],[550,490],[280,310]]; pts.forEach((p,i)=>{pale(['#e6fffb','#fff5d6','#f2eaff','#ffeaf2'][i]);rrect(p[0]-90,p[1]-35,180,70,18);label('Paso '+(i+1),p[0]-34,p[1]+7)}); for(let i=0;i<pts.length;i++){let a=pts[i],b=pts[(i+1)%pts.length];drawArrow(ctx,a[0]+70*(b[0]>a[0]?1:-1),a[1],b[0]-90*(b[0]>a[0]?1:-1),b[1])}
+  } else if(type==='concept'){
+    pale('#e6fffb');rrect(440,120,220,80,20);label('Concepto central',472,168);const nodes=[[160,290,'causa'],[450,330,'parte'],[760,280,'efecto'],[250,470,'ejemplo'],[700,470,'evidencia']];nodes.forEach(n=>{pale('#fffdf7');rrect(n[0],n[1],180,65,16);label(n[2],n[0]+28,n[1]+40);drawArrow(ctx,550,200,n[0]+90,n[1])});
+  } else if(type==='line'){
+    ctx.strokeStyle='#101828';ctx.beginPath();ctx.moveTo(110,520);ctx.lineTo(1010,520);ctx.moveTo(110,130);ctx.lineTo(110,520);ctx.stroke();ctx.strokeStyle='#d9487f';ctx.lineWidth=6;ctx.beginPath();[[140,470],[300,420],[460,350],[620,330],[780,240],[940,190]].forEach((p,i)=>{if(i===0)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1])});ctx.stroke();[[140,470],[300,420],[460,350],[620,330],[780,240],[940,190]].forEach((p,i)=>{ctx.fillStyle='#fff';ctx.strokeStyle='#d9487f';ctx.beginPath();ctx.arc(p[0],p[1],11,0,Math.PI*2);ctx.fill();ctx.stroke()});label('tiempo / desarrollo',765,555);label('variable',35,128);
+  } else if(type==='pie'){
+    const cx=550,cy=330,r=170;let start=-Math.PI/2;[['#007c78',.34],['#d9487f',.26],['#f2b544',.22],['#7657d6',.18]].forEach((s,i)=>{ctx.fillStyle=s[0];ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+Math.PI*2*s[1]);ctx.closePath();ctx.fill();start+=Math.PI*2*s[1]});['A 34%','B 26%','C 22%','D 18%'].forEach((t,i)=>label(t,780,220+i*58));
+  } else if(type==='venn'){
+    ctx.globalAlpha=.55;ctx.fillStyle='#007c78';ctx.beginPath();ctx.arc(465,330,175,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d9487f';ctx.beginPath();ctx.arc(635,330,175,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;label('A',360,330);label('A ∩ B',520,330);label('B',710,330);
+  } else if(type==='tree'){
+    pale('#e6fffb');rrect(450,115,220,65,18);label('Tema',535,155);[[220,280,'Rama 1'],[500,280,'Rama 2'],[780,280,'Rama 3']].forEach(n=>{drawArrow(ctx,560,180,n[0]+90,n[1]);pale('#fffdf7');rrect(n[0],n[1],180,60,16);label(n[2],n[0]+42,n[1]+38);[n[0]-40,n[0]+80,n[0]+200].forEach((x,j)=>{drawArrow(ctx,n[0]+90,n[1]+60,x+45,455);pale('#f8fbff');rrect(x,455,90,48,12);label('x',x+40,485)})});
+  } else if(type==='quadrant'){
+    ctx.strokeStyle='#101828';ctx.lineWidth=4;ctx.strokeRect(150,130,800,420);ctx.beginPath();ctx.moveTo(550,130);ctx.lineTo(550,550);ctx.moveTo(150,340);ctx.lineTo(950,340);ctx.stroke();label('alto',165,160);label('bajo',165,530);label('criterio 1',480,590);label('criterio 2',20,348);['I','II','III','IV'].forEach((t,i)=>label(t,[330,730,330,730][i],[245,245,455,455][i]));
+  } else if(type==='tchart'){
+    ctx.strokeStyle='#101828';ctx.strokeRect(130,130,840,420);ctx.beginPath();ctx.moveTo(550,130);ctx.lineTo(550,550);ctx.moveTo(130,210);ctx.lineTo(970,210);ctx.stroke();label('Categoría A',270,180);label('Categoría B',690,180);
+  } else if(type==='carroll'){
+    ctx.strokeStyle='#101828';ctx.strokeRect(130,140,850,390);ctx.beginPath();ctx.moveTo(555,140);ctx.lineTo(555,530);ctx.moveTo(130,250);ctx.lineTo(980,250);ctx.stroke();label('Sí',320,210);label('No',750,210);label('Criterio 1',150,310);label('Criterio 2',150,465);
+  } else if(type==='table'){
+    ctx.strokeStyle='#101828';ctx.strokeRect(90,140,920,390);for(let i=1;i<4;i++){ctx.beginPath();ctx.moveTo(90+i*230,140);ctx.lineTo(90+i*230,530);ctx.stroke()}for(let j=1;j<5;j++){ctx.beginPath();ctx.moveTo(90,140+j*78);ctx.lineTo(1010,140+j*78);ctx.stroke()}label('categoría',120,188);label('dato',355,188);label('evidencia',585,188);label('lengua útil',805,188);
+  } else if(type==='fishbone'){
+    ctx.strokeStyle='#101828';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(170,350);ctx.lineTo(870,350);ctx.lineTo(980,285);ctx.moveTo(870,350);ctx.lineTo(980,415);ctx.stroke();label('Efecto',910,262);[['causa 1',280,230],['causa 2',460,230],['causa 3',640,230],['causa 4',330,470],['causa 5',540,470]].forEach((n,i)=>{drawArrow(ctx,n[1],n[2],n[1]+80,350);label(n[0],n[1]-35,n[2]-14)});
+  } else if(type==='flow'){
+    const xs=[110,310,510,710,910];xs.forEach((x,i)=>{pale(i%2?'#fff5d6':'#e6fffb');rrect(x,270,145,80,18);label('Paso '+(i+1),x+35,318);if(i<xs.length-1)drawArrow(ctx,x+145,310,xs[i+1],310)});
+  } else if(type==='binary'){
+    ctx.strokeStyle='#101828';ctx.strokeRect(120,140,860,390);ctx.beginPath();ctx.moveTo(120,220);ctx.lineTo(980,220);ctx.moveTo(520,140);ctx.lineTo(520,530);ctx.moveTo(750,140);ctx.lineTo(750,530);ctx.stroke();label('Pregunta',250,190);label('Sí',610,190);label('No',835,190);['1','2','3','4'].forEach((r,i)=>label('¿...? '+r,165,275+i*72));
+  }
+  saveCanvas(id);
+}
+function drawBox(ctx,x,y,w,h){ctx.fillStyle='rgba(255,253,247,.85)';ctx.strokeStyle='#007c78';ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(x,y,w,h,16);ctx.fill();ctx.stroke()}
+function drawCircle(ctx,x1,y1,x2,y2){const r=Math.hypot(x2-x1,y2-y1);ctx.fillStyle='rgba(217,72,127,.10)';ctx.strokeStyle='#d9487f';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x1,y1,r,0,Math.PI*2);ctx.fill();ctx.stroke()}
+function drawArrow(ctx,x1,y1,x2,y2){ctx.strokeStyle='#101828';ctx.fillStyle='#101828';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();const a=Math.atan2(y2-y1,x2-x1),len=14;ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-len*Math.cos(a-Math.PI/6),y2-len*Math.sin(a-Math.PI/6));ctx.lineTo(x2-len*Math.cos(a+Math.PI/6),y2-len*Math.sin(a+Math.PI/6));ctx.closePath();ctx.fill()}
+function drawTextBlock(ctx,x,y,text){ctx.fillStyle='#101828';ctx.font='bold 22px Inter';wrapCanvasText(ctx,text,x,y,260,26)}
+function drawNote(ctx,x,y,text){ctx.fillStyle='#fff6c7';ctx.strokeStyle='#f2b544';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(x,y,230,120,16);ctx.fill();ctx.stroke();ctx.fillStyle='#101828';ctx.font='bold 18px Inter';wrapCanvasText(ctx,text,x+16,y+30,198,23)}
+function wrapCanvasText(ctx,text,x,y,maxWidth,lineHeight){const words=text.split(' ');let line='';for(let n=0;n<words.length;n++){let test=line+words[n]+' ';if(ctx.measureText(test).width>maxWidth&&n>0){ctx.fillText(line,x,y);line=words[n]+' ';y+=lineHeight}else line=test}ctx.fillText(line,x,y)}
+function saveCanvas(id){try{localStorage.setItem('canvas_'+id,$(id).toDataURL('image/png'))}catch(e){}}
+function restoreCanvas(id){const data=localStorage.getItem('canvas_'+id);if(data){const img=new Image();img.onload=()=>{$(id).getContext('2d').drawImage(img,0,0)};img.src=data}}
+function triggerUpload(id){$(id+'_upload').click()}
+function uploadToCanvas(e,id){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){const img=new Image();img.onload=function(){const c=$(id),ctx=c.getContext('2d');const maxW=430,maxH=300;let w=img.width,h=img.height;const ratio=Math.min(maxW/w,maxH/h,1);w*=ratio;h*=ratio;ctx.fillStyle='#fff';ctx.strokeStyle='#101828';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(625,118,w+24,h+50,16);ctx.fill();ctx.stroke();ctx.drawImage(img,637,152,w,h);ctx.fillStyle='#101828';ctx.font='bold 16px Inter';ctx.fillText('Imagen adjunta',637,140);saveCanvas(id);toast('Imagen integrada en '+id)};img.src=ev.target.result};reader.readAsDataURL(file)}
+function downloadCanvas(id){const a=document.createElement('a');a.href=$(id).toDataURL('image/png');a.download=id+'_organizador.png';a.click()}
+function reuseCanvas(id){const src=$(id).toDataURL('image/png');const area=$('reuseArea');const box=document.createElement('div');box.className='card';box.innerHTML='<h3>'+id.replace('canvas','Canvas ')+'</h3><img src="'+src+'" alt="Organizador reutilizado" />';area.appendChild(box);saveAll(false);toast('Organizador reinsertado')}
+function clearReuse(){$('reuseArea').innerHTML='';saveAll(false)}
+function getFieldLabel(el){let label='';const f=el.closest('.field'); if(f && f.querySelector('label')) label=f.querySelector('label').textContent; else if(el.id) label=el.id; return label}
+function fieldsHTML(sectionId){
+  const root=$(sectionId); let html='<table style="width:100%;border-collapse:collapse;margin:8px 0 18px">'; let n=0;
+  root.querySelectorAll('textarea.saveable,input.saveable,select.saveable').forEach(el=>{
+    if(el.type==='checkbox') return;
+    let val=el.value||''; if(!val.trim()) return;
+    html+='<tr><th style="width:30%;text-align:left;border:1px solid #d9e2df;padding:8px;background:#f3f7f6">'+escapeHTML(getFieldLabel(el))+'</th><td style="border:1px solid #d9e2df;padding:8px">'+escapeHTML(val).replace(/\n/g,'<br>')+'</td></tr>'; n++;
+  });
+  root.querySelectorAll('input.saveable[type="checkbox"]').forEach(el=>{html+='<tr><th style="text-align:left;border:1px solid #d9e2df;padding:8px;background:#f3f7f6">'+escapeHTML(getFieldLabel(el))+'</th><td style="border:1px solid #d9e2df;padding:8px">'+(el.checked?'Sí':'No')+'</td></tr>';n++});
+  html+='</table>'; return n?html:'<p><i>Sin respuestas escritas todavía.</i></p>';
+}
+function escapeHTML(str){return String(str).replace(/[&<>"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]))}
+function canvasImgHTML(id,title){return '<h3>'+title+'</h3><img src="'+$(id).toDataURL('image/png')+'" style="max-width:100%;border:1px solid #d9e2df;border-radius:12px" />'}
+function buildExportHTML(){
+  let html='';
+  const date=new Date().toLocaleDateString('es-ES');
+  if($('ex_cover').checked) html+='<div style="text-align:center;padding:30px 0 20px"><h1>Bloom, Andamiaje y herramientas prácticas</h1><p><b>Trabajo de clase AICLE / CLIL</b></p><p>'+date+'</p><p>Proyecto de Dra. María Sanabria (UNICAN)</p></div><hr>';
+  if($('ex_bloom').checked){html+='<h2>Actividad 1 · Verbos de Bloom</h2><p>Clasificación de verbos, reformulación de consignas y diseño de preguntas AICLE.</p>'+fieldsHTML('bloom');html+='<h3>Resultado de clasificación</h3><ul>'+bloomAnswers.map((a,i)=>'<li>'+a[0]+': '+($('bloom_q_'+i).value||'sin respuesta')+' / esperado: '+a[1]+'</li>').join('')+'</ul>'}
+  if($('ex_org').checked){html+='<h2>Actividad 2 · Organizadores gráficos</h2>'+fieldsHTML('organizers')}
+  if($('ex_canvasA').checked) html+=canvasImgHTML('canvasA','Canvas A · Organizador gráfico');
+  if($('ex_canvasB').checked) html+=canvasImgHTML('canvasB','Canvas B · Organizador gráfico');
+  if($('ex_zdp').checked){html+='<h2>Actividad 3 · ZDP y andamiaje</h2>'+fieldsHTML('zdp')}
+  if($('ex_scaff').checked){html+='<h2>Actividad 4 · Actividades con andamiaje</h2>'; const imgs=[...$('reuseArea').querySelectorAll('img')]; if(imgs.length){html+='<h3>Organizadores reinsertados</h3>'+imgs.map(img=>'<img src="'+img.src+'" style="max-width:100%;border:1px solid #d9e2df;border-radius:12px;margin-bottom:10px" />').join('')} html+=fieldsHTML('scaffolding')}
+  if($('ex_footer').checked) html+='<hr><p style="text-align:center;font-weight:bold;color:#005451">Proyecto de Dra. María Sanabria (UNICAN)</p>';
+  return html;
+}
+function renderPreview(){$('exportPreview').innerHTML=buildExportHTML();toast('Vista previa actualizada')}
+function downloadWord(){
+  saveAll(false); const content=buildExportHTML();
+  const styles='<style>body{font-family:Arial, sans-serif;color:#101828;line-height:1.5}h1{font-size:30pt;color:#005451}h2{font-size:22pt;color:#007c78;border-bottom:2px solid #007c78;padding-bottom:4px}h3{font-size:15pt;color:#101828}table{font-size:11pt}p,li,td,th{font-size:11pt}img{margin:10px 0}</style>';
+  const doc='<!DOCTYPE html><html><head><meta charset="UTF-8">'+styles+'</head><body>'+content+'</body></html>';
+  const blob=new Blob(['\ufeff',doc],{type:'application/msword'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='Bloom_Andamiaje_herramientas_practicas.doc'; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},1000); toast('Word generado');
+}
+let vtLabCloudTimer=null;
+function saveAll(show=true){
+  const data={fields:{},reuse:$('reuseArea').innerHTML,activeTab};
+  document.querySelectorAll('.saveable').forEach(el=>{data.fields[el.id]={value:el.type==='checkbox'?el.checked:el.value,type:el.type}});
+  localStorage.setItem('bloom_scaffold_practicas',JSON.stringify(data));
+  saveCanvas('canvasA');saveCanvas('canvasB');
+  scheduleVTLabProgressSave(data);
+  if(show) toast('Guardado');
+}
+function scheduleVTLabProgressSave(data){
+  clearTimeout(vtLabCloudTimer);
+  vtLabCloudTimer=setTimeout(()=>saveVTLabProgress(data),3500);
+}
+async function saveVTLabProgress(data){
+  if(!window.VTLabFirebase?.saveToolProgress)return;
+  const session=window.VTLabFirebase.getLocalSession ? window.VTLabFirebase.getLocalSession() : {};
+  if(session.testMode)return;
+  const fields=data?.fields||{};
+  const filled=Object.values(fields).filter(entry=>{
+    if(entry.type==='checkbox')return !!entry.value;
+    return String(entry.value||'').trim();
+  }).length;
+  window.VTLabFirebase.saveToolProgress({
+    event:'scaffolding-bloom-progress-saved',
+    roomId:'scaffolding-bloom-lab',
+    roomName:'Scaffolding and Bloom Lab',
+    consent:true,
+    result:{
+      activeSection:data?.activeTab||'bloom',
+      filledFields:filled,
+      totalFields:Object.keys(fields).length,
+      progressPercent:Math.min(100,Math.round((filled/24)*100))
+    },
+    labProgress:data
+  }).catch(err=>console.warn('VT Lab Bloom Lab save failed',err));
+}
+function restoreAll(){
+  const raw=localStorage.getItem('bloom_scaffold_practicas'); if(!raw) return;
+  try{const data=JSON.parse(raw);Object.entries(data.fields||{}).forEach(([id,obj])=>{const el=$(id);if(!el)return;if(obj.type==='checkbox')el.checked=obj.value;else el.value=obj.value}); if(data.reuse)$('reuseArea').innerHTML=data.reuse;}catch(e){}
+}
+function resetAll(){if(!confirm('¿Borrar respuestas guardadas y empezar de nuevo?'))return;localStorage.removeItem('bloom_scaffold_practicas');localStorage.removeItem('canvas_canvasA');localStorage.removeItem('canvas_canvasB');location.reload()}
+window.addEventListener('input',e=>{if(e.target.classList.contains('saveable')) saveAll(false)});
+window.addEventListener('change',e=>{if(e.target.classList.contains('saveable')) saveAll(false)});
+window.addEventListener('DOMContentLoaded',()=>{fillSelects();buildBloomQuiz();initCanvas('canvasA');initCanvas('canvasB');restoreAll();restoreCanvas('canvasA');restoreCanvas('canvasB');renderPreview();updateProgress();});
+</script>
+</body>
+</html>

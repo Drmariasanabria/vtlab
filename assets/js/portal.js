@@ -1,18 +1,27 @@
 const rooms = [
   {
     title: "Phonetics Time Vault",
+    category: "Education",
     description: "IPA transcription · voicing · manner of articulation · gamified phonetics",
     href: "./rooms/phonetics-time-vault/",
   },
   {
     title: "Bridge Command",
+    category: "ESP",
     description: "Bridge communication · mission stations · oral interaction · professional English",
     href: "./rooms/bridge-command/",
   },
   {
     title: "CLIL Studio Pro",
+    category: "Education",
     description: "Plan and preserve a CLIL/AICLE unit · 4Cs · Coyle checklist · exports",
     href: "./rooms/clil-planner/",
+  },
+  {
+    title: "Scaffolding and Bloom Lab",
+    category: "Education",
+    description: "Bloom taxonomy · ZDP · scaffolding · visual organisers · saved progress",
+    href: "./rooms/scaffolding-bloom-lab/",
   },
 ];
 
@@ -48,19 +57,7 @@ function renderStudentApp() {
         </div>
         <button class="button button--ghost" type="button" data-student-reset>Change mode</button>
       </div>
-      <div class="rooms-grid rooms-grid--compact">
-        ${rooms.map((room) => `
-          <article class="room-card">
-            <div class="room-card__shine" aria-hidden="true"></div>
-            <div>
-              <p class="room-card__label">Available mission</p>
-              <h3>${escapeHtml(room.title)}</h3>
-              <p>${escapeHtml(room.description)}</p>
-            </div>
-            <a class="button button--primary" href="${room.href}">Open mission</a>
-          </article>
-        `).join("")}
-      </div>
+      ${renderCategorisedRooms()}
     `;
     app.querySelector("[data-student-reset]").addEventListener("click", async () => {
       window.VTLabFirebase.clearLocalSession();
@@ -121,6 +118,35 @@ function renderStudentApp() {
     window.VTLabFirebase.startTestMode("teacher");
     window.location.href = "./teacher/";
   });
+}
+
+function renderCategorisedRooms() {
+  const categories = ["Education", "ESP"];
+  return categories.map((category) => {
+    const categoryRooms = rooms.filter((room) => room.category === category);
+    if (!categoryRooms.length) return "";
+    return `
+      <section class="resource-category" aria-label="${escapeHtml(category)} resources">
+        <div class="resource-category__head">
+          <p class="kicker">${escapeHtml(category)}</p>
+          <h2>${category === "ESP" ? "English for Specific Purposes" : "Education"}</h2>
+        </div>
+        <div class="rooms-grid rooms-grid--compact">
+          ${categoryRooms.map((room) => `
+            <article class="room-card">
+              <div class="room-card__shine" aria-hidden="true"></div>
+              <div>
+                <p class="room-card__label">${escapeHtml(room.category)}</p>
+                <h3>${escapeHtml(room.title)}</h3>
+                <p>${escapeHtml(room.description)}</p>
+              </div>
+              <a class="button button--primary" href="${room.href}">Open resource</a>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+    `;
+  }).join("");
 }
 
 function waitForFirebase() {

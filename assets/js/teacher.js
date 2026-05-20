@@ -428,29 +428,57 @@ function prefixObject(prefix, obj) {
 }
 
 function demoRecords(code) {
-  return [{
-    id: "demo-record",
-    cohortCode: code,
-    studentName: "Test Student",
-    roomName: "Phonetics Time Vault",
-    event: "post-questionnaire-submitted",
-    consent: true,
-    result: { score: 1200, currentChamber: 3, totalTime: 840 },
-    preQuestionnaire: { participantCode: "TEST", pre_1: "4", expectations: "Try the resource." },
-    postQuestionnaire: { post_1: "5", open1: "It was engaging." },
-  }];
+  return [
+    {
+      id: "demo-record-1",
+      cohortCode: code,
+      studentUid: "demo-student-1",
+      studentName: "Test Student A",
+      roomName: "Phonetics Time Vault",
+      event: "post-questionnaire-submitted",
+      consent: true,
+      result: { score: 1200, currentChamber: 3, totalTime: 840 },
+      preQuestionnaire: { participantCode: "A01", pre_1: "4", expectations: "Try the resource." },
+      postQuestionnaire: { post_1: "5", open1: "It was engaging." },
+    },
+    {
+      id: "demo-record-2",
+      cohortCode: code,
+      studentUid: "demo-student-2",
+      studentName: "Test Student B",
+      roomName: "Bridge Command",
+      event: "post-questionnaire-submitted",
+      consent: true,
+      result: { score: 860, currentStation: 4, totalTime: 1200 },
+      preQuestionnaire: { participantCode: "B02", pre_1: "3", expectations: "Practise communication." },
+      postQuestionnaire: { post_1: "4", open1: "The simulation was useful." },
+    },
+  ];
 }
 
 function demoProgress(code) {
-  return [{
-    id: "demo-clil-progress",
-    cohortCode: code,
-    studentName: "Test Student",
-    roomName: "CLIL Studio Pro",
-    event: "clil-progress-saved",
-    result: { progressPercent: 62, filledFields: 28, currentStep: 12 },
-    updatedAt: new Date().toISOString(),
-  }];
+  return [
+    {
+      id: "demo-clil-progress",
+      cohortCode: code,
+      studentUid: "demo-student-1",
+      studentName: "Test Student A",
+      roomName: "CLIL Studio Pro",
+      event: "clil-progress-saved",
+      result: { progressPercent: 62, filledFields: 28, currentStep: 12 },
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "demo-bloom-progress",
+      cohortCode: code,
+      studentUid: "demo-student-3",
+      studentName: "Test Student C",
+      roomName: "Scaffolding and Bloom Lab",
+      event: "scaffolding-bloom-progress-saved",
+      result: { progressPercent: 45, filledFields: 11, activeSection: "zdp" },
+      updatedAt: new Date().toISOString(),
+    },
+  ];
 }
 
 function download(filename, content, mime) {
