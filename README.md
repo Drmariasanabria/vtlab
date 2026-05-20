@@ -94,6 +94,8 @@ CLIL planner progress is stored in:
 
 Both student and teacher views include a test mode. Test mode does not save to Firebase.
 
+The student portal includes generic pre-room and post-room perception questionnaires in Spanish and English. They include informed consent, real name, Likert items, open questions about future teaching practice, PDF export, and an email submission action addressed to `maria.sanabria@unican.es`.
+
 Firestore must be enabled in the Firebase console, Google Authentication must be active, and security rules must allow the intended classroom write/read workflow.
 
 ## Generic Research Questionnaires
