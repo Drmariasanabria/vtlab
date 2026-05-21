@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOMLOE Activity Compass · Lengua Extranjera Cantabria</title>
+<script src="../../assets/js/vtlab-ui.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --ink: #1a1a2e;
+  --paper: #f5f0e8;
+  --accent: #c0392b;
+  --accent2: #2471a3;
+  --accent3: #1e8449;
+  --accent4: #7d3c98;
+  --accent5: #b9770e;
+  --accent6: #ca6f1e;
+  --gold: #d4a017;
+  --muted: #7f8c8d;
+  --card: rgba(255,255,255,0.88);
+  --border: #e0ddd5;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family:'DM Sans',sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  overflow-x:hidden;
+  line-height:1.65;
+}
+
+/* ═══ HERO ═══ */
+.hero {
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:2rem;
+  position:relative;
+  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%);
+  overflow:hidden;
+}
+.hero::before {
+  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+  background:radial-gradient(circle at 30% 70%,rgba(192,57,43,.12) 0%,transparent 50%),
+              radial-gradient(circle at 70% 30%,rgba(36,113,163,.12) 0%,transparent 50%);
+  animation:nebula 25s ease-in-out infinite alternate;
+}
+@keyframes nebula { 0%{transform:translate(0,0) rotate(0)} 100%{transform:translate(-4%,2%) rotate(8deg)} }
+
+.hero-title {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2.8rem,8vw,7rem);
+  font-weight:900;color:#fff;line-height:1;
+  position:relative;z-index:1;
+}
+.hero-title span {
+  display:block;
+  background:linear-gradient(135deg,#e74c3c,#f39c12,#3498db);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:shimmer 5s ease-in-out infinite alternate;
+}
+@keyframes shimmer { 0%{filter:hue-rotate(0)} 100%{filter:hue-rotate(25deg)} }
+
+.hero-sub {
+  font-size:clamp(.9rem,2.2vw,1.4rem);
+  color:rgba(255,255,255,.55);margin-top:1.5rem;
+  font-weight:300;letter-spacing:.3em;text-transform:uppercase;z-index:1;position:relative;
+}
+.hero-decreto {
+  font-family:'JetBrains Mono',monospace;font-size:.82rem;
+  color:rgba(255,255,255,.3);margin-top:1.8rem;z-index:1;position:relative;
+  max-width:700px;line-height:1.7;
+}
+.scroll-hint {
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,.35);font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;
+  animation:bounce 2s ease-in-out infinite;z-index:1;
+}
+@keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-10px)} }
+
+/* ═══ TOOLBAR ═══ */
+.toolbar {
+  position:sticky;top:0;z-index:200;
+  background:rgba(26,26,46,.96);backdrop-filter:blur(24px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:.6rem 1.5rem;
+  display:flex;flex-direction:column;gap:.5rem;
+}
+.toolbar-row {
+  display:flex;justify-content:center;align-items:center;gap:.4rem;flex-wrap:wrap;
+}
+.toolbar-label {
+  font-family:'JetBrains Mono',monospace;font-size:.65rem;
+  color:rgba(255,255,255,.3);letter-spacing:.15em;text-transform:uppercase;
+  margin-right:.5rem;
+}
+
+.toolbar button, .toolbar .filter-btn {
+  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;
+  padding:.45rem 1.1rem;
+  border:1.5px solid rgba(255,255,255,.18);border-radius:100px;
+  background:transparent;color:rgba(255,255,255,.55);cursor:pointer;
+  transition:all .25s ease;letter-spacing:.03em;white-space:nowrap;
+}
+.toolbar button:hover, .toolbar .filter-btn:hover {
+  border-color:rgba(255,255,255,.45);color:#fff;
+}
+.toolbar button.active, .toolbar .filter-btn.active {
+  background:#fff;color:var(--ink);border-color:#fff;
+}
+
+.search-box {
+  display:flex;align-items:center;gap:.5rem;
+  background:rgba(255,255,255,.08);border-radius:100px;
+  padding:.3rem .8rem;flex:1;max-width:400px;
+}
+.search-box input {
+  background:transparent;border:none;outline:none;
+  color:#fff;font-family:'DM Sans',sans-serif;font-size:.85rem;
+  width:100%;
+}
+.search-box input::placeholder { color:rgba(255,255,255,.3); }
+.search-icon { color:rgba(255,255,255,.35);font-size:.9rem; }
+.search-clear {
+  background:none;border:none;color:rgba(255,255,255,.4);
+  cursor:pointer;font-size:1rem;padding:0 .2rem;display:none;
+}
+
+/* ═══ CONTENT ═══ */
+.content { max-width:1100px;margin:0 auto;padding:4rem 2rem; }
+
+/* ═══ SECTIONS ═══ */
+.section {
+  margin-bottom:5rem;
+  opacity:0;transform:translateY(50px);
+  transition:all .7s cubic-bezier(.16,1,.3,1);
+}
+.section.visible { opacity:1;transform:translateY(0); }
+
+.section-label {
+  font-family:'JetBrains Mono',monospace;font-size:.7rem;
+  letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;
+}
+.section-title {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.8rem,4.5vw,3.2rem);font-weight:900;line-height:1.1;margin-bottom:1.8rem;
+}
+.hl { position:relative;display:inline; }
+.hl::after {
+  content:'';position:absolute;bottom:0;left:0;width:100%;height:28%;
+  background:var(--accent);opacity:.18;transform:skewX(-4deg);z-index:-1;
+}
+
+/* ═══ COMP CARDS ═══ */
+.comp-grid { display:grid;gap:1.2rem; }
+.comp-card {
+  background:var(--card);border-radius:14px;padding:1.8rem;
+  border-left:5px solid var(--accent);
+  box-shadow:0 3px 25px rgba(0,0,0,.04);
+  transition:all .35s ease;cursor:default;
+}
+.comp-card:hover { transform:translateX(6px);box-shadow:0 6px 35px rgba(0,0,0,.08); }
+.comp-card[data-ce="2"] { border-color:var(--accent2); }
+.comp-card[data-ce="3"] { border-color:var(--accent3); }
+.comp-card[data-ce="4"] { border-color:var(--accent4); }
+.comp-card[data-ce="5"] { border-color:var(--accent5); }
+.comp-card[data-ce="6"] { border-color:var(--accent6); }
+
+.comp-num {
+  font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:900;
+  opacity:.1;line-height:1;margin-bottom:.3rem;
+}
+.comp-card[data-ce="1"] .comp-num { color:var(--accent); }
+.comp-card[data-ce="2"] .comp-num { color:var(--accent2); }
+.comp-card[data-ce="3"] .comp-num { color:var(--accent3); }
+.comp-card[data-ce="4"] .comp-num { color:var(--accent4); }
+.comp-card[data-ce="5"] .comp-num { color:var(--accent5); }
+.comp-card[data-ce="6"] .comp-num { color:var(--accent6); }
+
+.comp-name {
+  font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:.4rem;
+}
+.comp-desc { font-size:.92rem;color:#444;line-height:1.7; }
+.comp-detail { font-size:.88rem;color:#555;line-height:1.7;margin-top:.8rem;display:none; }
+.comp-detail.open { display:block; }
+.comp-toggle {
+  font-family:'JetBrains Mono',monospace;font-size:.7rem;
+  color:var(--accent2);cursor:pointer;margin-top:.6rem;
+  border:none;background:none;text-decoration:underline;
+  letter-spacing:.05em;
+}
+.comp-descriptors {
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;
+  color:var(--muted);margin-top:.6rem;letter-spacing:.04em;
+}
+
+/* ═══ CRITERIA ═══ */
+.criteria-section { margin-bottom:2rem; }
+.criteria-section h3 {
+  font-family:'Playfair Display',serif;font-size:1.15rem;
+  margin-bottom:.8rem;padding-bottom:.4rem;border-bottom:2px solid var(--border);
+}
+.criterion {
+  padding:.9rem 1.3rem;margin-bottom:.6rem;
+  background:var(--card);border-radius:10px;font-size:.9rem;line-height:1.7;
+  box-shadow:0 2px 12px rgba(0,0,0,.025);transition:all .3s ease;
+}
+.criterion:hover { background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.06); }
+.criterion-code {
+  font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.78rem;
+  color:var(--accent);display:inline-block;margin-right:.4rem;min-width:2.2rem;
+}
+
+/* ═══ SABERES ═══ */
+.saber-block { margin-bottom:2.2rem; }
+.saber-block-title {
+  font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;
+  margin-bottom:.8rem;display:flex;align-items:center;gap:.7rem;
+}
+.saber-letter {
+  display:inline-flex;width:44px;height:44px;border-radius:10px;
+  align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;
+  color:#fff;flex-shrink:0;
+}
+.saber-letter.a { background:var(--accent); }
+.saber-letter.b { background:var(--accent2); }
+.saber-letter.c { background:var(--accent4); }
+
+.saber-item {
+  padding:.75rem 1.1rem .75rem 2rem;margin-bottom:.4rem;
+  background:var(--card);border-radius:9px;font-size:.88rem;line-height:1.7;
+  position:relative;transition:all .3s ease;
+}
+.saber-item::before {
+  content:'→';position:absolute;left:.75rem;color:var(--muted);font-weight:700;
+}
+.saber-item:hover { transform:translateX(3px);background:#fff; }
+
+/* ═══ BIG WORDS ═══ */
+.big-words { display:flex;flex-wrap:wrap;gap:.4rem .8rem;padding:1.5rem 0; }
+.big-word {
+  font-family:'Playfair Display',serif;font-weight:700;line-height:1.1;
+  opacity:0;transform:translateY(15px) rotate(-1deg);
+  transition:all .5s cubic-bezier(.16,1,.3,1);cursor:default;
+}
+.big-word.visible { opacity:1;transform:translateY(0) rotate(0); }
+.big-word:hover { color:var(--accent);transform:scale(1.08) rotate(.5deg); }
+.big-word.xl { font-size:clamp(1.8rem,4.5vw,3.2rem); }
+.big-word.lg { font-size:clamp(1.4rem,3.2vw,2.3rem); }
+.big-word.md { font-size:clamp(1.1rem,2.3vw,1.6rem); }
+.big-word.sm { font-size:clamp(.95rem,1.8vw,1.3rem);color:var(--muted); }
+
+/* ═══ MARCO LEGAL ═══ */
+.marco {
+  background:linear-gradient(135deg,#1a1a2e,#16213e);
+  color:#fff;border-radius:18px;padding:2.5rem;margin:4rem 0;
+}
+.marco .section-label { color:rgba(255,255,255,.35); }
+.marco .section-title { color:#fff; }
+.marco-grid {
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:1rem;margin-top:1.2rem;
+}
+.marco-card {
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:1.3rem;font-size:.88rem;line-height:1.6;
+  color:rgba(255,255,255,.65);transition:all .3s ease;
+}
+.marco-card:hover { background:rgba(255,255,255,.1);transform:translateY(-2px); }
+.marco-card strong {
+  color:#fff;display:block;margin-bottom:.4rem;
+  font-family:'Playfair Display',serif;font-size:1.05rem;
+}
+
+/* ═══ DIFF MARKERS ═══ */
+.diff-34 {
+  background:linear-gradient(90deg,rgba(36,113,163,.08),transparent);
+  border-left:3px solid var(--accent2);padding-left:.8rem;
+  border-radius:0 9px 9px 0;
+}
+.diff-12 {
+  background:linear-gradient(90deg,rgba(192,57,43,.06),transparent);
+  border-left:3px solid var(--accent);padding-left:.8rem;
+  border-radius:0 9px 9px 0;
+}
+
+/* ═══ COURSE / SECTION VISIBILITY ═══ */
+.course-block { display:none; }
+.course-block.active { display:block; }
+
+/* ═══ TABS ═══ */
+.tabs { display:flex;gap:.4rem;margin-bottom:1.5rem;flex-wrap:wrap; }
+.tab {
+  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;
+  padding:.45rem 1.1rem;border:1.5px solid var(--border);border-radius:100px;
+  background:transparent;cursor:pointer;transition:all .3s ease;color:var(--muted);
+}
+.tab:hover { border-color:var(--ink);color:var(--ink); }
+.tab.active { background:var(--ink);color:#fff;border-color:var(--ink); }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* ═══ HIGHLIGHT MATCH ═══ */
+.search-match { background:rgba(241,196,15,.35);border-radius:2px;padding:0 1px; }
+
+/* ═══ NO RESULTS ═══ */
+.no-results {
+  text-align:center;padding:3rem 1rem;color:var(--muted);
+  font-family:'Playfair Display',serif;font-size:1.3rem;font-style:italic;
+  display:none;
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  text-align:center;padding:3rem 2rem;font-size:.75rem;color:var(--muted);
+  font-family:'JetBrains Mono',monospace;line-height:1.8;
+}
+
+/* ═══ STAGGER ═══ */
+.stagger > * {
+  opacity:0;transform:translateY(18px);transition:all .45s cubic-bezier(.16,1,.3,1);
+}
+.stagger.visible > *:nth-child(1){transition-delay:.04s}
+.stagger.visible > *:nth-child(2){transition-delay:.08s}
+.stagger.visible > *:nth-child(3){transition-delay:.12s}
+.stagger.visible > *:nth-child(4){transition-delay:.16s}
+.stagger.visible > *:nth-child(5){transition-delay:.2s}
+.stagger.visible > *:nth-child(6){transition-delay:.24s}
+.stagger.visible > *:nth-child(7){transition-delay:.28s}
+.stagger.visible > *:nth-child(8){transition-delay:.32s}
+.stagger.visible > *:nth-child(9){transition-delay:.36s}
+.stagger.visible > *:nth-child(10){transition-delay:.4s}
+.stagger.visible > *:nth-child(11){transition-delay:.44s}
+.stagger.visible > *:nth-child(12){transition-delay:.48s}
+.stagger.visible > *:nth-child(13){transition-delay:.52s}
+.stagger.visible > *:nth-child(14){transition-delay:.56s}
+.stagger.visible > * { opacity:1;transform:translateY(0); }
+
+/* ═══ COUNT BADGE ═══ */
+.count-badge {
+  display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.15);color:rgba(255,255,255,.5);
+  font-family:'JetBrains Mono',monospace;font-size:.65rem;
+  min-width:1.4rem;height:1.4rem;border-radius:100px;
+  margin-left:.3rem;padding:0 .4rem;
+}
+.toolbar button.active .count-badge { background:rgba(0,0,0,.1);color:var(--ink); }
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:768px){
+  .content{padding:2rem 1rem}
+  .toolbar{padding:.5rem .75rem}
+  .toolbar button,.toolbar .filter-btn{padding:.4rem .8rem;font-size:.75rem}
+  .comp-card{padding:1.3rem}
+  .marco{padding:1.8rem 1.2rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ HERO ═══ -->
+<div class="hero">
+  <div class="hero-title">Lengua<br><span>Extranjera</span></div>
+  <div class="hero-sub">Educación Secundaria Obligatoria · Cantabria</div>
+  <div class="hero-decreto">
+    Decreto 73/2022, de 27 de julio, por el que se establece el currículo de la ESO y del Bachillerato en la Comunidad Autónoma de Cantabria.<br>
+    BOC n.º 151, viernes 5 de agosto de 2022 · CVE-2022-6079 · LOMLOE
+  </div>
+  <div class="scroll-hint">↓ scroll ↓</div>
+</div>
+
+<!-- ═══════════════════════════════════════ TOOLBAR ═══ -->
+<div class="toolbar" id="toolbar">
+  <div class="toolbar-row">
+    <span class="toolbar-label">Curso</span>
+    <button class="active" data-course="all">Todos<span class="count-badge" id="countAll"></span></button>
+    <button data-course="12">1.º – 2.º<span class="count-badge" id="count12"></span></button>
+    <button data-course="34">3.º – 4.º<span class="count-badge" id="count34"></span></button>
+  </div>
+  <div class="toolbar-row">
+    <span class="toolbar-label">Sección</span>
+    <button class="filter-btn active" data-filter="all">Todo</button>
+    <button class="filter-btn" data-filter="competencias">Competencias específicas</button>
+    <button class="filter-btn" data-filter="criterios">Criterios de evaluación</button>
+    <button class="filter-btn" data-filter="saberes">Saberes básicos</button>
+    <button class="filter-btn" data-filter="funciones">Funciones comunicativas</button>
+  </div>
+  <div class="toolbar-row">
+    <span class="toolbar-label">Buscar</span>
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Buscar en el currículo… (ej: mediación, léxico, PEL)">
+      <button class="search-clear" id="searchClear">✕</button>
+    </div>
+  </div>
+</div>
+
+<div class="no-results" id="noResults">No se encontraron resultados para esta búsqueda.</div>
+
+<!-- ═══════════════════════════════════════ CONTENT ═══ -->
+<div class="content" id="mainContent">
+
+<!-- ━━━ MARCO LEGAL ━━━ -->
+<div class="section filterable" data-section="marco" data-searchable>
+  <div class="marco">
+    <div class="section-label">Marco normativo</div>
+    <div class="section-title">Fundamentación legal</div>
+    <div class="marco-grid">
+      <div class="marco-card" data-searchable>
+        <strong>LOMLOE (LO 3/2020)</strong>
+        Modifica la LO 2/2006 (LOE). Art. 6.1: define currículo como el conjunto de objetivos, competencias, contenidos, métodos pedagógicos y criterios de evaluación. Art. 6.5: las CC.AA. establecen el currículo de las distintas enseñanzas.
+      </div>
+      <div class="marco-card" data-searchable>
+        <strong>RD 217/2022, de 29 de marzo</strong>
+        Establece la ordenación y las enseñanzas mínimas de la Educación Secundaria Obligatoria a nivel estatal. Fija competencias específicas, criterios de evaluación y saberes básicos.
+      </div>
+      <div class="marco-card" data-searchable>
+        <strong>Decreto 73/2022, de 27 de julio</strong>
+        Currículo de la ESO y del Bachillerato en la Comunidad Autónoma de Cantabria. Publicado en BOC n.º 151, 5 de agosto de 2022 (CVE-2022-6079). Concreta los elementos curriculares a partir del RD 217/2022.
+      </div>
+      <div class="marco-card" data-searchable>
+        <strong>MCER (Consejo de Europa)</strong>
+        Marco Común Europeo de Referencia para las Lenguas. Base para la nivelación de los criterios de evaluación y los descriptores de las actividades de lengua. Enfoque orientado a la acción.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━ COMPETENCIAS ESPECÍFICAS ━━━ -->
+<div class="section filterable" data-section="competencias">
+  <div class="section-label">Competencias específicas de la materia</div>
+  <div class="section-title">Las <span class="hl">6 competencias</span> específicas</div>
+  <p style="font-size:.9rem;color:#666;margin-bottom:1.5rem;">Texto íntegro del Decreto 73/2022 (pp. 20657–20661). Pulsa «Leer descripción completa» para expandir el desarrollo de cada competencia.</p>
+  <div class="comp-grid stagger" id="compGrid">
+
+    <div class="comp-card" data-ce="1" data-searchable>
+      <div class="comp-num">01</div>
+      <div class="comp-name">Comprensión</div>
+      <div class="comp-desc">Comprender e interpretar el sentido general y los detalles más relevantes de textos expresados de forma clara y en la lengua estándar, buscando fuentes fiables y haciendo uso de estrategias como la inferencia de significados, para responder a necesidades comunicativas concretas.</div>
+      <div class="comp-detail">La comprensión supone recibir y procesar información. En la etapa de la Educación Secundaria Obligatoria, la comprensión es una destreza comunicativa que se debe desarrollar a partir de textos orales, escritos y multimodales sobre temas cotidianos, de relevancia personal o de interés público próximos a la experiencia del alumnado, expresados de forma clara y usando la lengua estándar. La comprensión, en este nivel, implica entender e interpretar los textos y extraer su sentido general y los detalles más relevantes para satisfacer sus necesidades comunicativas. Para ello, se deben activar las estrategias más adecuadas al desarrollo psicoevolutivo y a las necesidades del alumnado, con el fin de reconstruir la representación del significado y del sentido del texto y para formular hipótesis acerca de la intención comunicativa que subyace a dichos textos. Entre las estrategias de comprensión más útiles para el alumnado se encuentran la inferencia y la extrapolación de significados a nuevos contextos comunicativos, así como la transferencia e integración de los conocimientos, las destrezas y las actitudes de las lenguas que conforman su repertorio lingüístico. Incluye la interpretación de diferentes formas de representación (escritura, imagen, gráficos, tablas, diagramas, sonido, gestos, etc.), así como de la información contextual (elementos extralingüísticos) y cotextual (elementos lingüísticos), que permiten comprobar la hipótesis inicial acerca de la intención y sentido del texto y plantear hipótesis alternativas si fuera necesario. Además de dichas estrategias, la búsqueda de fuentes fiables, en soportes tanto analógicos como digitales, constituye un método de gran utilidad para la comprensión, pues permite contrastar, validar y sustentar la información, así como obtener conclusiones relevantes a partir de los textos. Los procesos de comprensión e interpretación requieren contextos de comunicación dialógicos que estimulen la colaboración, la identificación crítica de prejuicios y estereotipos de cualquier tipo, así como el interés genuino por las diferencias y semejanzas etnoculturales.</div>
+      <button class="comp-toggle" onclick="this.previousElementSibling.classList.toggle('open');this.textContent=this.previousElementSibling.classList.contains('open')?'Ocultar descripción':'Leer descripción completa'">Leer descripción completa</button>
+      <div class="comp-descriptors">Perfil de salida: CCL2, CCL3, CP1, CP2, STEM1, CD1, CPSAA5, CCEC2</div>
+    </div>
+
+    <div class="comp-card" data-ce="2" data-searchable>
+      <div class="comp-num">02</div>
+      <div class="comp-name">Producción</div>
+      <div class="comp-desc">Producir textos originales, de extensión media, sencillos y con una organización clara, usando estrategias tales como la planificación, la compensación o la autorreparación, para expresar de forma creativa, adecuada y coherente mensajes relevantes y responder a propósitos comunicativos concretos.</div>
+      <div class="comp-detail">La producción engloba tanto la expresión oral como la escrita y la multimodal. En esta etapa, la producción debe dar lugar a la redacción y la exposición de textos sobre temas cotidianos, de relevancia personal o de interés público próximo a la experiencia del alumnado, con creatividad, coherencia y adecuación. La producción, en diversos formatos y soportes, puede incluir en esta etapa la exposición de una pequeña descripción o anécdota, una presentación formal de mayor extensión, una sencilla argumentación o la redacción de textos que expresen hechos, conceptos, pensamientos, opiniones y sentimientos, mediante herramientas digitales y analógicas, así como la búsqueda avanzada de información en internet como fuente de documentación. En su formato multimodal, la producción incluye el uso conjunto de diferentes recursos para producir significado (escritura, imagen, gráficos, tablas, diagramas, sonido, gestos, etc.) y la selección y aplicación del más adecuado en función de la tarea y sus necesidades. Las actividades vinculadas con la producción de textos cumplen funciones importantes en los ámbitos personal, social, educativo y profesional, y existe un valor cívico concreto asociado a ellas. La destreza en las producciones más formales en diferentes soportes no se adquiere de forma natural, sino que es producto del aprendizaje. En esta etapa las producciones se basan en el aprendizaje de aspectos formales básicos de cariz más lingüístico, sociolingüístico y pragmático; de las expectativas y convenciones comunes asociadas al género empleado; de herramientas de producción; y del soporte utilizado. Las estrategias que permiten la mejora de la producción, tanto formal como informal, comprenden la planificación, la autoevaluación y coevaluación, la retroalimentación, así como la monitorización, la validación y la compensación.</div>
+      <button class="comp-toggle" onclick="this.previousElementSibling.classList.toggle('open');this.textContent=this.previousElementSibling.classList.contains('open')?'Ocultar descripción':'Leer descripción completa'">Leer descripción completa</button>
+      <div class="comp-descriptors">Perfil de salida: CCL1, CP1, CP2, STEM1, CD2, CPSAA5, CE1, CCEC3</div>
+    </div>
+
+    <div class="comp-card" data-ce="3" data-searchable>
+      <div class="comp-num">03</div>
+      <div class="comp-name">Interacción</div>
+      <div class="comp-desc">Interactuar con otras personas con creciente autonomía, usando estrategias de cooperación y empleando recursos analógicos y digitales, para responder a propósitos comunicativos concretos en intercambios respetuosos con las normas de cortesía.</div>
+      <div class="comp-detail">La interacción implica a dos o más participantes en la construcción de un discurso. Se considera el origen del lenguaje y comprende funciones interpersonales, cooperativas y transaccionales. En la interacción entran en juego la cortesía lingüística y la etiqueta digital, los elementos verbales y no verbales de la comunicación, así como la adecuación a los distintos registros y géneros dialógicos, tanto orales como escritos y multimodales, en entornos síncronos o asíncronos. En esta etapa de la educación se espera que las interacciones aborden temas cotidianos, de relevancia personal o de interés público próximos a la experiencia del alumnado. Esta competencia específica es fundamental en el aprendizaje, pues incluye estrategias de cooperación, de inicio, mantenimiento o conclusión de conversaciones, de cesión y toma de turnos de palabra, así como estrategias para preguntar con el objetivo de solicitar clarificación o repetición. Además, el aprendizaje y aplicación de las normas y principios que rigen la cortesía lingüística y la etiqueta digital preparan al alumnado para el ejercicio de una ciudadanía democrática, responsable, respetuosa, inclusiva, segura y activa.</div>
+      <button class="comp-toggle" onclick="this.previousElementSibling.classList.toggle('open');this.textContent=this.previousElementSibling.classList.contains('open')?'Ocultar descripción':'Leer descripción completa'">Leer descripción completa</button>
+      <div class="comp-descriptors">Perfil de salida: CCL5, CP1, CP2, STEM1, CPSAA3, CC3</div>
+    </div>
+
+    <div class="comp-card" data-ce="4" data-searchable>
+      <div class="comp-num">04</div>
+      <div class="comp-name">Mediación</div>
+      <div class="comp-desc">Mediar en situaciones cotidianas entre distintas lenguas, usando estrategias y conocimientos sencillos orientados a explicar conceptos o simplificar mensajes, para transmitir información de manera eficaz, clara y responsable.</div>
+      <div class="comp-detail">La mediación es la actividad del lenguaje consistente en explicar y facilitar la comprensión de mensajes o textos a partir de estrategias como la reformulación, de manera oral o escrita. En la mediación, el alumnado debe actuar como agente social encargado de crear puentes y ayudar a construir o expresar mensajes de forma dialógica, no solo entre lenguas distintas, sino también entre distintas modalidades o registros dentro de una misma lengua. En la Educación Secundaria Obligatoria, la mediación se centra, principalmente, en el rol de la lengua como herramienta para resolver los retos que surgen del contexto comunicativo, creando espacios y condiciones propicias para la comunicación y el aprendizaje; en la cooperación y el fomento de la participación de los demás para construir y entender nuevos significados; y en la transmisión de nueva información de manera apropiada, responsable y constructiva, pudiendo emplear tanto medios convencionales como aplicaciones o plataformas virtuales para traducir, analizar, interpretar y compartir contenidos que, en esta etapa, versarán sobre asuntos cotidianos, de relevancia personal o de interés público próximos a la experiencia del alumnado. La mediación facilita el desarrollo del pensamiento estratégico del alumnado, en tanto que supone que este elija las destrezas y estrategias más adecuadas de su repertorio para lograr una comunicación eficaz, pero también para favorecer la participación propia y de otras personas en entornos cooperativos de intercambios de información. Asimismo, implica reconocer los recursos disponibles y promover la motivación de los demás y la empatía, comprendiendo y respetando las diferentes motivaciones, ideas y circunstancias personales de los interlocutores e interlocutoras y armonizándolas con las propias. Por ello, se espera que el alumnado muestre empatía, respeto, espíritu crítico y sentido ético, como elementos clave para una adecuada mediación en este nivel.</div>
+      <button class="comp-toggle" onclick="this.previousElementSibling.classList.toggle('open');this.textContent=this.previousElementSibling.classList.contains('open')?'Ocultar descripción':'Leer descripción completa'">Leer descripción completa</button>
+      <div class="comp-descriptors">Perfil de salida: CCL5, CP1, CP2, CP3, STEM1, CPSAA1, CPSAA3, CCEC1</div>
+    </div>
+
+    <div class="comp-card" data-ce="5" data-searchable>
+      <div class="comp-num">05</div>
+      <div class="comp-name">Plurilingüismo</div>
+      <div class="comp-desc">Ampliar y usar los repertorios lingüísticos personales entre distintas lenguas, reflexionando de forma crítica sobre su funcionamiento y tomando conciencia de las estrategias y conocimientos propios, para mejorar la respuesta a necesidades comunicativas concretas.</div>
+      <div class="comp-detail">El uso del repertorio lingüístico y la reflexión sobre su funcionamiento están vinculados con el enfoque plurilingüe de la adquisición de lenguas. El enfoque plurilingüe parte del hecho de que las experiencias del alumnado con las lenguas que conoce sirven de base para la ampliación y mejora del aprendizaje de lenguas nuevas y lo ayudan a desarrollar y enriquecer su repertorio lingüístico plurilingüe y su curiosidad y sensibilización cultural. En la Educación Secundaria Obligatoria el alumnado profundiza en esa reflexión sobre las lenguas y establece relaciones entre las distintas lenguas de sus repertorios individuales, analizando sus semejanzas y diferencias con el fin de ampliar los conocimientos y estrategias en las lenguas que los conforman. De este modo, se favorece el aprendizaje de nuevas lenguas y se mejora la competencia comunicativa. La reflexión sobre las lenguas y su funcionamiento implica que el alumnado entienda sus relaciones y, además, contribuye a que identifique las fortalezas y carencias propias en el terreno lingüístico y comunicativo, tomando conciencia de los conocimientos y estrategias propios y haciéndolos explícitos. En este sentido, supone también la puesta en marcha de destrezas para hacer frente a la incertidumbre y para desarrollar el sentido de la iniciativa y la perseverancia en la consecución de los objetivos o la toma de decisiones. Además, el conocimiento de distintas lenguas permite valorar la diversidad lingüística de la sociedad como un aspecto enriquecedor y positivo. La selección, configuración y aplicación de los dispositivos y herramientas tanto analógicas como digitales para la construcción e integración de nuevos contenidos sobre el repertorio lingüístico propio puede facilitar la adquisición y mejora del aprendizaje de otras lenguas.</div>
+      <button class="comp-toggle" onclick="this.previousElementSibling.classList.toggle('open');this.textContent=this.previousElementSibling.classList.contains('open')?'Ocultar descripción':'Leer descripción completa'">Leer descripción completa</button>
+      <div class="comp-descriptors">Perfil de salida: CP2, STEM1, CPSAA1, CPSAA5, CD2</div>
+    </div>
+
+    <div class="comp-card" data-ce="6" data-searchable>
+      <div class="comp-num">06</div>
+      <div class="comp-name">Interculturalidad</div>
+      <div class="comp-desc">Valorar críticamente y adecuarse a la diversidad lingüística, cultural y artística a partir de la lengua extranjera, identificando y compartiendo las semejanzas y las diferencias entre lenguas y culturas, para actuar de forma empática y respetuosa en situaciones interculturales.</div>
+      <div class="comp-detail">La interculturalidad supone experimentar la diversidad lingüística, cultural y artística de la sociedad analizándola y beneficiándose de ella. En la Educación Secundaria Obligatoria, la interculturalidad, que favorece el entendimiento con los demás, merece una atención específica para que forme parte de la experiencia del alumnado y para evitar que su percepción sobre esa diversidad esté distorsionada a causa de los estereotipos y constituya el origen de ciertos tipos de discriminación. La valoración crítica y la adecuación a la diversidad deben permitir al alumnado actuar de forma empática y respetuosa en situaciones interculturales. La conciencia de la diversidad proporciona al alumnado la posibilidad de relacionar distintas culturas. Además, favorece el desarrollo de una sensibilidad artística y cultural, y la capacidad de identificar y utilizar una gran variedad de estrategias que le permitan establecer relaciones con personas de otras culturas. Las situaciones interculturales que se pueden plantear en esta etapa durante la enseñanza de la lengua extranjera permiten al alumnado abrirse a nuevas experiencias, ideas, sociedades y culturas, mostrando interés hacia lo diferente; relativizar la propia perspectiva y el propio sistema de valores culturales; y distanciarse y evitar las actitudes sustentadas sobre cualquier tipo de discriminación o refuerzo de estereotipos. Todo ello orientado hacia el objetivo de desarrollar una cultura compartida y una ciudadanía comprometida con la sostenibilidad y los valores democráticos.</div>
+      <button class="comp-toggle" onclick="this.previousElementSibling.classList.toggle('open');this.textContent=this.previousElementSibling.classList.contains('open')?'Ocultar descripción':'Leer descripción completa'">Leer descripción completa</button>
+      <div class="comp-descriptors">Perfil de salida: CCL5, CP3, CPSAA1, CPSAA3, CC3, CCEC1</div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━ FUNCIONES COMUNICATIVAS ━━━ -->
+<div class="section filterable" data-section="funciones">
+  <div class="section-label">Saberes básicos · Bloque A</div>
+  <div class="section-title">Funciones <span class="hl">comunicativas</span></div>
+  <p style="font-size:.88rem;color:#666;margin-bottom:.5rem;"><strong>1.º–2.º ESO</strong> — funciones comunicativas <em>básicas</em>:</p>
+  <div class="big-words stagger" data-searchable data-course-vis="12">
+    <span class="big-word xl">saludar</span>
+    <span class="big-word lg">despedirse</span>
+    <span class="big-word xl">describir personas, objetos y lugares</span>
+    <span class="big-word md">presentar y presentarse</span>
+    <span class="big-word lg">situar eventos en el tiempo</span>
+    <span class="big-word sm">situar objetos, personas y lugares en el espacio</span>
+    <span class="big-word md">pedir e intercambiar información sobre cuestiones cotidianas</span>
+    <span class="big-word lg">dar y pedir instrucciones y órdenes</span>
+    <span class="big-word md">ofrecer, aceptar y rechazar ayuda, proposiciones o sugerencias</span>
+    <span class="big-word xl">expresar el gusto o el interés y emociones básicas</span>
+    <span class="big-word lg">narrar acontecimientos pasados</span>
+    <span class="big-word md">describir situaciones presentes</span>
+    <span class="big-word lg">enunciar sucesos futuros</span>
+    <span class="big-word xl">expresar la opinión</span>
+    <span class="big-word md">expresar la posibilidad</span>
+    <span class="big-word md">expresar la capacidad</span>
+    <span class="big-word lg">expresar la obligación y la prohibición</span>
+  </div>
+  <p style="font-size:.88rem;color:#666;margin-top:2rem;margin-bottom:.5rem;"><strong>3.º–4.º ESO</strong> — funciones comunicativas <em>de uso común</em> (se añaden a las anteriores):</p>
+  <div class="big-words stagger" data-searchable data-course-vis="34">
+    <span class="big-word lg diff-34" style="padding:.3rem .6rem">describir fenómenos y acontecimientos</span>
+    <span class="big-word md diff-34" style="padding:.3rem .6rem">dar y pedir consejos</span>
+    <span class="big-word lg diff-34" style="padding:.3rem .6rem">expresar las emociones</span>
+    <span class="big-word xl diff-34" style="padding:.3rem .6rem">expresar argumentaciones sencillas</span>
+    <span class="big-word lg diff-34" style="padding:.3rem .6rem">realizar hipótesis y suposiciones</span>
+    <span class="big-word xl diff-34" style="padding:.3rem .6rem">expresar la incertidumbre y la duda</span>
+    <span class="big-word lg diff-34" style="padding:.3rem .6rem">reformular y resumir</span>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- ━━━ 1.º – 2.º ESO ━━━ -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="course-block active" data-course-block="12">
+  <div class="section filterable" data-section="criterios">
+    <div class="section-label">Cursos 1.º y 2.º ESO · Criterios de evaluación</div>
+    <div class="section-title">Criterios de <span class="hl">evaluación</span></div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="c12-ce">Por CE</button>
+      <button class="tab" data-tab="c12-sab">Saberes básicos</button>
+    </div>
+
+    <div class="tab-panel active" id="c12-ce">
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 1 · Comprensión</h3>
+        <div class="criterion"><span class="criterion-code">1.1</span>Interpretar y analizar el sentido global y la información específica y explícita de textos orales, escritos y multimodales breves y sencillos sobre temas frecuentes y cotidianos de su entorno inmediato, de relevancia personal y próximos a la experiencia del alumnado, propios de los ámbitos de las relaciones interpersonales, del aprendizaje, de los medios de comunicación y de la ficción expresados de forma clara y en la lengua estándar a través de diversos soportes.</div>
+        <div class="criterion"><span class="criterion-code">1.2</span>Interpretar y valorar el contenido y los rasgos discursivos de textos sencillos propios de los ámbitos de las relaciones interpersonales, de los medios de comunicación social, así como de textos literarios y no literarios adecuados al nivel de madurez del alumnado.</div>
+        <div class="criterion"><span class="criterion-code">1.3</span>Seleccionar, organizar y aplicar de forma guiada las estrategias y conocimientos más adecuados en situaciones comunicativas cotidianas para comprender el sentido general, la información esencial y los detalles más relevantes de los textos; interpretar elementos no verbales; y buscar y seleccionar información.</div>
+      </div>
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 2 · Producción</h3>
+        <div class="criterion"><span class="criterion-code">2.1</span>Producir y expresar oralmente textos breves, sencillos, estructurados, comprensibles y adecuados a la situación comunicativa sobre asuntos cotidianos y frecuentes, de relevancia para el alumnado, con el fin de describir, narrar e informar sobre temas concretos, en diferentes soportes, utilizando de forma guiada recursos verbales y no verbales, así como estrategias de planificación y control de la producción.</div>
+        <div class="criterion"><span class="criterion-code">2.2</span>Producir, organizar y redactar textos breves y comprensibles con aceptable claridad, coherencia, cohesión y adecuación a la situación comunicativa propuesta, siguiendo pautas establecidas, a través de herramientas analógicas y digitales, sobre asuntos cotidianos y frecuentes de relevancia para el alumnado y próximos a su experiencia.</div>
+        <div class="criterion"><span class="criterion-code">2.3</span>Seleccionar, organizar y aplicar de forma guiada conocimientos y estrategias para planificar, producir y revisar textos comprensibles, coherentes y adecuados a las intenciones comunicativas, a las características contextuales y a la tipología textual, usando con ayuda los recursos físicos o digitales más adecuados en función de la tarea y las necesidades de cada momento, teniendo en cuenta la personas a quienes va dirigido el texto.</div>
+      </div>
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 3 · Interacción</h3>
+        <div class="criterion"><span class="criterion-code">3.1</span>Planificar y participar en situaciones interactivas breves y sencillas sobre temas cotidianos, de relevancia personal y próximos a la experiencia del alumnado, a través de diversos soportes, apoyándose en recursos tales como la repetición, el ritmo pausado o el lenguaje no verbal, y mostrando empatía y respeto por la cortesía lingüística y la etiqueta digital, así como por las diferentes necesidades, ideas, inquietudes, iniciativas y motivaciones de los interlocutores e interlocutoras.</div>
+        <div class="criterion"><span class="criterion-code">3.2</span>Seleccionar, organizar y utilizar, de forma guiada y en entornos próximos, estrategias adecuadas para cooperar, para iniciar, mantener y terminar la comunicación; tomar y ceder la palabra; y solicitar y formular aclaraciones y explicaciones.</div>
+      </div>
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 4 · Mediación</h3>
+        <div class="criterion"><span class="criterion-code">4.1</span>Inferir y explicar textos, conceptos y comunicaciones breves y sencillas en situaciones en las que atender a la diversidad, mostrando respeto y empatía por interlocutores e interlocutoras y por las lenguas empleadas, e interés por participar en la solución de problemas de intercomprensión y de entendimiento en el entorno próximo, apoyándose en diversos recursos y soportes.</div>
+        <div class="criterion"><span class="criterion-code">4.2</span>Aplicar, de forma guiada, estrategias que ayuden a crear puentes y faciliten la comprensión y producción de información y la comunicación, adecuadas a las intenciones comunicativas, usando recursos y apoyos físicos o digitales en función de las necesidades de cada momento.</div>
+      </div>
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 5 · Plurilingüismo</h3>
+        <div class="criterion"><span class="criterion-code">5.1</span>Comparar y contrastar las semejanzas y diferencias entre distintas lenguas reflexionando de manera progresivamente autónoma sobre su funcionamiento.</div>
+        <div class="criterion"><span class="criterion-code">5.2</span>Utilizar y diferenciar los conocimientos y estrategias de mejora de la capacidad de comunicar y de aprender la lengua extranjera con apoyo de otros y otras participantes y de soportes analógicos y digitales.</div>
+        <div class="criterion"><span class="criterion-code">5.3</span>Identificar y registrar, siguiendo modelos, los progresos y dificultades de aprendizaje de la lengua extranjera, seleccionando de forma guiada las estrategias más eficaces para superar esas dificultades y progresar en el aprendizaje, realizando actividades de autoevaluación y coevaluación, como las propuestas en el Portfolio Europeo de las Lenguas (PEL) o en un diario de aprendizaje, haciendo esos progresos y dificultades explícitos y compartiéndolos.</div>
+      </div>
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 6 · Interculturalidad</h3>
+        <div class="criterion"><span class="criterion-code">6.1</span>Actuar de forma empática y respetuosa en situaciones interculturales construyendo vínculos entre las diferentes lenguas y culturas y rechazando cualquier tipo de discriminación, prejuicio y estereotipo en contextos comunicativos cotidianos.</div>
+        <div class="criterion"><span class="criterion-code">6.2</span>Aceptar y adecuarse a la diversidad lingüística, cultural y artística propia de países donde se habla la lengua extranjera, reconociéndola como fuente de enriquecimiento personal y mostrando interés por compartir elementos culturales y lingüísticos que fomenten la sostenibilidad y la democracia.</div>
+        <div class="criterion"><span class="criterion-code">6.3</span>Aplicar, de forma guiada, estrategias para explicar y apreciar la diversidad lingüística, cultural y artística, atendiendo a valores ecosociales y democráticos y respetando los principios de justicia, equidad e igualdad.</div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="c12-sab">
+      <div class="saber-block" data-searchable>
+        <div class="saber-block-title"><span class="saber-letter a">A</span> Comunicación</div>
+        <div class="stagger">
+          <div class="saber-item">Autoconfianza. El error como instrumento de mejora y propuesta de reparación.</div>
+          <div class="saber-item">Estrategias básicas para la planificación, ejecución, control, evaluación y reparación de la comprensión, la producción y la coproducción de textos orales, escritos y multimodales.</div>
+          <div class="saber-item">Conocimientos, destrezas y actitudes que permitan llevar a cabo actividades de mediación en situaciones cotidianas sencillas.</div>
+          <div class="saber-item">Funciones comunicativas básicas adecuadas al ámbito y al contexto comunicativo: saludar, despedirse, presentar y presentarse; describir personas, objetos y lugares; situar eventos en el tiempo; situar objetos, personas y lugares en el espacio; pedir e intercambiar información sobre cuestiones cotidianas; dar y pedir instrucciones y órdenes; ofrecer, aceptar y rechazar ayuda, proposiciones o sugerencias; expresar el gusto o el interés y emociones básicas; narrar acontecimientos pasados, describir situaciones presentes y enunciar sucesos futuros; expresar la opinión, la posibilidad, la capacidad, la obligación y la prohibición.</div>
+          <div class="saber-item">Modelos contextuales y géneros discursivos básicos en la comprensión, producción y coproducción de textos orales, escritos y multimodales, breves y sencillos, literarios y no literarios: características y reconocimiento del contexto (participantes y situación), expectativas generadas por el contexto; organización y estructuración según el género y la función textual.</div>
+          <div class="saber-item">Unidades lingüísticas básicas y significados asociados a dichas unidades tales como la expresión de la entidad y sus propiedades, cantidad y cualidad, el espacio y las relaciones espaciales, el tiempo y las relaciones temporales, la afirmación, la negación, la interrogación y la exclamación, relaciones lógicas básicas.</div>
+          <div class="saber-item">Léxico de uso común y de interés para el alumnado relativo a identificación personal, relaciones interpersonales, lugares y entornos, ocio y tiempo libre, vida cotidiana, salud y actividad física, vivienda y hogar, clima y entorno natural, tecnologías de la información y la comunicación.</div>
+          <div class="saber-item">Patrones sonoros, acentuales, rítmicos y de entonación básicos, y significados e intenciones comunicativas generales asociadas a dichos patrones.</div>
+          <div class="saber-item">Convenciones ortográficas básicas y significados e intenciones comunicativas asociados a los formatos, patrones y elementos gráficos.</div>
+          <div class="saber-item">Convenciones y estrategias conversacionales básicas, en formato síncrono o asíncrono, para iniciar, mantener y terminar la comunicación, tomar y ceder la palabra, pedir y dar aclaraciones y explicaciones, reformular, comparar y contrastar, resumir, colaborar, debatir, etc.</div>
+          <div class="saber-item">Recursos para el aprendizaje y estrategias básicas de búsqueda de información: diccionarios, libros de consulta, bibliotecas, recursos digitales e informáticos, etc.</div>
+          <div class="saber-item">Identificación de la autoría de las fuentes consultadas y los contenidos utilizados. Respeto de la propiedad intelectual y derechos de autor sobre las fuentes consultadas y contenidos utilizados.</div>
+          <div class="saber-item">Herramientas analógicas y digitales básicas para la comprensión, producción y coproducción oral, escrita y multimodal; y plataformas virtuales de interacción, cooperación y colaboración educativa (aulas virtuales, videoconferencias, herramientas digitales colaborativas, etc.) para el aprendizaje, la comunicación y el desarrollo de proyectos con hablantes o estudiantes de la lengua extranjera.</div>
+        </div>
+      </div>
+      <div class="saber-block" data-searchable>
+        <div class="saber-block-title"><span class="saber-letter b">B</span> Plurilingüismo</div>
+        <div class="stagger">
+          <div class="saber-item">Estrategias y técnicas para responder eficazmente a una necesidad comunicativa básica y concreta de forma comprensible, a pesar de las limitaciones derivadas del nivel de competencia en la lengua extranjera y en las demás lenguas del repertorio lingüístico propio.</div>
+          <div class="saber-item">Estrategias básicas para identificar, organizar, retener, recuperar y utilizar creativamente unidades lingüísticas (léxico, morfosintaxis, patrones sonoros, etc.) a partir de la comparación de las lenguas y variedades que conforman el repertorio lingüístico personal.</div>
+          <div class="saber-item">Estrategias y herramientas básicas de autoevaluación y coevaluación, analógicas y digitales, individuales y cooperativas.</div>
+          <div class="saber-item">Expresiones y léxico de uso común para comprender enunciados sobre la comunicación, la lengua, el aprendizaje y las herramientas de comunicación y aprendizaje (metalenguaje).</div>
+          <div class="saber-item">Comparación básica entre lenguas a partir de elementos de la lengua extranjera y otras lenguas: origen y parentescos.</div>
+        </div>
+      </div>
+      <div class="saber-block" data-searchable>
+        <div class="saber-block-title"><span class="saber-letter c">C</span> Interculturalidad</div>
+        <div class="stagger">
+          <div class="saber-item">La lengua extranjera como medio de comunicación interpersonal e internacional, como fuente de información y como herramienta para el enriquecimiento personal.</div>
+          <div class="saber-item">Interés e iniciativa en la realización de intercambios comunicativos a través de diferentes medios con hablantes o estudiantes de la lengua extranjera.</div>
+          <div class="saber-item">Aspectos socioculturales y sociolingüísticos básicos relativos a la vida cotidiana, las condiciones de vida y las relaciones interpersonales; convenciones sociales básicas; lenguaje no verbal, cortesía lingüística y etiqueta digital; cultura, normas y actitudes costumbres y valores propios de países donde se habla la lengua extranjera.</div>
+          <div class="saber-item">Estrategias básicas para entender y apreciar la diversidad lingüística, cultural y artística, atendiendo a valores ecosociales y democráticos.</div>
+          <div class="saber-item">Estrategias básicas de detección y actuación ante usos discriminatorios del lenguaje verbal y no verbal.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- ━━━ 3.º – 4.º ESO ━━━ -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div class="course-block active" data-course-block="34">
+  <div class="section filterable" data-section="criterios">
+    <div class="section-label">Cursos 3.º y 4.º ESO · Criterios de evaluación</div>
+    <div class="section-title">Criterios de <span class="hl">evaluación</span></div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="c34-ce">Por CE</button>
+      <button class="tab" data-tab="c34-sab">Saberes básicos</button>
+    </div>
+
+    <div class="tab-panel active" id="c34-ce">
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 1 · Comprensión</h3>
+        <div class="criterion"><span class="criterion-code">1.1</span>Extraer y analizar el sentido global y las ideas principales, y seleccionar información pertinente de textos orales, escritos y multimodales sobre temas cotidianos, de relevancia personal o de interés público próximos a la experiencia del alumnado, expresados de forma clara y en la lengua estándar a través de diversos soportes.</div>
+        <div class="criterion"><span class="criterion-code">1.2</span>Interpretar y valorar el contenido y los rasgos discursivos de textos progresivamente más complejos propios de los ámbitos de las relaciones interpersonales, de los medios de comunicación social y del aprendizaje, así como de textos literarios adecuados al nivel de madurez del alumnado.</div>
+        <div class="criterion"><span class="criterion-code">1.3</span>Seleccionar, organizar y aplicar las estrategias y conocimientos más adecuados en cada situación comunicativa para comprender el sentido general, la información esencial y los detalles más relevantes de los textos; inferir y extrapolar significados e interpretar elementos no verbales; y buscar, seleccionar y gestionar información veraz.</div>
+      </div>
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 2 · Producción</h3>
+        <div class="criterion"><span class="criterion-code">2.1</span>Expresar oralmente textos sencillos, estructurados, comprensibles, coherentes y adecuados a la situación comunicativa sobre asuntos cotidianos, de relevancia personal o de interés público próximo a la experiencia del alumnado, con el fin de describir, narrar, argumentar e informar, en diferentes soportes, utilizando recursos verbales y no verbales, así como estrategias de planificación, control, compensación y cooperación.</div>
+        <div class="criterion"><span class="criterion-code">2.2</span>Redactar y difundir textos de extensión media con creciente claridad, coherencia, cohesión, corrección, creatividad y adecuación a la situación comunicativa propuesta, a la tipología textual y a las herramientas analógicas y digitales utilizadas sobre asuntos de uso habitual y cotidianos, de relevancia personal o de interés público próximos a la experiencia del alumnado, respetando la propiedad intelectual y evitando el plagio.</div>
+        <div class="criterion"><span class="criterion-code">2.3</span>Seleccionar, organizar y aplicar conocimientos y estrategias para planificar, producir, revisar y evaluar cooperar en la elaboración de textos coherentes, cohesionados y adecuados a las intenciones comunicativas, las características contextuales, los aspectos socioculturales y la tipología textual, usando los recursos físicos o digitales más adecuados en función de la tarea y de las necesidades del interlocutor o interlocutora potencial a quien se dirige el texto.</div>
+      </div>
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 3 · Interacción</h3>
+        <div class="criterion"><span class="criterion-code">3.1</span>Planificar, participar y colaborar activamente, a través de diversos soportes, en situaciones interactivas sobre temas cotidianos, de relevancia personal o de interés público cercanos a la experiencia del alumnado, mostrando iniciativa, empatía y respeto por la cortesía lingüística y la etiqueta digital, así como por las diferentes necesidades, ideas, inquietudes, iniciativas y motivaciones de los interlocutores e interlocutoras.</div>
+        <div class="criterion"><span class="criterion-code">3.2</span>Seleccionar, organizar y utilizar estrategias adecuadas cooperar, para iniciar, mantener y terminar la comunicación, tomar y ceder la palabra, solicitar y formular aclaraciones y explicaciones, reformular, comparar y contrastar, resumir, colaborar, debatir, resolver problemas y gestionar situaciones comprometidas.</div>
+      </div>
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 4 · Mediación</h3>
+        <div class="criterion"><span class="criterion-code">4.1</span>Inferir y explicar textos, conceptos y comunicaciones breves y sencillas en situaciones en las que atender a la diversidad, mostrando respeto y empatía por los interlocutores e interlocutoras y por las lenguas empleadas y participando en la solución de problemas de intercomprensión y de entendimiento en el entorno, apoyándose en diversos recursos y soportes.</div>
+        <div class="criterion"><span class="criterion-code">4.2</span>Aplicar estrategias que ayuden a crear puentes, faciliten la comunicación y sirvan para explicar y simplificar textos, conceptos y mensajes, y que sean adecuadas a las intenciones comunicativas, las características contextuales y la tipología textual, usando recursos y apoyos físicos o digitales en función de las necesidades de cada momento.</div>
+      </div>
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 5 · Plurilingüismo</h3>
+        <div class="criterion"><span class="criterion-code">5.1</span>Comparar, analizar y argumentar las semejanzas y diferencias entre distintas lenguas reflexionando de manera progresivamente autónoma sobre su funcionamiento.</div>
+        <div class="criterion"><span class="criterion-code">5.2</span>Utilizar de forma creativa estrategias y conocimientos de mejora de la capacidad de comunicar y de aprender la lengua extranjera con apoyo de otros y otras participantes y de soportes analógicos y digitales.</div>
+        <div class="criterion"><span class="criterion-code">5.3</span>Identificar, registrar y analizar con creciente autonomía los progresos y dificultades de aprendizaje de la lengua extranjera seleccionando las estrategias más eficaces para superar esas dificultades y consolidar el aprendizaje, realizando actividades de planificación del propio aprendizaje, autoevaluación y coevaluación, como las propuestas en el Portfolio Europeo de las Lenguas (PEL) o en un diario de aprendizaje, haciendo esos progresos y dificultades explícitos y compartiéndolos.</div>
+      </div>
+      <div class="criteria-section stagger" data-searchable>
+        <h3>CE 6 · Interculturalidad</h3>
+        <div class="criterion"><span class="criterion-code">6.1</span>Actuar de forma adecuada, empática y respetuosa en situaciones interculturales construyendo vínculos entre las diferentes lenguas y culturas, rechazando cualquier tipo de discriminación, prejuicio y estereotipo en contextos comunicativos cotidianos y proponiendo vías de solución a aquellos factores socioculturales que dificulten la comunicación.</div>
+        <div class="criterion"><span class="criterion-code">6.2</span>Valorar críticamente en relación con los derechos humanos y adecuarse a la diversidad lingüística, cultural y artística propia de países donde se habla la lengua extranjera, favoreciendo el desarrollo de una cultura compartida y una ciudadanía comprometida con la sostenibilidad y los valores democráticos.</div>
+        <div class="criterion"><span class="criterion-code">6.3</span>Aplicar estrategias para defender y apreciar la diversidad lingüística, cultural y artística atendiendo a valores ecosociales y democráticos y respetando los principios de justicia, equidad e igualdad.</div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="c34-sab">
+      <div class="saber-block" data-searchable>
+        <div class="saber-block-title"><span class="saber-letter a">A</span> Comunicación</div>
+        <div class="stagger">
+          <div class="saber-item">Autoconfianza e iniciativa. El error como parte integrante del proceso de aprendizaje.</div>
+          <div class="saber-item">Estrategias de uso común para la planificación, ejecución, control evaluación y reparación de la comprensión, la producción y la coproducción de textos orales, escritos y multimodales.</div>
+          <div class="saber-item">Conocimientos, destrezas y actitudes que permiten llevar a cabo actividades de mediación en situaciones cotidianas.</div>
+          <div class="saber-item">Funciones comunicativas de uso común adecuadas al ámbito y al contexto comunicativo: saludar y despedirse, presentar y presentarse; describir personas, objetos, lugares, fenómenos y acontecimientos; situar eventos en el tiempo; situar objetos, personas y lugares en el espacio; pedir e intercambiar información sobre cuestiones cotidianas; dar y pedir instrucciones, consejos y órdenes; ofrecer, aceptar y rechazar ayuda, proposiciones o sugerencias; expresar el gusto o el interés y las emociones; narrar acontecimientos pasados, describir situaciones presentes y enunciar sucesos futuros; expresar la opinión, la posibilidad, la capacidad, la obligación y la prohibición; expresar argumentaciones sencillas; realizar hipótesis y suposiciones; expresar la incertidumbre y la duda; reformular y resumir.</div>
+          <div class="saber-item">Modelos contextuales y géneros discursivos de uso común en la comprensión, producción y coproducción de textos orales, escritos y multimodales, breves y sencillos, literarios y no literarios: características y reconocimiento del contexto (participantes y situación), expectativas generadas por el contexto; organización y estructuración según el género y la función textual.</div>
+          <div class="saber-item">Unidades lingüísticas de uso común y significados asociados a dichas unidades tales como la expresión de la entidad y sus propiedades, cantidad y cualidad, el espacio y las relaciones espaciales, el tiempo y las relaciones temporales, la afirmación, la negación, la interrogación y la exclamación, relaciones lógicas habituales.</div>
+          <div class="saber-item">Léxico de uso común y de interés para el alumnado relativo a identificación personal, relaciones interpersonales, lugares y entornos, ocio y tiempo libre, salud y actividad física, vida cotidiana, vivienda y hogar, clima y entorno natural, tecnologías de la información y la comunicación, sistema escolar y formación.</div>
+          <div class="saber-item">Patrones sonoros, acentuales, rítmicos y de entonación de uso común, y significados e intenciones comunicativas generales asociadas a dichos patrones.</div>
+          <div class="saber-item">Convenciones ortográficas de uso común y significados e intenciones comunicativas asociados a los formatos, patrones y elementos gráficos.</div>
+          <div class="saber-item">Convenciones y estrategias conversacionales de uso común, en formato síncrono o asíncrono, para iniciar, mantener y terminar la comunicación, tomar y ceder la palabra, pedir y dar aclaraciones y explicaciones, reformular, comparar y contrastar, resumir, colaborar, debatir, etc.</div>
+          <div class="saber-item">Recursos para el aprendizaje y estrategias de uso común de búsqueda y selección de información: diccionarios, libros de consulta, bibliotecas, recursos digitales e informáticos, etc.</div>
+          <div class="saber-item">Identificación de la autoría de las fuentes consultadas y los contenidos utilizados. Respeto de la propiedad intelectual y derechos de autor sobre las fuentes consultadas y contenidos utilizados.</div>
+          <div class="saber-item">Herramientas analógicas y digitales de uso común para la comprensión, producción y coproducción oral, escrita y multimodal; y plataformas virtuales de interacción, cooperación y colaboración educativa (aulas virtuales, videoconferencias, herramientas digitales colaborativas, etc.) para el aprendizaje, la comunicación y el desarrollo de proyectos con hablantes o estudiantes de la lengua extranjera.</div>
+        </div>
+      </div>
+      <div class="saber-block" data-searchable>
+        <div class="saber-block-title"><span class="saber-letter b">B</span> Plurilingüismo</div>
+        <div class="stagger">
+          <div class="saber-item">Estrategias y técnicas para responder eficazmente y con niveles crecientes de fluidez, adecuación y corrección a una necesidad comunicativa concreta a pesar de las limitaciones derivadas del nivel de competencia en la lengua extranjera y en las demás lenguas del repertorio lingüístico propio.</div>
+          <div class="saber-item">Estrategias de uso común para identificar, organizar, retener, recuperar y utilizar creativamente unidades lingüísticas (léxico, morfosintaxis, patrones sonoros, etc.) a partir de la comparación de las lenguas y variedades que conforman el repertorio lingüístico personal.</div>
+          <div class="saber-item">Estrategias y herramientas de uso común para la autoevaluación, la coevaluación y la autorreparación, analógicas y digitales, individuales y cooperativas.</div>
+          <div class="saber-item">Expresiones y léxico específico de uso común para intercambiar ideas sobre la comunicación, la lengua, el aprendizaje y las herramientas de comunicación y aprendizaje (metalenguaje).</div>
+          <div class="saber-item">Comparación entre lenguas a partir de elementos de la lengua extranjera y otras lenguas: origen y parentescos.</div>
+        </div>
+      </div>
+      <div class="saber-block" data-searchable>
+        <div class="saber-block-title"><span class="saber-letter c">C</span> Interculturalidad</div>
+        <div class="stagger">
+          <div class="saber-item">La lengua extranjera como medio de comunicación interpersonal e internacional, como fuente de información y como herramienta de participación social y de enriquecimiento personal.</div>
+          <div class="saber-item">Interés e iniciativa en la realización de intercambios comunicativos a través de diferentes medios con hablantes o estudiantes de la lengua extranjera.</div>
+          <div class="saber-item">Aspectos socioculturales y sociolingüísticos de uso común relativos a la vida cotidiana, las condiciones de vida y las relaciones interpersonales; convenciones sociales de uso común; lenguaje no verbal, cortesía lingüística y etiqueta digital; cultura, normas, actitudes, costumbres y valores propios de países donde se habla la lengua extranjera.</div>
+          <div class="saber-item">Estrategias de uso común para entender y apreciar la diversidad lingüística, cultural y artística, atendiendo a valores ecosociales y democráticos.</div>
+          <div class="saber-item">Estrategias de uso común de detección y actuación ante usos discriminatorios del lenguaje verbal y no verbal.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<div class="footer">
+  Fuente: Decreto 73/2022, de 27 de julio, por el que se establece el currículo de la ESO y del Bachillerato en la Comunidad Autónoma de Cantabria (BOC n.º 151, 5-VIII-2022, CVE-2022-6079).<br>
+  Texto íntegro de la sección «Lengua Extranjera» (pp. 20654–20671). Resumen visual para consulta docente — no sustituye al texto normativo publicado.
+</div>
+
+<script>
+// ═══ COURSE SELECTOR ═══
+const courseButtons = document.querySelectorAll('.toolbar button[data-course]');
+const courseBlocks = document.querySelectorAll('.course-block');
+
+courseButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    courseButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const c = btn.dataset.course;
+    courseBlocks.forEach(b => {
+      b.classList.toggle('active', c === 'all' || b.dataset.courseBlock === c);
+    });
+    reAnimate();
+  });
+});
+
+// ═══ SECTION FILTER ═══
+const filterButtons = document.querySelectorAll('.filter-btn');
+const filterables = document.querySelectorAll('.filterable');
+
+filterButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const f = btn.dataset.filter;
+    filterables.forEach(el => {
+      if (f === 'all') { el.style.display = ''; return; }
+      const sec = el.dataset.section;
+      // "saberes" filter shows both saberes tab panels + funciones
+      if (f === 'saberes') {
+        el.style.display = (sec === 'criterios' || sec === 'funciones') ? '' : 'none';
+      } else if (f === 'funciones') {
+        el.style.display = sec === 'funciones' ? '' : 'none';
+      } else {
+        el.style.display = sec === f ? '' : 'none';
+      }
+    });
+    // If saberes filter, auto-switch tabs to saberes
+    if (f === 'saberes') {
+      document.querySelectorAll('.tab[data-tab$="-sab"]').forEach(t => t.click());
+    } else if (f === 'criterios') {
+      document.querySelectorAll('.tab[data-tab$="-ce"]').forEach(t => t.click());
+    }
+    reAnimate();
+  });
+});
+
+// ═══ INNER TABS ═══
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const parent = tab.closest('.section');
+    parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    parent.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+    reAnimate();
+  });
+});
+
+// ═══ SEARCH ═══
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+const noResults = document.getElementById('noResults');
+
+searchInput.addEventListener('input', debounce(doSearch, 200));
+searchClear.addEventListener('click', () => {
+  searchInput.value = '';
+  clearSearch();
+  searchClear.style.display = 'none';
+});
+
+function doSearch() {
+  const q = searchInput.value.trim().toLowerCase();
+  searchClear.style.display = q ? 'block' : 'none';
+  if (!q) { clearSearch(); return; }
+
+  // remove old highlights
+  document.querySelectorAll('.search-match').forEach(el => {
+    el.replaceWith(el.textContent);
+  });
+
+  let found = 0;
+  const searchTargets = document.querySelectorAll('.criterion, .saber-item, .comp-desc, .comp-detail, .comp-name, .marco-card, .big-word');
+
+  searchTargets.forEach(el => {
+    const text = el.textContent.toLowerCase();
+    if (text.includes(q)) {
+      el.style.display = '';
+      el.style.opacity = '1';
+      found++;
+      // highlight
+      const regex = new RegExp(`(${escapeRegex(q)})`, 'gi');
+      if (!el.querySelector('.criterion-code') && !el.classList.contains('big-word')) {
+        el.innerHTML = el.innerHTML.replace(regex, '<span class="search-match">$1</span>');
+      }
+    } else {
+      // Don't hide structural elements, just dim them
+      el.style.opacity = '0.2';
+    }
+  });
+
+  noResults.style.display = found === 0 ? 'block' : 'none';
+}
+
+function clearSearch() {
+  document.querySelectorAll('.search-match').forEach(el => {
+    el.replaceWith(el.textContent);
+  });
+  document.querySelectorAll('.criterion, .saber-item, .comp-desc, .comp-detail, .comp-name, .marco-card, .big-word').forEach(el => {
+    el.style.display = '';
+    el.style.opacity = '';
+  });
+  noResults.style.display = 'none';
+}
+
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function debounce(fn, ms) { let t; return function(...a) { clearTimeout(t); t = setTimeout(() => fn.apply(this, a), ms); }; }
+
+// ═══ SCROLL ANIMATIONS ═══
+function reAnimate() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.section, .stagger').forEach(el => obs.observe(el));
+}
+
+// Big words
+const bwObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.big-word').forEach((w, i) => {
+        setTimeout(() => w.classList.add('visible'), i * 70);
+      });
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.big-words').forEach(bw => bwObs.observe(bw));
+
+reAnimate();
+
+// ═══ COUNT BADGES ═══
+function updateCounts() {
+  const all = document.querySelectorAll('.criterion').length;
+  document.getElementById('countAll').textContent = all;
+  // Count by course block
+  let c12 = 0, c34 = 0;
+  document.querySelectorAll('[data-course-block="12"] .criterion').forEach(() => c12++);
+  document.querySelectorAll('[data-course-block="34"] .criterion').forEach(() => c34++);
+  document.getElementById('count12').textContent = c12;
+  document.getElementById('count34').textContent = c34;
+}
+updateCounts();
+</script>
+
+</body>
+</html>

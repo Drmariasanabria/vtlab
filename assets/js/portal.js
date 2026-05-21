@@ -25,6 +25,15 @@ const rooms = [
   },
 ];
 
+const hiddenResources = {
+  lomloe: {
+    title: "LOMLOE Activity Compass",
+    subtitle: "Lengua Extranjera · Cantabria",
+    description: "Resumen navegable del currículo LOMLOE para convertir criterios, saberes y competencias en actividades.",
+    href: "./rooms/lomloe-activity-compass/",
+  },
+};
+
 const questionnaireItems = {
   pre: [
     {
@@ -153,8 +162,10 @@ function renderStudentApp() {
       </div>
       ${renderStudentQuestionnaires(session)}
       ${renderCategorisedRooms()}
+      ${renderHiddenResourceAccess()}
     `;
     wireQuestionnaires(app);
+    wireHiddenResourceAccess(app);
     app.querySelector("[data-student-reset]").addEventListener("click", async () => {
       window.VTLabFirebase.clearLocalSession();
       renderStudentApp();
@@ -213,6 +224,66 @@ function renderStudentApp() {
   app.querySelector("[data-teacher-test]").addEventListener("click", () => {
     window.VTLabFirebase.startTestMode("teacher");
     window.location.href = "./teacher/";
+  });
+}
+
+function renderHiddenResourceAccess() {
+  const unlocked = localStorage.getItem("vtlab.hidden.lomloe") === "1";
+  if (unlocked) return renderHiddenResourceCard(hiddenResources.lomloe);
+  return `
+    <section class="hidden-resource access-panel">
+      <div>
+        <p class="kicker">Restricted resource</p>
+        <h2>Access by code</h2>
+        <p>Some curriculum reference tools are hidden unless your teacher gives you the access code.</p>
+      </div>
+      <form id="hiddenResourceForm">
+        <label>Resource code <input name="resourceCode" autocomplete="off" placeholder="••••••"></label>
+        <button class="button button--ghost" type="submit">Unlock</button>
+      </form>
+      <p class="access-error" id="hiddenResourceError" role="alert"></p>
+    </section>
+  `;
+}
+
+function renderHiddenResourceCard(resource) {
+  return `
+    <section class="resource-category" aria-label="Restricted resources">
+      <div class="resource-category__head">
+        <div>
+          <p class="kicker">Restricted Resource</p>
+          <h2>${escapeHtml(resource.title)}</h2>
+          <p>${escapeHtml(resource.subtitle)}</p>
+        </div>
+      </div>
+      <div class="rooms-grid rooms-grid--compact">
+        <article class="room-card">
+          <div class="room-card__shine" aria-hidden="true"></div>
+          <div>
+            <p class="room-card__label">LOMLOE · Cantabria</p>
+            <h3>${escapeHtml(resource.title)}</h3>
+            <p>${escapeHtml(resource.description)}</p>
+          </div>
+          <a class="button button--primary" href="${resource.href}">Open resource</a>
+        </article>
+      </div>
+    </section>
+  `;
+}
+
+function wireHiddenResourceAccess(app) {
+  const form = app.querySelector("#hiddenResourceForm");
+  if (!form) return;
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const code = String(new FormData(form).get("resourceCode") || "").trim().toLowerCase();
+    if (code !== "lomloe") {
+      app.querySelector("#hiddenResourceError").textContent = "Code not accepted.";
+      form.reset();
+      return;
+    }
+    localStorage.setItem("vtlab.hidden.lomloe", "1");
+    renderStudentApp();
   });
 }
 

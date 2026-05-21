@@ -18,6 +18,8 @@ The platform also includes **CLIL Studio Pro**, an AICLE/CLIL unit planner. It s
 
 It also includes **Scaffolding and Bloom Lab**, a practical education lab for Bloom taxonomy, ZDP, scaffolding, and visual organisers. It saves progress locally and updates Firebase cohort progress when students are working inside a real cohort.
 
+The hidden code-protected resource **LOMLOE Activity Compass · Lengua Extranjera Cantabria** can be unlocked from the student portal with the classroom code. It summarises the Lengua Extranjera ESO curriculum for Cantabria and supports activity planning.
+
 ## Teaching and research flow
 
 Each escape room is designed to support:
@@ -65,6 +67,8 @@ Room-specific files live in:
 `/rooms/clil-planner/`
 
 `/rooms/scaffolding-bloom-lab/`
+
+`/rooms/lomloe-activity-compass/`
 
 Firebase integration may be added later for cohort tracking, cross-device persistence, and structured research datasets.
 

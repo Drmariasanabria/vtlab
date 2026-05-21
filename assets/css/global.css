@@ -492,6 +492,33 @@ h3 {
   font-weight: 800;
 }
 
+.hidden-resource {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+  margin-top: 24px;
+  opacity: 0.86;
+}
+
+.hidden-resource h2 {
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+}
+
+.hidden-resource form {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.hidden-resource label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
 .access-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -802,8 +829,14 @@ h3 {
   }
 
   .questionnaire-grid,
-  .questionnaire-fields {
+  .questionnaire-fields,
+  .hidden-resource {
     grid-template-columns: 1fr;
+  }
+
+  .hidden-resource form {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .teacher-grid {
