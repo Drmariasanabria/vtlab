@@ -12,6 +12,12 @@ const rooms = [
     href: "./rooms/bridge-command/",
   },
   {
+    title: "Modal Watch",
+    category: "ESP",
+    description: "Naval English · modal verbs · live watch events · solo and multiplayer practice",
+    href: "./rooms/modal-watch/",
+  },
+  {
     title: "CLIL Studio Pro",
     category: "Education",
     description: "Plan and preserve a CLIL/AICLE unit · 4Cs · Coyle checklist · exports",
