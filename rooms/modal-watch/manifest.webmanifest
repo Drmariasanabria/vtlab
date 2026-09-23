@@ -1,0 +1,16 @@
+{
+  "name": "MODAL WATCH — Inglés naval",
+  "short_name": "MODAL WATCH",
+  "description": "Simulador de guardia para practicar los verbos modales del inglés en ingeniería marina.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#030812",
+  "theme_color": "#030812",
+  "orientation": "any",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MODAL WATCH // Inglés Naval</title>
+<meta name="description" content="Entrena los verbos modales del inglés marítimo en un simulador de guardia de ingeniería naval, con eventos en directo y modo multijugador por código de sala.">
+<meta name="theme-color" content="#030812">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%93%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="module" src="../../assets/js/firebase.js"></script>
+<script src="../../assets/js/vtlab-ui.js"></script>
+</head>
+<body>
+
+<div id="boot-splash" class="boot-splash">
+  <div class="boot-ring"></div>
+  <div class="boot-logo">⚓ <span>MODAL WATCH</span></div>
+  <div class="boot-track"><div class="boot-fill"></div></div>
+  <div class="boot-label">Iniciando sistemas de guardia…</div>
+</div>
+
+<canvas id="fx-canvas" aria-hidden="true"></canvas>
+<div class="grid-overlay" aria-hidden="true"></div>
+
+<div id="event-banner" class="event-banner hidden" role="alert" aria-live="assertive"></div>
+<div id="badge-toast" class="badge-toast hidden" role="status" aria-live="polite"></div>
+<div id="reaction-layer" class="reaction-layer" aria-hidden="true"></div>
+
+<header class="topbar">
+  <button id="btn-home-logo" class="brand" type="button">
+    <span class="brand-icon">⚓</span>
+    <span class="brand-text">MODAL <b>WATCH</b></span>
+  </button>
+  <div class="topbar-actions">
+    <span id="sync-badge" class="sync-badge">— </span>
+    <button id="btn-howto" class="btn-ghost" type="button" aria-label="Cómo se juega">❓ <span class="btn-label">Cómo se juega</span></button>
+    <button id="btn-profile" class="btn-ghost" type="button" aria-label="Perfil">👤 <span class="btn-label">Perfil</span></button>
+    <button id="btn-glossary" class="btn-ghost" type="button" aria-label="Glosario">📖 <span class="btn-label">Glosario</span></button>
+    <button id="btn-voice" class="btn-icon" type="button" title="Voz de puente">🎙️</button>
+    <button id="btn-sound" class="btn-icon" type="button" title="Sonido">🔊</button>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- HOME -->
+  <section id="screen-home" class="screen active">
+    <div class="hero" id="hero">
+      <div class="hero-text">
+        <p class="eyebrow">Simulador de guardia · Ingeniería Marina</p>
+        <h1 class="hero-title">DOMINA LOS <span class="glow">VERBOS MODALES</span><br>DEL INGLÉS NÁUTICO</h1>
+        <p class="hero-sub">must · have to · should · may · might · can't have · needn't have — en escenarios reales de sala de máquinas, puente y normativa SOLAS / MARPOL / STCW.</p>
+      </div>
+      <svg id="hero-illustration" class="hero-illustration" viewBox="0 0 600 420" aria-hidden="true">
+        <defs>
+          <radialGradient id="glowA" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#00e5ff" stop-opacity=".9"/>
+            <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="hullGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#132a45"/>
+            <stop offset="100%" stop-color="#050b18"/>
+          </linearGradient>
+        </defs>
+        <g class="hero-layer hero-layer-rings" data-depth="14">
+          <circle cx="440" cy="140" r="150" fill="none" stroke="rgba(0,229,255,.18)" stroke-width="1.5"/>
+          <circle cx="440" cy="140" r="105" fill="none" stroke="rgba(0,229,255,.14)" stroke-width="1.5"/>
+          <circle cx="440" cy="140" r="60" fill="url(#glowA)"/>
+        </g>
+        <g class="hero-layer hero-layer-gauges" data-depth="26">
+          <g transform="translate(120,80)">
+            <circle r="30" fill="none" stroke="#00e5ff" stroke-width="2" opacity=".8"/>
+            <line x1="0" y1="0" x2="16" y2="-18" stroke="#ff9f1c" stroke-width="3" stroke-linecap="round" class="gauge-needle"/>
+          </g>
+          <g transform="translate(500,290)">
+            <circle r="22" fill="none" stroke="#33ffb0" stroke-width="2" opacity=".8"/>
+            <line x1="0" y1="0" x2="-12" y2="-14" stroke="#33ffb0" stroke-width="3" stroke-linecap="round" class="gauge-needle gauge-needle-2"/>
+          </g>
+        </g>
+        <g class="hero-layer hero-layer-hull" data-depth="6">
+          <path d="M40 320 Q300 260 560 320 L560 420 L40 420 Z" fill="url(#hullGrad)" stroke="rgba(0,229,255,.35)" stroke-width="2"/>
+          <circle cx="150" cy="330" r="14" fill="#050b18" stroke="#00e5ff" stroke-width="2" class="porthole"/>
+          <circle cx="230" cy="322" r="14" fill="#050b18" stroke="#00e5ff" stroke-width="2" class="porthole" style="animation-delay:.6s"/>
+          <circle cx="310" cy="318" r="14" fill="#050b18" stroke="#00e5ff" stroke-width="2" class="porthole" style="animation-delay:1.2s"/>
+          <circle cx="390" cy="320" r="14" fill="#050b18" stroke="#00e5ff" stroke-width="2" class="porthole" style="animation-delay:1.8s"/>
+          <circle cx="470" cy="330" r="14" fill="#050b18" stroke="#00e5ff" stroke-width="2" class="porthole" style="animation-delay:2.4s"/>
+        </g>
+        <g class="hero-layer hero-layer-waves" data-depth="10">
+          <path d="M0 390 Q75 375 150 390 T300 390 T450 390 T600 390 V420 H0 Z" fill="rgba(0,229,255,.08)"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="home-grid">
+      <div class="home-card">
+        <h2>🚢 Crear sala</h2>
+        <p>Sé el oficial al mando. Genera un código y espera a tu tripulación.</p>
+        <button class="btn-primary" data-nav="create">Crear sala multijugador</button>
+      </div>
+      <div class="home-card">
+        <h2>🔑 Unirse con código</h2>
+        <p>Introduce el código de 5 caracteres que te ha dado tu oficial.</p>
+        <button class="btn-primary" data-nav="join">Unirme a una sala</button>
+      </div>
+      <div class="home-card">
+        <h2>🎓 Práctica en solitario</h2>
+        <p>Entrena a tu ritmo, mismas 18 preguntas, eventos y cronómetro de 15&nbsp;min.</p>
+        <button class="btn-primary" data-nav="solo">Empezar guardia en solitario</button>
+      </div>
+    </div>
+
+    <div class="home-grid home-grid-secondary">
+      <div class="home-card accent">
+        <h2>📅 Reto diario</h2>
+        <p id="daily-desc">Las mismas 18 preguntas para todo el mundo hoy. Compara tu mejor marca.</p>
+        <button class="btn-primary" data-nav="daily">Jugar el reto de hoy</button>
+      </div>
+      <div class="home-card accent">
+        <h2>👤 Tu perfil</h2>
+        <p id="home-profile-summary">Sin partidas registradas todavía.</p>
+        <button class="btn-primary" data-nav="profile">Ver perfil e insignias</button>
+      </div>
+    </div>
+
+    <div class="home-footer">
+      <div class="stat-chip">⏱️ 15 min de guardia</div>
+      <div class="stat-chip">❓ 41 preguntas en el banco</div>
+      <div class="stat-chip">📖 30 términos del gremio</div>
+      <div class="stat-chip">⚡ 8 eventos en directo</div>
+      <div class="stat-chip">🏅 8 insignias por desbloquear</div>
+    </div>
+  </section>
+
+  <!-- CREATE -->
+  <section id="screen-create" class="screen">
+    <div class="panel narrow">
+      <button class="btn-back" data-nav="home" type="button">← Volver</button>
+      <h2 id="create-heading">Crear sala</h2>
+      <label class="field">
+        <span>Tu nombre / rango</span>
+        <input id="create-name" type="text" maxlength="16" placeholder="Ej. Cadete Ruiz" autocomplete="off">
+      </label>
+      <div class="field">
+        <span>Elige tu insignia</span>
+        <div id="create-avatars" class="avatar-grid"></div>
+      </div>
+      <label class="field-inline" id="create-teams-field">
+        <input type="checkbox" id="create-teams-toggle">
+        <span>Activar modo por equipos (Tripulación A vs Tripulación B)</span>
+      </label>
+      <button id="btn-do-create" class="btn-primary btn-lg" type="button">Generar código de sala</button>
+    </div>
+  </section>
+
+  <!-- JOIN -->
+  <section id="screen-join" class="screen">
+    <div class="panel narrow">
+      <button class="btn-back" data-nav="home" type="button">← Volver</button>
+      <h2>Unirse a una sala</h2>
+      <label class="field">
+        <span>Código de sala</span>
+        <input id="join-code" type="text" maxlength="5" placeholder="AB3XZ" autocomplete="off" style="text-transform:uppercase;letter-spacing:.3em;font-family:'Orbitron',sans-serif;">
+      </label>
+      <label class="field">
+        <span>Tu nombre / rango</span>
+        <input id="join-name" type="text" maxlength="16" placeholder="Ej. Marinero Costa" autocomplete="off">
+      </label>
+      <div class="field">
+        <span>Elige tu insignia</span>
+        <div id="join-avatars" class="avatar-grid"></div>
+      </div>
+      <div class="field">
+        <span>Equipo (solo si el anfitrión activó el modo por equipos)</span>
+        <div class="team-pick">
+          <button type="button" class="team-btn team-a selected" data-team="A">Tripulación A</button>
+          <button type="button" class="team-btn team-b" data-team="B">Tripulación B</button>
+        </div>
+      </div>
+      <p id="join-error" class="field-error hidden"></p>
+      <button id="btn-do-join" class="btn-primary btn-lg" type="button">Entrar a la sala</button>
+    </div>
+  </section>
+
+  <!-- LOBBY -->
+  <section id="screen-lobby" class="screen">
+    <div class="panel">
+      <p class="eyebrow">Sala de espera</p>
+      <div class="room-code-display">
+        <span id="lobby-code">-----</span>
+        <button id="btn-copy-code" class="btn-ghost" type="button">Copiar código</button>
+        <button id="btn-copy-link" class="btn-ghost" type="button">Copiar enlace directo</button>
+      </div>
+      <p class="lobby-hint" id="lobby-hint"></p>
+      <h3>Tripulación embarcada</h3>
+      <ul id="lobby-players" class="player-list"></ul>
+      <div class="lobby-actions">
+        <button id="btn-start-game" class="btn-primary btn-lg hidden" type="button">Iniciar guardia ▶</button>
+        <p id="lobby-wait" class="lobby-hint">Esperando a que el oficial al mando inicie la partida…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="screen-game" class="screen">
+    <div class="hud">
+      <div class="hud-left">
+        <div class="hud-label">Cronómetro de guardia</div>
+        <div class="timer-track"><div id="timer-fill" class="timer-fill"></div></div>
+        <div id="timer-text" class="timer-text">15:00</div>
+      </div>
+      <div class="hud-mid">
+        <div class="hud-label">Pregunta</div>
+        <div id="q-counter" class="q-counter">1 / 18</div>
+        <div id="q-progress-dots" class="q-progress-dots" aria-hidden="true"></div>
+      </div>
+      <div class="hud-right">
+        <div class="hud-label">Puntuación</div>
+        <div id="score-value" class="score-value">0</div>
+        <div id="streak-value" class="streak-value"></div>
+      </div>
+    </div>
+
+    <div id="team-scoreboard" class="team-scoreboard hidden">
+      <div class="team-chip team-a"><span>🅰️ Tripulación A</span><b id="team-a-score">0</b></div>
+      <div class="team-chip team-b"><span>🅱️ Tripulación B</span><b id="team-b-score">0</b></div>
+    </div>
+
+    <div class="game-body">
+      <div class="question-wrap">
+        <div class="question-meta">
+          <span id="q-category" class="badge-category"></span>
+          <span id="q-difficulty" class="badge-difficulty"></span>
+          <span id="q-points" class="badge-points"></span>
+          <button id="btn-read-question" class="btn-icon" type="button" title="Leer pregunta en voz alta">🔈</button>
+        </div>
+        <div class="answer-track"><div id="answer-fill" class="answer-fill"></div></div>
+        <p id="q-prompt" class="question-prompt"></p>
+        <div id="q-options" class="options-grid"></div>
+        <p id="q-feedback" class="question-feedback" role="status" aria-live="polite"></p>
+      </div>
+
+      <aside class="leaderboard-panel" id="leaderboard-panel">
+        <h3>🏆 Tabla en vivo</h3>
+        <ol id="leaderboard-list" class="leaderboard-list"></ol>
+        <div id="reaction-bar" class="reaction-bar">
+          <button type="button" data-emoji="👍">👍</button>
+          <button type="button" data-emoji="🔥">🔥</button>
+          <button type="button" data-emoji="😅">😅</button>
+          <button type="button" data-emoji="⚓">⚓</button>
+          <button type="button" data-emoji="🎉">🎉</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="screen-results" class="screen">
+    <div class="panel">
+      <p class="eyebrow">Fin de la guardia</p>
+      <h2 id="results-title">Informe de servicio</h2>
+
+      <div id="podium" class="podium"></div>
+      <div id="team-results" class="team-scoreboard hidden">
+        <div class="team-chip team-a"><span>🅰️ Tripulación A</span><b id="team-a-final">0</b></div>
+        <div class="team-chip team-b"><span>🅱️ Tripulación B</span><b id="team-b-final">0</b></div>
+      </div>
+
+      <div class="results-grid">
+        <div class="results-card">
+          <h3>Tu rango final</h3>
+          <p id="results-rank" class="results-rank">—</p>
+          <p id="results-score" class="results-score">0 pts</p>
+        </div>
+        <div class="results-card">
+          <h3>Precisión</h3>
+          <p id="results-accuracy" class="results-big">0%</p>
+        </div>
+        <div class="results-card">
+          <h3>Insignias de esta guardia</h3>
+          <div id="results-badges" class="badge-row"></div>
+        </div>
+      </div>
+
+      <div class="results-actions results-actions-share">
+        <button id="btn-download-card" class="btn-ghost" type="button">📸 Descargar tarjeta</button>
+        <button id="btn-share-card" class="btn-ghost" type="button">📤 Compartir resultado</button>
+      </div>
+
+      <h3>Revisión de preguntas falladas</h3>
+      <div id="results-review" class="review-list"></div>
+
+      <div class="results-actions">
+        <button id="btn-play-again" class="btn-primary btn-lg" type="button">Jugar otra guardia</button>
+        <button id="btn-back-home" class="btn-ghost" type="button">Volver al inicio</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROFILE -->
+  <section id="screen-profile" class="screen">
+    <div class="panel">
+      <button class="btn-back" data-nav="home" type="button">← Volver</button>
+      <p class="eyebrow">Hoja de servicio</p>
+      <h2>Tu perfil</h2>
+
+      <div class="results-grid">
+        <div class="results-card">
+          <h3>XP acumulada</h3>
+          <p id="profile-xp" class="results-big">0</p>
+        </div>
+        <div class="results-card">
+          <h3>Guardias completadas</h3>
+          <p id="profile-games" class="results-big">0</p>
+        </div>
+        <div class="results-card">
+          <h3>Mejor puntuación</h3>
+          <p id="profile-best" class="results-big">0</p>
+        </div>
+      </div>
+      <div class="results-grid">
+        <div class="results-card">
+          <h3>Precisión global</h3>
+          <p id="profile-accuracy" class="results-big">0%</p>
+        </div>
+        <div class="results-card">
+          <h3>Categoría a reforzar</h3>
+          <p id="profile-weak" class="results-rank">—</p>
+        </div>
+        <div class="results-card">
+          <h3>Racha del reto diario</h3>
+          <p id="profile-daily-streak" class="results-big">0 días</p>
+        </div>
+      </div>
+
+      <h3>Galería de insignias</h3>
+      <div id="profile-badges" class="badge-gallery"></div>
+
+      <div class="results-actions">
+        <button id="btn-reset-profile" class="btn-ghost" type="button">Reiniciar hoja de servicio</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- GLOSSARY MODAL -->
+<div id="glossary-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>📖 Glosario del gremio</h2>
+      <button id="btn-close-glossary" class="btn-icon" type="button">✕</button>
+    </div>
+    <p class="modal-sub">Haz clic en cualquier término para ver su traducción oficial.</p>
+    <div id="glossary-grid" class="glossary-grid"></div>
+  </div>
+</div>
+
+<!-- TERM POPOVER -->
+<div id="term-popover" class="term-popover hidden"></div>
+
+<!-- TUTORIAL MODAL -->
+<div id="tutorial-modal" class="modal-overlay hidden">
+  <div class="modal-card tutorial-card">
+    <div class="modal-head">
+      <h2>Cómo se juega</h2>
+      <button id="btn-close-tutorial" class="btn-icon" type="button">✕</button>
+    </div>
+    <div id="tutorial-steps" class="tutorial-steps"></div>
+    <div class="tutorial-dots" id="tutorial-dots"></div>
+    <div class="tutorial-actions">
+      <button id="btn-tutorial-skip" class="btn-ghost" type="button">Saltar</button>
+      <button id="btn-tutorial-next" class="btn-primary" type="button">Siguiente</button>
+    </div>
+  </div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script src="data.js"></script>
+<script src="sync.js"></script>
+<script src="profile.js"></script>
+<script src="audio.js"></script>
+<script src="share.js"></script>
+<script src="app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => { /* offline install unavailable */ });
+    });
+  }
+</script>
+</body>
+</html>
