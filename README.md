@@ -14,6 +14,8 @@ The initial version includes **Phonetics Time Vault**, a time-travel-inspired ph
 
 It also includes **Bridge Command**, a maritime English escape room / tutor focused on bridge communication, mission stations, oral interaction, and professional English.
 
+It also includes **Modal Watch**, a naval English watch simulator for practising modal verbs through timed questions, live maritime events, solo play, and optional multiplayer rooms. Player profiles and progress are preserved locally; cohort-linked completions are also recorded when the resource is opened from a signed-in VT Lab student session.
+
 The platform also includes **CLIL Studio Pro**, an AICLE/CLIL unit planner. It saves work locally in the browser and, when a student is in a real cohort, updates their saved progress in Firebase so they can continue without losing the unit they are creating.
 
 It also includes **Scaffolding and Bloom Lab**, a practical education lab for Bloom taxonomy, ZDP, scaffolding, and visual organisers. It saves progress locally and updates Firebase cohort progress when students are working inside a real cohort.
@@ -63,6 +65,8 @@ Room-specific files live in:
 `/rooms/phonetics-time-vault/`
 
 `/rooms/bridge-command/`
+
+`/rooms/modal-watch/`
 
 `/rooms/clil-planner/`
 
